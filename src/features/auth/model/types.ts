@@ -5,6 +5,10 @@ export type LoginCredentials = {
   password: string
 }
 
+export type LoginOptions = {
+  rememberMe: boolean
+}
+
 export type AuthSession = User & {
   accessToken: string
   refreshToken: string

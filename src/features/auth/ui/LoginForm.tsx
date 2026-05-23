@@ -15,6 +15,7 @@ import { ApiError } from '@shared/api'
 import { AppButton } from '@shared/ui/AppButton'
 import { FormTextField } from '@shared/ui/FormTextField'
 import { useState, type ChangeEvent, type FormEvent } from 'react'
+import { authSessionStorage } from '../model/authSessionStorage'
 import type { LoginCredentials } from '../model/types'
 import { useAuth } from '../model/useAuth'
 
@@ -26,13 +27,15 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const { login } = useAuth()
 
   const [values, setValues] = useState<LoginCredentials>({
-    username: '',
+    username: authSessionStorage.getRememberedUsername(),
     password: '',
   })
 
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
+  const [rememberMe, setRememberMe] = useState(() =>
+    authSessionStorage.isRememberMeEnabled(),
+  )
   const [showPassword, setShowPassword] = useState(false)
 
   const updateField =
@@ -50,7 +53,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     setIsSubmitting(true)
 
     try {
-      await login(values)
+      await login(values, { rememberMe })
       onSuccess()
     } catch (error) {
       setErrorMessage(
