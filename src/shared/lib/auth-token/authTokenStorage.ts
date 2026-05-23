@@ -6,7 +6,7 @@ type StoredTokens = {
 const accessTokenKey = 'spms.accessToken'
 const refreshTokenKey = 'spms.refreshToken'
 
-const getStorage = () => {
+const getLocalStorage = () => {
   if (typeof window === 'undefined') {
     return null
   }
@@ -14,23 +14,45 @@ const getStorage = () => {
   return window.localStorage
 }
 
+const getSessionStorage = () => {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  return window.sessionStorage
+}
+
+const getPreferredStorage = (rememberMe: boolean) =>
+  rememberMe ? getLocalStorage() : getSessionStorage()
+
 export const authTokenStorage = {
   getAccessToken() {
-    return getStorage()?.getItem(accessTokenKey) ?? null
+    return (
+      getLocalStorage()?.getItem(accessTokenKey) ??
+      getSessionStorage()?.getItem(accessTokenKey) ??
+      null
+    )
   },
   getRefreshToken() {
-    return getStorage()?.getItem(refreshTokenKey) ?? null
+    return (
+      getLocalStorage()?.getItem(refreshTokenKey) ??
+      getSessionStorage()?.getItem(refreshTokenKey) ??
+      null
+    )
   },
-  setTokens(tokens: StoredTokens) {
-    const storage = getStorage()
+  setTokens(tokens: StoredTokens, rememberMe: boolean) {
+    const targetStorage = getPreferredStorage(rememberMe)
+    const staleStorage = rememberMe ? getSessionStorage() : getLocalStorage()
 
-    storage?.setItem(accessTokenKey, tokens.accessToken)
-    storage?.setItem(refreshTokenKey, tokens.refreshToken)
+    staleStorage?.removeItem(accessTokenKey)
+    staleStorage?.removeItem(refreshTokenKey)
+    targetStorage?.setItem(accessTokenKey, tokens.accessToken)
+    targetStorage?.setItem(refreshTokenKey, tokens.refreshToken)
   },
   clear() {
-    const storage = getStorage()
-
-    storage?.removeItem(accessTokenKey)
-    storage?.removeItem(refreshTokenKey)
+    getLocalStorage()?.removeItem(accessTokenKey)
+    getLocalStorage()?.removeItem(refreshTokenKey)
+    getSessionStorage()?.removeItem(accessTokenKey)
+    getSessionStorage()?.removeItem(refreshTokenKey)
   },
 }
