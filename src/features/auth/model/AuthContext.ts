@@ -1,11 +1,14 @@
 import { createContext } from 'react'
-import type { AuthSession, LoginCredentials } from './types'
+import type { AuthSession, LoginCredentials, LoginOptions } from './types'
 
 export type AuthContextValue = {
   session: AuthSession | null
   isAuthenticated: boolean
   isReady: boolean
-  login: (credentials: LoginCredentials) => Promise<AuthSession>
+  login: (
+    credentials: LoginCredentials,
+    options?: LoginOptions,
+  ) => Promise<AuthSession>
   logout: () => void
 }
 
