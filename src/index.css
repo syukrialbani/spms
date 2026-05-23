@@ -1,0 +1,81 @@
+:root {
+  font-family: Roboto, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  color: #091b34;
+  background: #edf7ff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-theme='dark'] {
+  color: #edf7ff;
+  background: #071323;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100svh;
+  background:
+    linear-gradient(145deg, rgba(20, 58, 120, 0.96) 0%, rgba(29, 112, 183, 0.84) 38%, rgba(82, 197, 242, 0.34) 100%),
+    linear-gradient(35deg, rgba(242, 140, 40, 0.22), rgba(255, 255, 255, 0) 42%),
+    #edf7ff;
+  background-attachment: fixed;
+}
+
+:root[data-theme='dark'] body {
+  background:
+    linear-gradient(145deg, rgba(3, 11, 26, 0.98) 0%, rgba(8, 25, 52, 0.96) 42%, rgba(20, 58, 120, 0.78) 100%),
+    linear-gradient(35deg, rgba(242, 140, 40, 0.16), rgba(255, 255, 255, 0) 42%),
+    #071323;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(172deg, rgba(255, 255, 255, 0.36) 0 12%, rgba(255, 255, 255, 0) 12% 100%),
+    linear-gradient(18deg, rgba(7, 27, 63, 0.18) 0 28%, rgba(255, 255, 255, 0) 28% 100%),
+    linear-gradient(150deg, rgba(255, 255, 255, 0) 0 58%, rgba(82, 197, 242, 0.26) 58% 100%);
+  mix-blend-mode: screen;
+}
+
+:root[data-theme='dark'] body::before {
+  background:
+    linear-gradient(172deg, rgba(82, 197, 242, 0.14) 0 12%, rgba(255, 255, 255, 0) 12% 100%),
+    linear-gradient(18deg, rgba(0, 0, 0, 0.3) 0 28%, rgba(255, 255, 255, 0) 28% 100%),
+    linear-gradient(150deg, rgba(255, 255, 255, 0) 0 58%, rgba(29, 112, 183, 0.2) 58% 100%);
+  mix-blend-mode: screen;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+* {
+  scrollbar-color: rgba(29, 112, 183, 0.62) rgba(255, 255, 255, 0.26);
+}
+
+:root[data-theme='dark'] * {
+  scrollbar-color: rgba(82, 197, 242, 0.54) rgba(7, 19, 35, 0.64);
+}
