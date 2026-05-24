@@ -1,21 +1,18 @@
-import AppBar from '@mui/material/AppBar'
-import Avatar from '@mui/material/Avatar'
-import Box from '@mui/material/Box'
-import IconButton from '@mui/material/IconButton'
-import InputAdornment from '@mui/material/InputAdornment'
-import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
-import Toolbar from '@mui/material/Toolbar'
-import Tooltip from '@mui/material/Tooltip'
-import Typography from '@mui/material/Typography'
+import { LogoutButton, useAuth } from '@features/auth'
 import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded'
 import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded'
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
 import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded'
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
-import { useLocation } from 'react-router-dom'
-import { LogoutButton, useAuth } from '@features/auth'
+import AppBar from '@mui/material/AppBar'
+import Avatar from '@mui/material/Avatar'
+import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
+import Stack from '@mui/material/Stack'
+import Toolbar from '@mui/material/Toolbar'
+import Tooltip from '@mui/material/Tooltip'
+import Typography from '@mui/material/Typography'
 import { useColorMode } from '@shared/lib/color-mode'
+import { useLocation } from 'react-router-dom'
 
 type MainAppBarProps = {
   drawerWidth: number
@@ -88,24 +85,6 @@ export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
           </Typography>
         </Box>
         <Box sx={{ flexGrow: 1 }} />
-        <TextField
-          placeholder="Search"
-          size="small"
-          sx={{
-            display: { xs: 'none', lg: 'block' },
-            maxWidth: 340,
-            width: '24vw',
-          }}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchRoundedIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
         <Tooltip title="Notifications">
           <IconButton color="inherit" aria-label="Notifications">
             <NotificationsNoneRoundedIcon />
