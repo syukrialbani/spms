@@ -1,3 +1,5 @@
 export { apiClient, ApiClient } from './client'
+export { ApiQueryProvider } from './ApiQueryProvider'
 export { ApiError } from './errors'
+export { queryClient } from './queryClient'
 export type { ApiRequestConfig, QueryParams } from './client'

@@ -1,3 +1,10 @@
+import axios, {
+  AxiosHeaders,
+  isAxiosError,
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type InternalAxiosRequestConfig,
+} from 'axios'
 import { env } from '@shared/config/env'
 import { authTokenStorage } from '@shared/lib/auth-token'
 import { ApiError, getErrorMessage, toApiError } from './errors'
@@ -8,216 +15,175 @@ type QueryValue = string | number | boolean | null | undefined
 
 export type QueryParams = Record<string, QueryValue | QueryValue[]>
 
-export type ApiRequestConfig = Omit<RequestInit, 'body' | 'headers' | 'method'> & {
+export type ApiRequestConfig<TBody = unknown> = Omit<
+  AxiosRequestConfig<TBody>,
+  'auth' | 'baseURL' | 'data' | 'method' | 'params' | 'url'
+> & {
   auth?: boolean
-  body?: unknown
-  headers?: Record<string, string>
+  body?: TBody
+  data?: TBody
   method?: HttpMethod
   params?: QueryParams
   skipGlobalError?: boolean
 }
 
-type InternalRequestConfig = Omit<ApiRequestConfig, 'headers'> & {
-  url: string
-  method: HttpMethod
-  headers: Headers
+type ApiInternalRequestConfig = Omit<InternalAxiosRequestConfig, 'auth'> & {
+  auth?: boolean
+  skipGlobalError?: boolean
 }
 
-type RequestInterceptor = (
-  config: InternalRequestConfig,
-) => InternalRequestConfig | Promise<InternalRequestConfig>
+const serializeParams = (params: QueryParams) => {
+  const searchParams = new URLSearchParams()
 
-type ResponseContext = {
-  request: InternalRequestConfig
-  response: Response
-}
+  Object.entries(params).forEach(([key, value]) => {
+    const values = Array.isArray(value) ? value : [value]
 
-type ResponseInterceptor = <T>(
-  data: T,
-  context: ResponseContext,
-) => T | Promise<T>
-
-const isAbsoluteUrl = (value: string) => /^https?:\/\//i.test(value)
-
-const buildUrl = (baseUrl: string, endpoint: string, params?: QueryParams) => {
-  const url = new URL(
-    isAbsoluteUrl(endpoint) ? endpoint : `${baseUrl}/${endpoint.replace(/^\/+/, '')}`,
-  )
-
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      const values = Array.isArray(value) ? value : [value]
-
-      values.forEach((item) => {
-        if (item !== undefined && item !== null && item !== '') {
-          url.searchParams.append(key, String(item))
-        }
-      })
+    values.forEach((item) => {
+      if (item !== undefined && item !== null && item !== '') {
+        searchParams.append(key, String(item))
+      }
     })
-  }
+  })
 
-  return url.toString()
+  return searchParams.toString()
 }
 
-const parseResponse = async (response: Response) => {
-  if (response.status === 204) {
-    return null
+const toAxiosApiError = (error: unknown) => {
+  if (!isAxiosError(error)) {
+    return toApiError(error)
   }
 
-  const contentType = response.headers.get('content-type') ?? ''
+  const isNetworkError = !error.response
 
-  if (contentType.includes('application/json')) {
-    return response.json() as Promise<unknown>
-  }
-
-  return response.text()
-}
-
-const buildRequestBody = (body: unknown, headers: Headers) => {
-  if (body === undefined || body === null) {
-    return undefined
-  }
-
-  if (
-    typeof body === 'string' ||
-    body instanceof FormData ||
-    body instanceof URLSearchParams ||
-    body instanceof Blob
-  ) {
-    return body
-  }
-
-  if (!headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json')
-  }
-
-  return JSON.stringify(body)
+  return new ApiError(
+    isNetworkError
+      ? 'Koneksi bermasalah. Silakan coba lagi.'
+      : getErrorMessage(error.response?.data),
+    {
+      code: error.code,
+      data: error.response?.data,
+      isNetworkError,
+      status: error.response?.status,
+    },
+  )
 }
 
 export class ApiClient {
-  private baseUrl: string
-  private requestInterceptors = new Set<RequestInterceptor>()
-  private responseInterceptors = new Set<ResponseInterceptor>()
+  readonly instance: AxiosInstance
 
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl
+  constructor(baseURL: string) {
+    this.instance = axios.create({
+      baseURL,
+      headers: {
+        Accept: 'application/json',
+      },
+      paramsSerializer: {
+        serialize: serializeParams,
+      },
+      timeout: 30_000,
+    })
+
+    this.setupInterceptors()
   }
 
-  addRequestInterceptor(interceptor: RequestInterceptor) {
-    this.requestInterceptors.add(interceptor)
+  private setupInterceptors() {
+    this.instance.interceptors.request.use((config) => {
+      const apiConfig = config as ApiInternalRequestConfig
 
-    return () => this.requestInterceptors.delete(interceptor)
+      if (apiConfig.auth === false) {
+        return config
+      }
+
+      const accessToken = authTokenStorage.getAccessToken()
+
+      if (accessToken) {
+        const headers = AxiosHeaders.from(config.headers)
+        headers.set('Authorization', `Bearer ${accessToken}`)
+        config.headers = headers
+      }
+
+      return config
+    })
+
+    this.instance.interceptors.response.use(
+      (response) => response,
+      (error: unknown) => {
+        const apiError = toAxiosApiError(error)
+        const config = isAxiosError(error)
+          ? (error.config as ApiInternalRequestConfig | undefined)
+          : undefined
+
+        if (apiError.status === 401) {
+          emitUnauthorized()
+        }
+
+        if (!config?.skipGlobalError) {
+          emitApiError(apiError)
+        }
+
+        return Promise.reject(apiError)
+      },
+    )
   }
 
-  addResponseInterceptor(interceptor: ResponseInterceptor) {
-    this.responseInterceptors.add(interceptor)
+  async request<TResponse, TBody = unknown>(
+    endpoint: string,
+    config: ApiRequestConfig<TBody> = {},
+  ) {
+    const { body, data, ...requestConfig } = config
+    const response = await this.instance.request<TResponse>({
+      ...requestConfig,
+      data: body ?? data,
+      method: requestConfig.method ?? 'GET',
+      url: endpoint,
+    } as AxiosRequestConfig<TBody>)
 
-    return () => this.responseInterceptors.delete(interceptor)
+    return response.data
   }
 
-  async request<T>(endpoint: string, config: ApiRequestConfig = {}) {
-    const headers = new Headers(config.headers)
+  get<TResponse>(endpoint: string, config?: ApiRequestConfig) {
+    return this.request<TResponse>(endpoint, { ...config, method: 'GET' })
+  }
 
-    if (!headers.has('Accept')) {
-      headers.set('Accept', 'application/json')
-    }
-
-    let internalConfig: InternalRequestConfig = {
+  post<TResponse, TBody = unknown>(
+    endpoint: string,
+    body?: TBody,
+    config?: ApiRequestConfig<TBody>,
+  ) {
+    return this.request<TResponse, TBody>(endpoint, {
       ...config,
-      url: buildUrl(this.baseUrl, endpoint, config.params),
-      method: config.method ?? 'GET',
-      headers,
-    }
-
-    for (const interceptor of this.requestInterceptors) {
-      internalConfig = await interceptor(internalConfig)
-    }
-
-    const body = buildRequestBody(internalConfig.body, internalConfig.headers)
-    const fetchConfig: RequestInit = {
-      cache: internalConfig.cache,
-      credentials: internalConfig.credentials ?? 'include',
-      headers: internalConfig.headers,
-      integrity: internalConfig.integrity,
-      keepalive: internalConfig.keepalive,
-      method: internalConfig.method,
-      mode: internalConfig.mode,
-      redirect: internalConfig.redirect,
-      referrer: internalConfig.referrer,
-      referrerPolicy: internalConfig.referrerPolicy,
-      signal: internalConfig.signal,
       body,
-    }
-
-    try {
-      const response = await fetch(internalConfig.url, fetchConfig)
-      const data = await parseResponse(response)
-
-      if (!response.ok) {
-        throw new ApiError(getErrorMessage(data), {
-          status: response.status,
-          data,
-        })
-      }
-
-      let result = data as T
-
-      for (const interceptor of this.responseInterceptors) {
-        result = await interceptor(result, {
-          request: internalConfig,
-          response,
-        })
-      }
-
-      return result
-    } catch (error) {
-      const apiError = toApiError(error)
-
-      if (apiError.status === 401) {
-        emitUnauthorized()
-      }
-
-      if (!internalConfig.skipGlobalError) {
-        emitApiError(apiError)
-      }
-
-      throw apiError
-    }
+      method: 'POST',
+    })
   }
 
-  get<T>(endpoint: string, config?: ApiRequestConfig) {
-    return this.request<T>(endpoint, { ...config, method: 'GET' })
+  put<TResponse, TBody = unknown>(
+    endpoint: string,
+    body?: TBody,
+    config?: ApiRequestConfig<TBody>,
+  ) {
+    return this.request<TResponse, TBody>(endpoint, {
+      ...config,
+      body,
+      method: 'PUT',
+    })
   }
 
-  post<T>(endpoint: string, body?: unknown, config?: ApiRequestConfig) {
-    return this.request<T>(endpoint, { ...config, method: 'POST', body })
+  patch<TResponse, TBody = unknown>(
+    endpoint: string,
+    body?: TBody,
+    config?: ApiRequestConfig<TBody>,
+  ) {
+    return this.request<TResponse, TBody>(endpoint, {
+      ...config,
+      body,
+      method: 'PATCH',
+    })
   }
 
-  put<T>(endpoint: string, body?: unknown, config?: ApiRequestConfig) {
-    return this.request<T>(endpoint, { ...config, method: 'PUT', body })
-  }
-
-  patch<T>(endpoint: string, body?: unknown, config?: ApiRequestConfig) {
-    return this.request<T>(endpoint, { ...config, method: 'PATCH', body })
-  }
-
-  delete<T>(endpoint: string, config?: ApiRequestConfig) {
-    return this.request<T>(endpoint, { ...config, method: 'DELETE' })
+  delete<TResponse>(endpoint: string, config?: ApiRequestConfig) {
+    return this.request<TResponse>(endpoint, { ...config, method: 'DELETE' })
   }
 }
 
 export const apiClient = new ApiClient(env.apiBaseUrl)
-
-apiClient.addRequestInterceptor((config) => {
-  if (config.auth === false) {
-    return config
-  }
-
-  const accessToken = authTokenStorage.getAccessToken()
-
-  if (accessToken) {
-    config.headers.set('Authorization', `Bearer ${accessToken}`)
-  }
-
-  return config
-})
