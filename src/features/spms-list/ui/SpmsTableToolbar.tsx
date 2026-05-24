@@ -28,10 +28,14 @@ export function SpmsTableToolbar({
     <LiquidPanel
       sx={{
         mb: 2,
-        p: 2,
+        p: { xs: 1.5, sm: 2 },
       }}
     >
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={1.5}
+        sx={{ alignItems: 'stretch' }}
+      >
         <TextField
           fullWidth
           placeholder="Search order, customer, area, site..."
@@ -107,7 +111,7 @@ export function SpmsTableToolbar({
               },
             },
           }}
-          sx={{ minWidth: { xs: '100%', md: 190 } }}
+          sx={{ minWidth: { md: 190 }, width: { xs: '100%', md: 190 } }}
         >
           {statusOptions.map((option) => (
             <MenuItem key={option} value={option}>
@@ -119,10 +123,8 @@ export function SpmsTableToolbar({
           variant="contained"
           startIcon={<FilterListRoundedIcon />}
           sx={{
-            // bgcolor: 'rgba(255,255,255,0.34)',
-            // borderColor: 'rgba(29,112,183,0.18)',
-            // color: 'primary.dark',
             minWidth: 118,
+            width: { xs: '100%', md: 'auto' },
           }}
         >
           Filter
@@ -130,7 +132,7 @@ export function SpmsTableToolbar({
         <Button
           variant="contained"
           startIcon={<FileDownloadRoundedIcon />}
-          sx={{ minWidth: 118 }}
+          sx={{ minWidth: 118, width: { xs: '100%', md: 'auto' } }}
         >
           Export
         </Button>

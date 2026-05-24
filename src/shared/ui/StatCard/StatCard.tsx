@@ -15,10 +15,14 @@ export function StatCard({ icon, label, value, helper }: StatCardProps) {
   return (
     <LiquidPanel
       sx={{
-        p: 2.5,
+        p: { xs: 2, md: 2.5 },
       }}
     >
-      <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+      <Stack
+        direction="row"
+        spacing={{ xs: 1.5, md: 2 }}
+        sx={{ alignItems: 'center', minWidth: 0 }}
+      >
         <Box
           sx={{
             alignItems: 'center',
@@ -28,9 +32,10 @@ export function StatCard({ icon, label, value, helper }: StatCardProps) {
             boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.38)',
             color: 'common.white',
             display: 'flex',
-            height: 44,
+            flexShrink: 0,
+            height: { xs: 40, md: 44 },
             justifyContent: 'center',
-            width: 44,
+            width: { xs: 40, md: 44 },
           }}
         >
           {icon}
@@ -39,7 +44,10 @@ export function StatCard({ icon, label, value, helper }: StatCardProps) {
           <Typography color="text.secondary" variant="body2">
             {label}
           </Typography>
-          <Typography variant="h5" sx={{ mt: 0.25 }}>
+          <Typography
+            variant="h5"
+            sx={{ fontSize: { xs: 22, md: 24 }, mt: 0.25 }}
+          >
             {value}
           </Typography>
           {helper ? (

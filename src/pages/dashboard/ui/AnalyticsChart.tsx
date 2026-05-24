@@ -94,16 +94,25 @@ export function AnalyticsChart({ data }: AnalyticsChartProps) {
     <LiquidPanel sx={{ mb: 3, p: { xs: 2, md: 3 } }}>
       <Stack
         direction={{ xs: 'column', md: 'row' }}
-        spacing={2}
+        spacing={{ xs: 1.5, md: 2 }}
         sx={{ alignItems: { md: 'center' }, justifyContent: 'space-between', mb: 2 }}
       >
         <Box>
-          <Typography variant="h5">Analytics</Typography>
+          <Typography
+            variant="h5"
+            sx={{ fontSize: { xs: 22, md: 24 }, lineHeight: 1.2 }}
+          >
+            Analytics
+          </Typography>
           <Typography color="text.secondary" variant="body2">
             Monthly order trend from SPMS request data.
           </Typography>
         </Box>
-        <Stack direction="row" spacing={1.25}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1.25}
+          sx={{ width: { xs: '100%', md: 'auto' } }}
+        >
           <TextField
             select
             size="small"
@@ -111,7 +120,7 @@ export function AnalyticsChart({ data }: AnalyticsChartProps) {
             onChange={(event) =>
               setMetric(event.target.value as SpmsAnalyticsMetric)
             }
-            sx={{ minWidth: 160 }}
+            sx={{ minWidth: { sm: 160 }, width: { xs: '100%', sm: 'auto' } }}
             slotProps={{
               input: {
                 startAdornment: (
@@ -136,13 +145,13 @@ export function AnalyticsChart({ data }: AnalyticsChartProps) {
             size="small"
             value={period}
             onChange={(event) => setPeriod(event.target.value)}
-            sx={{ minWidth: 126 }}
+            sx={{ minWidth: { sm: 126 }, width: { xs: '100%', sm: 'auto' } }}
           >
             <MenuItem value="monthly">Monthly</MenuItem>
           </TextField>
         </Stack>
       </Stack>
-      <Box sx={{ height: { xs: 280, md: 330 }, minWidth: 0 }}>
+      <Box sx={{ height: { xs: 240, sm: 280, md: 330 }, minWidth: 0, overflow: 'hidden' }}>
         <ResponsiveContainer height="100%" width="100%">
           <AreaChart
             data={data}
@@ -162,16 +171,17 @@ export function AnalyticsChart({ data }: AnalyticsChartProps) {
             <XAxis
               axisLine={false}
               dataKey="month"
+              interval="preserveStartEnd"
               tickLine={false}
-              tick={{ fill: '#9aa7b8', fontSize: 14 }}
+              tick={{ fill: '#9aa7b8', fontSize: 12 }}
             />
             <YAxis
               allowDecimals={false}
               axisLine={false}
               domain={[0, Math.max(maxValue, 5)]}
               tickLine={false}
-              tick={{ fill: '#9aa7b8', fontSize: 14 }}
-              width={42}
+              tick={{ fill: '#9aa7b8', fontSize: 12 }}
+              width={36}
             />
             <Tooltip
               content={(props) => <ChartTooltip {...props} metric={metric} />}

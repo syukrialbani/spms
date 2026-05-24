@@ -52,13 +52,13 @@ export function DashboardPage() {
       <Box
         sx={{
           display: 'grid',
-          gap: 2,
+          gap: { xs: 1.5, md: 2 },
           gridTemplateColumns: {
             xs: '1fr',
             sm: 'repeat(2, minmax(0, 1fr))',
             lg: 'repeat(4, minmax(0, 1fr))',
           },
-          mb: 3,
+          mb: { xs: 2, md: 3 },
         }}
       >
         <StatCard
@@ -90,19 +90,23 @@ export function DashboardPage() {
       <Box
         sx={{
           display: 'grid',
-          gap: 2,
+          gap: { xs: 1.5, md: 2 },
           gridTemplateColumns: { xs: '1fr', lg: '0.9fr 1.1fr' },
+          minWidth: 0,
+          '& > *': {
+            minWidth: 0,
+          },
         }}
       >
-        <Stack spacing={2}>
-          <CustomerStatusTable />
+        <Stack spacing={2} sx={{ minWidth: 0 }}>
           <LiquidPanel
             sx={{
-              p: 2.5,
+              minWidth: 0,
+              p: { xs: 2, md: 2.5 },
             }}
           >
-            <Stack spacing={2.5}>
-              <Box>
+            <Stack spacing={2.5} sx={{ minWidth: 0 }}>
+              <Box sx={{ minWidth: 0 }}>
                 <Typography variant="h6">Status Distribution</Typography>
                 <Typography color="text.secondary" variant="body2">
                   SPMS movement by approval stage.
@@ -113,15 +117,24 @@ export function DashboardPage() {
                 const percentage = Math.round((count / spmsRecords.length) * 100)
 
                 return (
-                  <Box key={status}>
+                  <Box key={status} sx={{ minWidth: 0 }}>
                     <Stack
                       direction="row"
-                      sx={{ justifyContent: 'space-between', mb: 1 }}
+                      spacing={1}
+                      sx={{
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        justifyContent: 'space-between',
+                        mb: 1,
+                        minWidth: 0,
+                        rowGap: 0.75,
+                      }}
                     >
                       <Chip
                         color={getSpmsStatusColor(status)}
                         label={status}
                         size="small"
+                        sx={{ maxWidth: '100%' }}
                       />
                       <Typography color="text.secondary" variant="body2">
                         {count} records
@@ -130,12 +143,21 @@ export function DashboardPage() {
                     <LinearProgress
                       variant="determinate"
                       value={percentage}
-                      sx={{ borderRadius: 1, height: 8 }}
+                      sx={{
+                        borderRadius: 1,
+                        height: 8,
+                        maxWidth: '100%',
+                        overflow: 'hidden',
+                      }}
                     />
                   </Box>
                 )
               })}
-              <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ flexWrap: 'wrap', minWidth: 0, rowGap: 1 }}
+              >
                 {(['Low', 'Medium', 'High', 'Critical'] as const).map((severity) => (
                   <Chip
                     key={severity}
@@ -151,14 +173,16 @@ export function DashboardPage() {
               </Stack>
             </Stack>
           </LiquidPanel>
+          <CustomerStatusTable />
         </Stack>
         <LiquidPanel
           sx={{
-            p: 2.5,
+            minWidth: 0,
+            p: { xs: 2, md: 2.5 },
           }}
         >
-          <Stack spacing={2}>
-            <Box>
+          <Stack spacing={2} sx={{ minWidth: 0 }}>
+            <Box sx={{ minWidth: 0 }}>
               <Typography variant="h6">Recent SPMS</Typography>
               <Typography color="text.secondary" variant="body2">
                 Latest material requests in the workspace.
@@ -173,7 +197,8 @@ export function DashboardPage() {
                   borderColor: 'divider',
                   borderRadius: 1,
                   display: 'block',
-                  p: 2,
+                  minWidth: 0,
+                  p: { xs: 1.5, md: 2 },
                   textAlign: 'left',
                   width: '100%',
                   '&:hover': {
@@ -184,24 +209,42 @@ export function DashboardPage() {
                 <Stack
                   direction={{ xs: 'column', sm: 'row' }}
                   spacing={1.5}
-                  sx={{ justifyContent: 'space-between' }}
+                  sx={{
+                    alignItems: { sm: 'center' },
+                    justifyContent: 'space-between',
+                    minWidth: 0,
+                  }}
                 >
                   <Box sx={{ minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 700 }}>
+                    <Typography sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
                       {record.orderNumber}
                     </Typography>
-                    <Typography color="text.secondary" variant="body2">
+                    <Typography
+                      color="text.secondary"
+                      sx={{ overflowWrap: 'anywhere' }}
+                      variant="body2"
+                    >
                       {record.customer} - {record.siteName}
                     </Typography>
                     <Typography color="text.secondary" variant="caption">
                       Requested {formatDate(record.requestDate)}
                     </Typography>
                   </Box>
-                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      minWidth: 0,
+                      rowGap: 1,
+                    }}
+                  >
                     <Chip
                       color={getSpmsStatusColor(record.statusSpms)}
                       label={record.statusSpms}
                       size="small"
+                      sx={{ maxWidth: '100%' }}
                     />
                     <Typography sx={{ fontWeight: 700 }}>{record.qty} pcs</Typography>
                   </Stack>
