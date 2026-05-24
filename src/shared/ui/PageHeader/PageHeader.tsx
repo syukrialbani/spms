@@ -14,20 +14,47 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
     <Stack
       direction={{ xs: 'column', sm: 'row' }}
       spacing={2}
-      sx={{ alignItems: { sm: 'flex-end' }, justifyContent: 'space-between', mb: 3 }}
+      sx={{
+        alignItems: { sm: 'flex-end' },
+        justifyContent: 'space-between',
+        mb: { xs: 2, md: 3 },
+      }}
     >
-      <Box>
-        <Typography variant="h4" component="h1">
+      <Box sx={{ minWidth: 0 }}>
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            fontSize: { xs: 28, sm: 32, md: 34 },
+            lineHeight: 1.12,
+            overflowWrap: 'anywhere',
+          }}
+        >
           {title}
         </Typography>
         {subtitle ? (
-          <Typography color="text.secondary" sx={{ mt: 0.75, maxWidth: 680 }}>
+          <Typography
+            color="text.secondary"
+            sx={{ mt: 0.75, maxWidth: 680 }}
+            variant="body2"
+          >
             {subtitle}
           </Typography>
         ) : null}
       </Box>
       {actions ? (
-        <Box sx={{ alignItems: 'center', display: 'flex' }}>{actions}</Box>
+        <Box
+          sx={{
+            alignItems: 'center',
+            display: 'flex',
+            width: { xs: '100%', sm: 'auto' },
+            '& > *': {
+              width: { xs: '100%', sm: 'auto' },
+            },
+          }}
+        >
+          {actions}
+        </Box>
       ) : null}
     </Stack>
   )

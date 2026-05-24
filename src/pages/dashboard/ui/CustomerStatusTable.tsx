@@ -1,4 +1,5 @@
 import { useMemo, useState, type MouseEvent } from 'react'
+import Box from '@mui/material/Box'
 import ButtonBase from '@mui/material/ButtonBase'
 import Chip from '@mui/material/Chip'
 import Link from '@mui/material/Link'
@@ -94,19 +95,23 @@ export function CustomerStatusTable() {
   }
 
   return (
-    <LiquidPanel sx={{ p: 2.5 }}>
-      <Stack spacing={2}>
+    <LiquidPanel sx={{ minWidth: 0, p: { xs: 2, md: 2.5 } }}>
+      <Stack spacing={2} sx={{ minWidth: 0 }}>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
           spacing={1.5}
-          sx={{ justifyContent: 'space-between' }}
+          sx={{
+            alignItems: { sm: 'flex-start' },
+            justifyContent: 'space-between',
+            minWidth: 0,
+          }}
         >
-          <div>
+          <Box sx={{ minWidth: 0 }}>
             <Typography variant="h6">Customer Status Matrix</Typography>
             <Typography color="text.secondary" variant="body2">
               Customer order count by SPMS status.
             </Typography>
-          </div>
+          </Box>
           <Chip
             color="primary"
             label={`${spmsRecords.length} total orders`}
@@ -114,7 +119,127 @@ export function CustomerStatusTable() {
             variant="outlined"
           />
         </Stack>
-        <TableContainer sx={{ overflowX: 'auto' }}>
+        <Box
+          sx={{
+            display: { xs: 'grid', md: 'none' },
+            gap: 1.25,
+            minWidth: 0,
+          }}
+        >
+          {summaries.map((summary) => (
+            <Box
+              key={summary.customer}
+              sx={{
+                bgcolor: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? 'rgba(7,19,35,0.36)'
+                    : 'rgba(255,255,255,0.44)',
+                border: '1px solid',
+                borderColor: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? 'rgba(128, 205, 255, 0.16)'
+                    : 'rgba(29, 112, 183, 0.14)',
+                borderRadius: 1,
+                minWidth: 0,
+                p: 1.25,
+              }}
+            >
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  mb: 1.25,
+                  minWidth: 0,
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: 900, minWidth: 0, overflowWrap: 'anywhere' }}
+                >
+                  {summary.customer}
+                </Typography>
+                <Chip
+                  label={summary.total}
+                  size="small"
+                  sx={{ flexShrink: 0, fontWeight: 900 }}
+                />
+              </Stack>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gap: 0.75,
+                  gridTemplateColumns: {
+                    xs: 'repeat(2, minmax(0, 1fr))',
+                    sm: 'repeat(3, minmax(0, 1fr))',
+                  },
+                  minWidth: 0,
+                }}
+              >
+                {spmsStatuses.map((status) => {
+                  const records = summary.statuses[status]
+                  const count = records.length
+
+                  return (
+                    <ButtonBase
+                      key={status}
+                      disabled={!count}
+                      onClick={(event) =>
+                        openPopover(event, summary.customer, status, records)
+                      }
+                      sx={{
+                        bgcolor: (theme) =>
+                          count
+                            ? theme.palette.mode === 'dark'
+                              ? 'rgba(82, 197, 242, 0.12)'
+                              : 'rgba(47, 128, 237, 0.1)'
+                            : 'rgba(96, 112, 138, 0.08)',
+                        border: '1px solid',
+                        borderColor: (theme) =>
+                          count
+                            ? theme.palette.mode === 'dark'
+                              ? 'rgba(82, 197, 242, 0.28)'
+                              : 'rgba(47, 128, 237, 0.22)'
+                            : 'rgba(96, 112, 138, 0.08)',
+                        borderRadius: 1,
+                        color: count ? 'primary.main' : 'text.secondary',
+                        display: 'block',
+                        minHeight: 58,
+                        minWidth: 0,
+                        p: 1,
+                        textAlign: 'left',
+                        width: '100%',
+                      }}
+                    >
+                      <Typography
+                        color="text.secondary"
+                        sx={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          lineHeight: 1.2,
+                          overflowWrap: 'anywhere',
+                        }}
+                      >
+                        {status}
+                      </Typography>
+                      <Typography sx={{ fontWeight: 900, lineHeight: 1.2 }}>
+                        {count}
+                      </Typography>
+                    </ButtonBase>
+                  )
+                })}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+        <TableContainer
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
           <Table size="small" sx={{ minWidth: 760 }}>
             <TableHead>
               <TableRow>
@@ -207,8 +332,10 @@ export function CustomerStatusTable() {
                 theme.palette.mode === 'dark'
                   ? '0 22px 60px rgba(0, 8, 20, 0.42)'
                   : '0 22px 60px rgba(12, 67, 122, 0.22)',
-              minWidth: 320,
+              maxWidth: 'calc(100vw - 24px)',
+              minWidth: { xs: 0, sm: 320 },
               p: 2,
+              width: { xs: 'calc(100vw - 32px)', sm: 360 },
             },
           },
         }}
