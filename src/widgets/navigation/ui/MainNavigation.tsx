@@ -44,7 +44,7 @@ export function MainNavigation({ onNavigate }: MainNavigationProps) {
           theme.palette.mode === 'dark'
             ? 'rgba(128, 205, 255, 0.18)'
             : 'rgba(255,255,255,0.34)',
-        borderRadius: 1,
+        borderRadius: { xs: 0, md: 1 },
         boxShadow: '0 26px 72px rgba(12, 67, 122, 0.26)',
         color: 'common.white',
         display: 'flex',
@@ -59,13 +59,13 @@ export function MainNavigation({ onNavigate }: MainNavigationProps) {
           alignItems: 'center',
           borderBottom: '1px solid rgba(255,255,255,0.22)',
           display: 'flex',
-          height: 84,
-          px: 2.5,
+          height: { xs: 76, md: 84 },
+          px: { xs: 2, md: 2.5 },
         }}
       >
         <AviatBrand />
       </Box>
-      <List sx={{ flexGrow: 1, px: 1.5, py: 2 }}>
+      <List sx={{ flexGrow: 1, px: { xs: 1.25, md: 1.5 }, py: 2 }}>
         {navigationItems.map((item) => {
           const selected = location.pathname.startsWith(item.path)
 

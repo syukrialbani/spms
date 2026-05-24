@@ -35,9 +35,9 @@ export function LoginPage() {
         display: 'flex',
         justifyContent: 'center',
         minHeight: '100svh',
-        overflow: 'hidden',
-        px: { xs: 2, sm: 4 },
-        py: 4,
+        overflowX: 'hidden',
+        px: { xs: 1.5, sm: 4 },
+        py: { xs: 2, sm: 4 },
         position: 'relative',
         '&::before': {
           background:
@@ -108,11 +108,14 @@ export function LoginPage() {
             alignSelf: 'center',
             justifySelf: { xs: 'center', lg: 'end' },
             maxWidth: 470,
-            p: { xs: 3, sm: 4.5 },
+            p: { xs: 2.5, sm: 4.5 },
             width: '100%',
           }}
         >
-          <Stack spacing={3}>
+          <Stack spacing={{ xs: 2.25, sm: 3 }}>
+            <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
+              <AviatBrand />
+            </Box>
             <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
               <VerifiedRoundedIcon sx={{ color: 'secondary.main' }} />
               <Typography sx={{ color: 'common.white', fontWeight: 800 }}>SPMS Secure Login</Typography>
@@ -121,7 +124,11 @@ export function LoginPage() {
               <Typography
                 variant="h3"
                 component="h1"
-                sx={{ color: 'common.white', fontWeight: 900 }}
+                sx={{
+                  color: 'common.white',
+                  fontSize: { xs: 34, sm: 48 },
+                  fontWeight: 900,
+                }}
               >
                 Login
               </Typography>

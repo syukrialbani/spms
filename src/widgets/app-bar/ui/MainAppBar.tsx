@@ -66,35 +66,61 @@ export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
         width: { xs: 'auto', md: `calc(100% - ${drawerWidth + 48}px)` },
       }}
     >
-      <Toolbar sx={{ gap: 2, minHeight: { xs: 60, md: 64 } }}>
+      <Toolbar
+        sx={{
+          gap: { xs: 0.75, sm: 1.25, md: 2 },
+          minHeight: { xs: 60, md: 64 },
+          px: { xs: 1, sm: 2, md: 3 },
+        }}
+      >
         <IconButton
           edge="start"
           color="inherit"
           aria-label="Open navigation"
           onClick={onMenuClick}
-          sx={{ display: { md: 'none' } }}
+          sx={{ display: { md: 'none' }, flexShrink: 0 }}
         >
           <MenuRoundedIcon />
         </IconButton>
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant="h6" noWrap>
+          <Typography
+            variant="h6"
+            noWrap
+            sx={{
+              fontSize: { xs: 17, sm: 19, md: 20 },
+              lineHeight: 1.2,
+              maxWidth: { xs: '44vw', sm: 'none' },
+            }}
+          >
             {title}
           </Typography>
-          <Typography color="text.secondary" variant="caption" noWrap>
+          <Typography
+            color="text.secondary"
+            variant="caption"
+            noWrap
+            sx={{ display: { xs: 'none', sm: 'block' } }}
+          >
             Centralized performance management
           </Typography>
         </Box>
         <Box sx={{ flexGrow: 1 }} />
         <Tooltip title="Notifications">
-          <IconButton color="inherit" aria-label="Notifications">
+          <IconButton
+            color="inherit"
+            aria-label="Notifications"
+            sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+          >
             <NotificationsNoneRoundedIcon />
           </IconButton>
         </Tooltip>
-        <Tooltip title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
+        <Tooltip
+          title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+        >
           <IconButton
             color="inherit"
             aria-label="Toggle color mode"
             onClick={toggleMode}
+            sx={{ flexShrink: 0 }}
           >
             {mode === 'light' ? <DarkModeRoundedIcon /> : <LightModeRoundedIcon />}
           </IconButton>
@@ -102,7 +128,11 @@ export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
         <Stack
           direction="row"
           spacing={1}
-          sx={{ alignItems: 'center', minWidth: 0 }}
+          sx={{
+            alignItems: 'center',
+            display: { xs: 'none', sm: 'flex' },
+            minWidth: 0,
+          }}
         >
           <Avatar src={session?.image} alt={displayName} sx={{ height: 36, width: 36 }}>
             {getInitials(session?.firstName, session?.lastName)}

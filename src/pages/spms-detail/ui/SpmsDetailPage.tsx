@@ -113,7 +113,9 @@ export function SpmsDetailPage() {
                   <Typography color="text.secondary" variant="caption">
                     {label}
                   </Typography>
-                  <Typography sx={{ fontWeight: 800, mt: 0.5 }}>
+                  <Typography
+                    sx={{ fontWeight: 800, mt: 0.5, overflowWrap: 'anywhere' }}
+                  >
                     {value}
                   </Typography>
                 </Box>

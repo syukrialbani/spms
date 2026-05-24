@@ -22,6 +22,7 @@ export function AppShell() {
             : 'linear-gradient(135deg, rgba(236, 248, 255, 0.82), rgba(207, 235, 255, 0.62)), linear-gradient(25deg, rgba(242, 140, 40, 0.16), transparent 48%)',
         display: 'flex',
         minHeight: '100svh',
+        overflowX: 'hidden',
       }}
     >
       <MainAppBar
@@ -42,7 +43,8 @@ export function AppShell() {
             '& .MuiDrawer-paper': {
               bgcolor: 'transparent',
               boxSizing: 'border-box',
-              width: drawerWidth,
+              maxWidth: '88vw',
+              width: { xs: 288, sm: drawerWidth },
             },
           }}
         >
@@ -68,14 +70,20 @@ export function AppShell() {
         component="main"
         sx={{
           flexGrow: 1,
+          maxWidth: { xs: '100vw', md: `calc(100vw - ${drawerWidth}px)` },
           minHeight: '100svh',
-          pt: { xs: '76px', md: '92px' },
+          overflowX: 'hidden',
+          pt: { xs: '80px', sm: '84px', md: '92px' },
           width: { md: `calc(100% - ${drawerWidth}px)` },
         }}
       >
         <Container
           maxWidth={false}
-          sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}
+          sx={{
+            maxWidth: '100%',
+            px: { xs: 1.5, sm: 2, md: 3 },
+            py: { xs: 1.5, sm: 2, md: 3 },
+          }}
         >
           <Outlet />
         </Container>

@@ -41,23 +41,25 @@ const getStickySx = <Row,>(
   const offset = column.stickyOffset ?? 0
 
   return (theme) => ({
-    backdropFilter: 'blur(24px) saturate(1.45)',
-    background:
-      theme.palette.mode === 'dark'
-        ? isHead
-          ? 'rgba(10, 42, 94, 0.92)'
-          : 'rgba(7, 19, 35, 0.9)'
-        : isHead
-          ? 'rgba(231, 247, 255, 0.92)'
-          : 'rgba(247, 252, 255, 0.9)',
-    boxShadow:
-      column.sticky === 'left'
-        ? '12px 0 22px rgba(12, 67, 122, 0.08)'
-        : '-12px 0 22px rgba(12, 67, 122, 0.08)',
-    left: column.sticky === 'left' ? offset : undefined,
-    position: 'sticky',
-    right: column.sticky === 'right' ? offset : undefined,
-    zIndex: isHead ? 4 : 3,
+    [theme.breakpoints.up('md')]: {
+      backdropFilter: 'blur(24px) saturate(1.45)',
+      background:
+        theme.palette.mode === 'dark'
+          ? isHead
+            ? 'rgba(10, 42, 94, 0.92)'
+            : 'rgba(7, 19, 35, 0.9)'
+          : isHead
+            ? 'rgba(231, 247, 255, 0.92)'
+            : 'rgba(247, 252, 255, 0.9)',
+      boxShadow:
+        column.sticky === 'left'
+          ? '12px 0 22px rgba(12, 67, 122, 0.08)'
+          : '-12px 0 22px rgba(12, 67, 122, 0.08)',
+      left: column.sticky === 'left' ? offset : undefined,
+      position: 'sticky',
+      right: column.sticky === 'right' ? offset : undefined,
+      zIndex: isHead ? 4 : 3,
+    },
   })
 }
 
@@ -87,8 +89,17 @@ export function DataTable<Row>({
           theme.palette.mode === 'dark'
             ? '0 22px 60px rgba(0, 8, 20, 0.35)'
             : '0 22px 60px rgba(12, 67, 122, 0.15)',
-        maxHeight: 'calc(100svh - 270px)',
+        display: 'block',
+        maxHeight: {
+          xs: 'calc(100svh - 286px)',
+          sm: 'calc(100svh - 270px)',
+          md: 'calc(100svh - 270px)',
+        },
+        maxWidth: '100%',
         overflow: 'auto',
+        overscrollBehavior: 'contain',
+        WebkitOverflowScrolling: 'touch',
+        width: '100%',
       }}
     >
       <Table stickyHeader size="small" sx={{ minWidth, tableLayout: 'fixed' }}>
@@ -101,6 +112,8 @@ export function DataTable<Row>({
                     ? 'rgba(10, 42, 94, 0.92)'
                     : 'rgba(231, 247, 255, 0.92)',
                 backdropFilter: 'blur(24px) saturate(1.45)',
+                fontSize: { xs: 12, sm: 13 },
+                px: { xs: 1, sm: 1.5 },
                 py: 1.45,
               },
             }}
@@ -151,6 +164,8 @@ export function DataTable<Row>({
                         maxWidth: column.width,
                         minWidth: column.minWidth,
                         overflow: 'hidden',
+                        fontSize: { xs: 12, sm: 13 },
+                        px: { xs: 1, sm: 1.5 },
                         py: 1.35,
                         textOverflow: 'ellipsis',
                         whiteSpace: column.nowrap === false ? 'normal' : 'nowrap',
