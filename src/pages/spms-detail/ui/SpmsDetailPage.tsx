@@ -5,6 +5,7 @@ import {
   getSpmsStatusColor,
 } from '@entities/spms'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
+import EditRoundedIcon from '@mui/icons-material/EditRounded'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
@@ -47,13 +48,31 @@ export function SpmsDetailPage() {
         title={record.orderNumber}
         subtitle={`${record.customer} - ${record.siteName}`}
         actions={
-          <Button
-            variant="contained"
-            startIcon={<ArrowBackRoundedIcon />}
-            onClick={() => navigate(-1)}
-          >
-            Back
-          </Button>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+            <Button
+              variant="outlined"
+              startIcon={<ArrowBackRoundedIcon />}
+              onClick={() => navigate(-1)}
+              sx={{
+                background: 'transparent',
+                boxShadow: 'none',
+                color: 'primary.main',
+                '&:hover': {
+                  backgroundColor: 'primary.light',
+                  boxShadow: 'none',
+                },
+              }}
+            >
+              Back
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<EditRoundedIcon />}
+              onClick={() => navigate(`/spms/${record.id}/edit`)}
+            >
+              Edit
+            </Button>
+          </Stack>
         }
       />
       <LiquidPanel sx={{ p: { xs: 2, md: 3 } }}>

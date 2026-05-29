@@ -1,10 +1,9 @@
 import {
-  getMonthlySpmsAnalytics,
   getSeverityColor,
   getSpmsStatusColor,
   spmsRecords,
   spmsStatuses,
-  type SpmsStatus,
+  type SpmsStatus
 } from '@entities/spms'
 import AssignmentTurnedInRoundedIcon from '@mui/icons-material/AssignmentTurnedInRounded'
 import ChecklistRoundedIcon from '@mui/icons-material/ChecklistRounded'
@@ -21,7 +20,6 @@ import { LiquidPanel } from '@shared/ui/LiquidPanel'
 import { PageHeader } from '@shared/ui/PageHeader'
 import { StatCard } from '@shared/ui/StatCard'
 import { useNavigate } from 'react-router-dom'
-import { AnalyticsChart } from './AnalyticsChart'
 import { CustomerStatusTable } from './CustomerStatusTable'
 
 const totalQty = spmsRecords.reduce((total, record) => total + record.qty, 0)
@@ -41,7 +39,7 @@ const statusCount = (status: SpmsStatus) =>
 export function DashboardPage() {
   const navigate = useNavigate()
   const recentRecords = spmsRecords.slice(0, 4)
-  const analyticsData = getMonthlySpmsAnalytics(spmsRecords)
+  // const analyticsData = getMonthlySpmsAnalytics(spmsRecords)
 
   return (
     <>
@@ -86,7 +84,158 @@ export function DashboardPage() {
           helper={`${highSeverityCount} high severity`}
         />
       </Box>
-      <AnalyticsChart data={analyticsData} />
+      {/* <AnalyticsChart data={analyticsData} /> */}
+      <Box
+        sx={{
+          display: 'grid',
+          gap: { xs: 1.5, md: 2 },
+          gridTemplateColumns: { xs: '1fr', lg: '0.9fr 1.1fr' },
+          minWidth: 0,
+          '& > *': {
+            minWidth: 0,
+          },
+        }}
+      >
+        <LiquidPanel sx={{ mb: 3, p: { xs: 2, md: 3 } }}>
+          <Stack spacing={2.5} sx={{ minWidth: 0 }}>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="h6">Status Distribution</Typography>
+              <Typography color="text.secondary" variant="body2">
+                SPMS movement by approval stage.
+              </Typography>
+            </Box>
+            {spmsStatuses.map((status) => {
+              const count = statusCount(status)
+              const percentage = Math.round((count / spmsRecords.length) * 100)
+
+              return (
+                <Box key={status} sx={{ minWidth: 0 }}>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      justifyContent: 'space-between',
+                      mb: 1,
+                      minWidth: 0,
+                      rowGap: 0.75,
+                    }}
+                  >
+                    <Chip
+                      color={getSpmsStatusColor(status)}
+                      label={status}
+                      size="small"
+                      sx={{ maxWidth: '100%' }}
+                    />
+                    <Typography color="text.secondary" variant="body2">
+                      {count} records
+                    </Typography>
+                  </Stack>
+                  <LinearProgress
+                    variant="determinate"
+                    value={percentage}
+                    sx={{
+                      borderRadius: 1,
+                      height: 8,
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                    }}
+                  />
+                </Box>
+              )
+            })}
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ flexWrap: 'wrap', minWidth: 0, rowGap: 1 }}
+            >
+              {(['Low', 'Medium', 'High', 'Critical'] as const).map((severity) => (
+                <Chip
+                  key={severity}
+                  color={getSeverityColor(severity)}
+                  label={`${severity}: ${
+                    spmsRecords.filter((record) => record.severity === severity)
+                      .length
+                  }`}
+                  size="small"
+                  variant="outlined"
+                />
+              ))}
+            </Stack>
+          </Stack>
+        </LiquidPanel>
+
+        <LiquidPanel sx={{ mb: 3, p: { xs: 2, md: 3 } }}>
+          <Stack spacing={2.5} sx={{ minWidth: 0 }}>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="h6">Status Delivery</Typography>
+              <Typography color="text.secondary" variant="body2">
+                SPMS movement by delivery stage.
+              </Typography>
+            </Box>
+            {spmsStatuses.map((status) => {
+              const count = statusCount(status)
+              const percentage = Math.round((count / spmsRecords.length) * 100)
+
+              return (
+                <Box key={status} sx={{ minWidth: 0 }}>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      justifyContent: 'space-between',
+                      mb: 1,
+                      minWidth: 0,
+                      rowGap: 0.75,
+                    }}
+                  >
+                    <Chip
+                      color={getSpmsStatusColor(status)}
+                      label={status}
+                      size="small"
+                      sx={{ maxWidth: '100%' }}
+                    />
+                    <Typography color="text.secondary" variant="body2">
+                      {count} records
+                    </Typography>
+                  </Stack>
+                  <LinearProgress
+                    variant="determinate"
+                    value={percentage}
+                    sx={{
+                      borderRadius: 1,
+                      height: 8,
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                    }}
+                  />
+                </Box>
+              )
+            })}
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ flexWrap: 'wrap', minWidth: 0, rowGap: 1 }}
+            >
+              {(['Low', 'Medium', 'High', 'Critical'] as const).map((severity) => (
+                <Chip
+                  key={severity}
+                  color={getSeverityColor(severity)}
+                  label={`${severity}: ${
+                    spmsRecords.filter((record) => record.severity === severity)
+                      .length
+                  }`}
+                  size="small"
+                  variant="outlined"
+                />
+              ))}
+            </Stack>
+          </Stack>
+        </LiquidPanel>
+      </Box>
       <Box
         sx={{
           display: 'grid',
@@ -99,80 +248,6 @@ export function DashboardPage() {
         }}
       >
         <Stack spacing={2} sx={{ minWidth: 0 }}>
-          <LiquidPanel
-            sx={{
-              minWidth: 0,
-              p: { xs: 2, md: 2.5 },
-            }}
-          >
-            <Stack spacing={2.5} sx={{ minWidth: 0 }}>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography variant="h6">Status Distribution</Typography>
-                <Typography color="text.secondary" variant="body2">
-                  SPMS movement by approval stage.
-                </Typography>
-              </Box>
-              {spmsStatuses.map((status) => {
-                const count = statusCount(status)
-                const percentage = Math.round((count / spmsRecords.length) * 100)
-
-                return (
-                  <Box key={status} sx={{ minWidth: 0 }}>
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      sx={{
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                        justifyContent: 'space-between',
-                        mb: 1,
-                        minWidth: 0,
-                        rowGap: 0.75,
-                      }}
-                    >
-                      <Chip
-                        color={getSpmsStatusColor(status)}
-                        label={status}
-                        size="small"
-                        sx={{ maxWidth: '100%' }}
-                      />
-                      <Typography color="text.secondary" variant="body2">
-                        {count} records
-                      </Typography>
-                    </Stack>
-                    <LinearProgress
-                      variant="determinate"
-                      value={percentage}
-                      sx={{
-                        borderRadius: 1,
-                        height: 8,
-                        maxWidth: '100%',
-                        overflow: 'hidden',
-                      }}
-                    />
-                  </Box>
-                )
-              })}
-              <Stack
-                direction="row"
-                spacing={1}
-                sx={{ flexWrap: 'wrap', minWidth: 0, rowGap: 1 }}
-              >
-                {(['Low', 'Medium', 'High', 'Critical'] as const).map((severity) => (
-                  <Chip
-                    key={severity}
-                    color={getSeverityColor(severity)}
-                    label={`${severity}: ${
-                      spmsRecords.filter((record) => record.severity === severity)
-                        .length
-                    }`}
-                    size="small"
-                    variant="outlined"
-                  />
-                ))}
-              </Stack>
-            </Stack>
-          </LiquidPanel>
           <CustomerStatusTable />
         </Stack>
         <LiquidPanel
