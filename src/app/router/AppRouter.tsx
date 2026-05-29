@@ -14,6 +14,16 @@ const DashboardPage = lazy(() =>
 const LoginPage = lazy(() =>
   import('@pages/login').then((module) => ({ default: module.LoginPage })),
 )
+const DeliveryOrderPage = lazy(() =>
+  import('@pages/delivery-order').then((module) => ({
+    default: module.DeliveryOrderPage,
+  })),
+)
+const DeliveryOrderPickupPage = lazy(() =>
+  import('@pages/delivery-order').then((module) => ({
+    default: module.DeliveryOrderPickupPage,
+  })),
+)
 const SpmsDetailPage = lazy(() =>
   import('@pages/spms-detail').then((module) => ({
     default: module.SpmsDetailPage,
@@ -49,6 +59,11 @@ export function AppRouter() {
               <Route path="/spms/add" element={<SpmsCreatePage />} />
               <Route path="/spms/:id/edit" element={<SpmsEditPage />} />
               <Route path="/spms/:id" element={<SpmsDetailPage />} />
+              <Route
+                path="/delivery-order/generate-pickup/:deliveryOrder"
+                element={<DeliveryOrderPickupPage />}
+              />
+              <Route path="/delivery-order" element={<DeliveryOrderPage />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

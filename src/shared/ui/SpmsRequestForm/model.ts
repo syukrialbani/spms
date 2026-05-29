@@ -29,13 +29,6 @@ export type SpmsRequestFormValues = {
   awbTransfer: string
   pmArea: string
   baNumber: string
-  adminApprover: string
-  adminApprovalStatus: string
-  adminApprovalDate: string
-  adminApprovalNotes: string
-  picBaRegion: string
-  picBaApprovalStatus: string
-  picBaApprovalDate: string
   deliveryStatus: string
   baType: string
   sendBy: string
@@ -50,6 +43,30 @@ export type SpmsRequestFormValues = {
   deliveryEvidenceFileName: string
   pickupEvidenceFileName: string
   evidenceNotes: string
+  approval1By: string
+  approval1Status: string
+  approval1Date: string
+  approval1Notes: string
+  approval2By: string
+  approval2Status: string
+  approval2Date: string
+  approval2Notes: string
+  closedBy: string
+  closedStatus: string
+  closedDate: string
+  closedNotes: string
+  pickupApproval1By: string
+  pickupApproval1Status: string
+  pickupApproval1Date: string
+  pickupApproval1Notes: string
+  pickupApproval2By: string
+  pickupApproval2Status: string
+  pickupApproval2Date: string
+  pickupApproval2Notes: string
+  pickupClosedBy: string
+  pickupClosedStatus: string
+  pickupClosedDate: string
+  pickupClosedNotes: string
 }
 
 export const customerOptions = [
@@ -222,7 +239,6 @@ export const lspOptions = [
 export const stockStatusOptions = [
   'READY',
   'WAITING APPROVAL',
-  'RESERVED',
   'IN USE',
   'DELIVERED',
   'RETURNED',
@@ -246,18 +262,16 @@ export const approvalStatusOptions = [
   'REJECTED',
 ] as const
 
-export const closedStatusOptions = [
-  'CLOSED',
-] as const
+export const closedStatusOptions = ['PENDING CUSTOMER', 'CLOSED'] as const
 
 export const deliveryStatusOptions = [
-  'DRAFT BA',
+  'OPEN',
   'WAITING ADMIN APPROVAL',
   'WAITING PIC BA REGION',
   'READY FOR DELIVERY',
   'DELIVERY PROCESS',
   'DELIVERED',
-  'BA UPLOADED',
+  'FAULTY',
   'CLOSED',
 ] as const
 
@@ -312,13 +326,6 @@ export const createDefaultSpmsRequestValues = (): SpmsRequestFormValues => ({
   awbTransfer: '',
   pmArea: '',
   baNumber: 'Will Generate by System',
-  adminApprover: '',
-  adminApprovalStatus: 'PENDING APPROVAL',
-  adminApprovalDate: '',
-  adminApprovalNotes: '',
-  picBaRegion: '',
-  picBaApprovalStatus: 'PENDING APPROVAL',
-  picBaApprovalDate: '',
   deliveryStatus: 'DRAFT BA',
   baType: 'MATERIAL DELIVERY NC',
   sendBy: '',
@@ -333,6 +340,30 @@ export const createDefaultSpmsRequestValues = (): SpmsRequestFormValues => ({
   deliveryEvidenceFileName: '',
   pickupEvidenceFileName: '',
   evidenceNotes: '',
+  approval1By: '',
+  approval1Status: 'PENDING APPROVAL',
+  approval1Date: '',
+  approval1Notes: '',
+  approval2By: '',
+  approval2Status: 'PENDING APPROVAL',
+  approval2Date: '',
+  approval2Notes: '',
+  closedBy: '',
+  closedStatus: 'PENDING CUSTOMER',
+  closedDate: '',
+  closedNotes: '',
+  pickupApproval1By: '',
+  pickupApproval1Status: 'PENDING APPROVAL',
+  pickupApproval1Date: '',
+  pickupApproval1Notes: '',
+  pickupApproval2By: '',
+  pickupApproval2Status: 'PENDING APPROVAL',
+  pickupApproval2Date: '',
+  pickupApproval2Notes: '',
+  pickupClosedBy: '',
+  pickupClosedStatus: 'PENDING CUSTOMER',
+  pickupClosedDate: '',
+  pickupClosedNotes: '',
 })
 
 export const spmsRequestValidationSchema = Yup.object({
@@ -373,8 +404,8 @@ export const spmsRequestValidationSchema = Yup.object({
   supportDestinationMaterial: Yup.string()
     .trim()
     .required('Support destination material wajib diisi'),
-  originLsp: Yup.string().trim().required('Origin LSP wajib diisi'),
-  destinationLsp: Yup.string().trim().required('Destination LSP wajib diisi'),
+  originLsp: Yup.string().trim(),
+  destinationLsp: Yup.string().trim(),
   materialSerialNumber: Yup.string().trim(),
   stockStatus: Yup.string()
     .oneOf([...stockStatusOptions], 'Stock status tidak valid')
@@ -396,17 +427,6 @@ export const spmsRequestValidationSchema = Yup.object({
   awbTransfer: Yup.string().trim(),
   pmArea: Yup.string().trim().required('PM area wajib diisi'),
   baNumber: Yup.string().trim().required('BA number wajib diisi'),
-  adminApprover: Yup.string().trim().required('Admin approver wajib diisi'),
-  adminApprovalStatus: Yup.string()
-    .oneOf([...approvalStatusOptions], 'Admin approval status tidak valid')
-    .required('Admin approval status wajib diisi'),
-  adminApprovalDate: Yup.string().trim(),
-  adminApprovalNotes: Yup.string().trim(),
-  picBaRegion: Yup.string().trim().required('PIC BA region wajib diisi'),
-  picBaApprovalStatus: Yup.string()
-    .oneOf([...approvalStatusOptions], 'PIC BA status tidak valid')
-    .required('PIC BA status wajib diisi'),
-  picBaApprovalDate: Yup.string().trim(),
   deliveryStatus: Yup.string()
     .oneOf([...deliveryStatusOptions], 'Delivery status tidak valid')
     .required('Delivery status wajib diisi'),
@@ -431,4 +451,40 @@ export const spmsRequestValidationSchema = Yup.object({
   deliveryEvidenceFileName: Yup.string().trim(),
   pickupEvidenceFileName: Yup.string().trim(),
   evidenceNotes: Yup.string().trim(),
+  approval1By: Yup.string().trim(),
+  approval1Status: Yup.string()
+    .oneOf([...approvalStatusOptions], 'Approval 1 status tidak valid')
+    .required('Approval 1 status wajib diisi'),
+  approval1Date: Yup.string().trim(),
+  approval1Notes: Yup.string().trim(),
+  approval2By: Yup.string().trim(),
+  approval2Status: Yup.string()
+    .oneOf([...approvalStatusOptions], 'Approval 2 status tidak valid')
+    .required('Approval 2 status wajib diisi'),
+  approval2Date: Yup.string().trim(),
+  approval2Notes: Yup.string().trim(),
+  closedBy: Yup.string().trim(),
+  closedStatus: Yup.string()
+    .oneOf([...closedStatusOptions], 'Closed status tidak valid')
+    .required('Closed status wajib diisi'),
+  closedDate: Yup.string().trim(),
+  closedNotes: Yup.string().trim(),
+  pickupApproval1By: Yup.string().trim(),
+  pickupApproval1Status: Yup.string()
+    .oneOf([...approvalStatusOptions], 'Pickup approval 1 status tidak valid')
+    .required('Pickup approval 1 status wajib diisi'),
+  pickupApproval1Date: Yup.string().trim(),
+  pickupApproval1Notes: Yup.string().trim(),
+  pickupApproval2By: Yup.string().trim(),
+  pickupApproval2Status: Yup.string()
+    .oneOf([...approvalStatusOptions], 'Pickup approval 2 status tidak valid')
+    .required('Pickup approval 2 status wajib diisi'),
+  pickupApproval2Date: Yup.string().trim(),
+  pickupApproval2Notes: Yup.string().trim(),
+  pickupClosedBy: Yup.string().trim(),
+  pickupClosedStatus: Yup.string()
+    .oneOf([...closedStatusOptions], 'Pickup closed status tidak valid')
+    .required('Pickup closed status wajib diisi'),
+  pickupClosedDate: Yup.string().trim(),
+  pickupClosedNotes: Yup.string().trim(),
 })

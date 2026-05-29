@@ -1,9 +1,9 @@
 import {
   getSeverityColor,
   getSpmsStatusColor,
-  spmsRecords,
   spmsStatuses,
-  type SpmsStatus
+  spmsStorage,
+  type SpmsStatus,
 } from '@entities/spms'
 import AssignmentTurnedInRoundedIcon from '@mui/icons-material/AssignmentTurnedInRounded'
 import ChecklistRoundedIcon from '@mui/icons-material/ChecklistRounded'
@@ -19,27 +19,27 @@ import { formatDate } from '@shared/lib/format'
 import { LiquidPanel } from '@shared/ui/LiquidPanel'
 import { PageHeader } from '@shared/ui/PageHeader'
 import { StatCard } from '@shared/ui/StatCard'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CustomerStatusTable } from './CustomerStatusTable'
 
-const totalQty = spmsRecords.reduce((total, record) => total + record.qty, 0)
-const approvedCount = spmsRecords.filter(
-  (record) => record.statusSpms === 'Approved',
-).length
-const approvalQueueCount = spmsRecords.filter(
-  (record) => record.statusSpms === 'Waiting Approval',
-).length
-const highSeverityCount = spmsRecords.filter(
-  (record) => record.severity === 'High' || record.severity === 'Critical',
-).length
-
-const statusCount = (status: SpmsStatus) =>
-  spmsRecords.filter((record) => record.statusSpms === status).length
-
 export function DashboardPage() {
   const navigate = useNavigate()
-  const recentRecords = spmsRecords.slice(0, 4)
-  // const analyticsData = getMonthlySpmsAnalytics(spmsRecords)
+  const records = useMemo(() => spmsStorage.getAll(), [])
+  const recentRecords = records.slice(0, 4)
+  const totalQty = records.reduce((total, record) => total + record.qty, 0)
+  const approvedCount = records.filter(
+    (record) => record.statusSpms === 'Approved',
+  ).length
+  const approvalQueueCount = records.filter(
+    (record) => record.statusSpms === 'Waiting Approval',
+  ).length
+  const highSeverityCount = records.filter(
+    (record) => record.severity === 'High' || record.severity === 'Critical',
+  ).length
+  const statusCount = (status: SpmsStatus) =>
+    records.filter((record) => record.statusSpms === status).length
+  // const analyticsData = getMonthlySpmsAnalytics(records)
 
   return (
     <>
@@ -62,7 +62,7 @@ export function DashboardPage() {
         <StatCard
           icon={<ChecklistRoundedIcon />}
           label="Total Orders"
-          value={String(spmsRecords.length)}
+          value={String(records.length)}
           helper="Across active request"
         />
         <StatCard
@@ -106,7 +106,9 @@ export function DashboardPage() {
             </Box>
             {spmsStatuses.map((status) => {
               const count = statusCount(status)
-              const percentage = Math.round((count / spmsRecords.length) * 100)
+              const percentage = records.length
+                ? Math.round((count / records.length) * 100)
+                : 0
 
               return (
                 <Box key={status} sx={{ minWidth: 0 }}>
@@ -155,7 +157,7 @@ export function DashboardPage() {
                   key={severity}
                   color={getSeverityColor(severity)}
                   label={`${severity}: ${
-                    spmsRecords.filter((record) => record.severity === severity)
+                    records.filter((record) => record.severity === severity)
                       .length
                   }`}
                   size="small"
@@ -176,7 +178,9 @@ export function DashboardPage() {
             </Box>
             {spmsStatuses.map((status) => {
               const count = statusCount(status)
-              const percentage = Math.round((count / spmsRecords.length) * 100)
+              const percentage = records.length
+                ? Math.round((count / records.length) * 100)
+                : 0
 
               return (
                 <Box key={status} sx={{ minWidth: 0 }}>
@@ -225,7 +229,7 @@ export function DashboardPage() {
                   key={severity}
                   color={getSeverityColor(severity)}
                   label={`${severity}: ${
-                    spmsRecords.filter((record) => record.severity === severity)
+                    records.filter((record) => record.severity === severity)
                       .length
                   }`}
                   size="small"

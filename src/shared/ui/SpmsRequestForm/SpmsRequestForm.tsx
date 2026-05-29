@@ -3,13 +3,9 @@ import AssignmentTurnedInRoundedIcon from '@mui/icons-material/AssignmentTurnedI
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded'
 import FactCheckRoundedIcon from '@mui/icons-material/FactCheckRounded'
-import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded'
-import KeyboardArrowLeftRoundedIcon from '@mui/icons-material/KeyboardArrowLeftRounded'
-import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded'
 import LocalShippingRoundedIcon from '@mui/icons-material/LocalShippingRounded'
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded'
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded'
-import WarehouseRoundedIcon from '@mui/icons-material/WarehouseRounded'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
@@ -25,6 +21,7 @@ import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import type { TextFieldProps } from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { useConfirmation } from '@shared/lib/confirmation'
 import { AppButton } from '@shared/ui/AppButton'
 import { FormAutocomplete } from '@shared/ui/FormAutocomplete'
 import { FormDateTimeField } from '@shared/ui/FormDateTimeField'
@@ -43,29 +40,29 @@ import {
   deliveryStatusOptions,
   descriptionOptions,
   dopOptions,
-  lspOptions,
   partNumberOptions,
-  reservationStatusOptions,
   returnStatusOptions,
   severityOptions,
   slaHourOptions,
   spmsRequestValidationSchema,
-  stockStatusOptions,
   supportDestinationMaterialOptions,
   supportOriginMaterialOptions,
-  systemLabelOptions,
   typeMaterialOptions,
   type SpmsRequestFormValues,
 } from './model'
 
 type SpmsRequestFormProps = {
+  currentRole?: SpmsApprovalRole
+  currentUserName?: string
   initialValues?: SpmsRequestFormValues
+  mode?: 'create' | 'edit'
   onCancel?: () => void
   onSave: (values: SpmsRequestFormValues) => void | Promise<void>
 }
 
 type FieldName = keyof SpmsRequestFormValues
 type EvidenceFieldName = 'deliveryEvidenceFileName' | 'pickupEvidenceFileName'
+export type SpmsApprovalRole = 'ADMIN_1' | 'ADMIN_2' | 'ADMIN_3' | 'REQUESTOR'
 type TimelineState = 'done' | 'active' | 'pending'
 type TimelineItem = {
   actor: string
@@ -108,10 +105,33 @@ type ApprovalRadioGroupProps = {
 
 const approvalStatusLabels: Record<string, string> = {
   APPROVED: 'Approve',
+  CLOSED: 'Closed',
   DRAFT: 'Draft',
+  'PENDING CUSTOMER': 'Pending',
   'PENDING APPROVAL': 'Pending',
   REJECTED: 'Revisi',
 }
+
+const detailRequestFields: FieldName[] = [
+  'customer',
+  'customerOrderNumber',
+  'createdBy',
+  'customerRequestor',
+  'requestDate',
+  'areal',
+  'dop',
+  'siteName',
+  'categoryMaterial',
+  'typeMaterial',
+  'description',
+  'partNumber',
+  'quantity',
+  'supportOriginMaterial',
+  'supportDestinationMaterial',
+  'severity',
+  'slaHours',
+  'pmArea',
+]
 
 const formSteps = [
   {
@@ -137,32 +157,7 @@ const formSteps = [
 ] as const
 
 const stepFields: FieldName[][] = [
-  [
-    'customer',
-    'customerOrderNumber',
-    'createdBy',
-    'customerRequestor',
-    'requestDate',
-    'areal',
-    'dop',
-    'siteName',
-    'categoryMaterial',
-    'typeMaterial',
-    'description',
-    'partNumber',
-    'quantity',
-    'supportOriginMaterial',
-    'supportDestinationMaterial',
-    'originLsp',
-    'destinationLsp',
-    'stockStatus',
-    'systemLabel',
-    'reservationStatus',
-    'baNumber',
-    'severity',
-    'slaHours',
-    'pmArea',
-  ],
+  detailRequestFields,
   [
     'baType',
     'sendBy',
@@ -171,13 +166,22 @@ const stepFields: FieldName[][] = [
     'descriptionMaterial',
   ],
   [
-    'adminApprover',
-    'adminApprovalStatus',
-    'picBaRegion',
-    'picBaApprovalStatus',
-    'deliveryStatus',
+    'approval1By',
+    'approval1Status',
+    'approval2By',
+    'approval2Status',
+    'closedBy',
+    'closedStatus',
   ],
   ['statusReturn'],
+  [
+    'pickupApproval1By',
+    'pickupApproval1Status',
+    'pickupApproval2By',
+    'pickupApproval2Status',
+    'pickupClosedBy',
+    'pickupClosedStatus',
+  ],
 ]
 
 function FieldGrid({
@@ -269,51 +273,6 @@ function FormSection({
           </Box>
         </Stack>
         {children}
-      </Stack>
-    </Box>
-  )
-}
-
-function SummaryTile({
-  icon,
-  label,
-  value,
-}: {
-  icon: ReactNode
-  label: string
-  value: string
-}) {
-  return (
-    <Box
-      sx={{
-        bgcolor: (theme) =>
-          theme.palette.mode === 'dark'
-            ? alpha(theme.palette.common.white, 0.05)
-            : alpha(theme.palette.primary.main, 0.045),
-        border: '1px solid',
-        borderColor: (theme) =>
-          theme.palette.mode === 'dark'
-            ? alpha(theme.palette.primary.light, 0.16)
-            : alpha(theme.palette.primary.main, 0.1),
-        borderRadius: 1,
-        minWidth: 0,
-        p: 1.5,
-      }}
-    >
-      <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
-        <Box sx={{ color: 'primary.main', display: 'flex' }}>{icon}</Box>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography
-            color="text.secondary"
-            sx={{ fontWeight: 800 }}
-            variant="caption"
-          >
-            {label}
-          </Typography>
-          <Typography noWrap sx={{ fontWeight: 900 }} variant="body2">
-            {value || '-'}
-          </Typography>
-        </Box>
       </Stack>
     </Box>
   )
@@ -664,12 +623,19 @@ function SpmsTextInput({
 }
 
 export function SpmsRequestForm({
+  currentRole = 'ADMIN_1',
+  currentUserName = 'SPMS User',
   initialValues = createDefaultSpmsRequestValues(),
+  mode = 'edit',
   onCancel,
   onSave,
 }: SpmsRequestFormProps) {
   const [activeStep, setActiveStep] = useState(0)
-  const isLastStep = activeStep === formSteps.length - 1
+  const confirm = useConfirmation()
+  const isCreateMode = mode === 'create'
+  const canApprove1 = currentRole === 'ADMIN_1'
+  const canApprove2 = currentRole === 'ADMIN_2'
+  const canCloseCustomer = currentRole === 'ADMIN_3'
 
   const formik = useFormik<SpmsRequestFormValues>({
     initialValues,
@@ -718,38 +684,19 @@ export function SpmsRequestForm({
     )
   }
 
-  const validateCurrentStep = async () => {
-    const fields = stepFields[activeStep] ?? []
-    const errors = await formik.validateForm()
-    const hasStepError = fields.some((field) => Boolean(errors[field]))
+  const withNormalizedValues = (values: SpmsRequestFormValues) => ({
+    ...values,
+    destinationLsp:
+      values.destinationLsp || values.supportDestinationMaterial,
+    originLsp: values.originLsp || values.supportOriginMaterial,
+  })
 
-    if (hasStepError) {
-      await touchFields(fields)
-    }
-
-    return !hasStepError
-  }
-
-  const goToStep = async (step: number) => {
-    if (step <= activeStep) {
-      setActiveStep(step)
-      return
-    }
-
-    if (await validateCurrentStep()) {
-      setActiveStep(step)
-    }
-  }
-
-  const goToNextStep = async () => {
-    if (await validateCurrentStep()) {
-      setActiveStep((current) => Math.min(current + 1, formSteps.length - 1))
-    }
-  }
-
-  const handleSave = async () => {
-    const errors = await formik.validateForm()
-    const errorFields = Object.keys(errors) as FieldName[]
+  const saveValues = async (
+    values: SpmsRequestFormValues,
+    fieldScope: FieldName[],
+  ) => {
+    const errors = await formik.validateForm(values)
+    const errorFields = fieldScope.filter((field) => Boolean(errors[field]))
 
     if (errorFields.length > 0) {
       await touchFields(errorFields)
@@ -765,7 +712,106 @@ export function SpmsRequestForm({
       return
     }
 
-    await formik.submitForm()
+    formik.setSubmitting(true)
+
+    try {
+      await onSave(withNormalizedValues(values))
+      void formik.setValues(values, false)
+    } finally {
+      formik.setSubmitting(false)
+    }
+  }
+
+  const handleSave = async () => {
+    const fieldScope = isCreateMode
+      ? detailRequestFields
+      : (stepFields[activeStep] ?? detailRequestFields)
+    const errors = await formik.validateForm(formik.values)
+    const errorFields = fieldScope.filter((field) => Boolean(errors[field]))
+
+    if (errorFields.length > 0) {
+      await touchFields(errorFields)
+
+      const firstStepWithError = stepFields.findIndex((fields) =>
+        fields.some((field) => errorFields.includes(field)),
+      )
+
+      if (firstStepWithError >= 0) {
+        setActiveStep(firstStepWithError)
+      }
+
+      return
+    }
+
+    const confirmed = await confirm({
+      confirmLabel: isCreateMode ? 'Create SPMS' : 'Save',
+      description: isCreateMode
+        ? 'SPMS baru akan dibuat dan Delivery Order delivery akan digenerate otomatis.'
+        : `Perubahan pada tab ${formSteps[activeStep].title} akan disimpan.`,
+      title: isCreateMode
+        ? 'Create new SPMS?'
+        : `Save ${formSteps[activeStep].title}?`,
+    })
+
+    if (!confirmed) {
+      return
+    }
+
+    await saveValues(formik.values, fieldScope)
+  }
+
+  const getActionTimestamp = () => {
+    const now = new Date()
+    const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+
+    return localDate.toISOString().slice(0, 16)
+  }
+
+  const saveWorkflowAction = async (
+    allowed: boolean,
+    fields: {
+      by: FieldName
+      date: FieldName
+      notes: FieldName
+      status: FieldName
+      statusValue: string
+    },
+  ) => {
+    if (!allowed) {
+      return
+    }
+
+    const confirmed = await confirm({
+      confirmLabel: 'Save',
+      description:
+        'Pastikan status, actor, dan notes sudah sesuai sebelum menyimpan perubahan workflow ini.',
+      title: `Save ${fields.statusValue === 'CLOSED' ? 'closed status' : 'approval'}?`,
+    })
+
+    if (!confirmed) {
+      return
+    }
+
+    const currentStatus = formik.values[fields.status]
+    const shouldUseDefaultStatus =
+      currentStatus === 'PENDING APPROVAL' ||
+      currentStatus === 'PENDING CUSTOMER' ||
+      currentStatus === 'DRAFT'
+    const nextValues: SpmsRequestFormValues = {
+      ...formik.values,
+      [fields.by]: formik.values[fields.by] || currentUserName,
+      [fields.date]: formik.values[fields.date] || getActionTimestamp(),
+      [fields.status]: shouldUseDefaultStatus
+        ? fields.statusValue
+        : currentStatus,
+    }
+
+    await saveValues(nextValues, [
+      fields.by,
+      fields.status,
+      fields.date,
+      fields.notes,
+    ])
   }
 
   const handleFileChange =
@@ -799,49 +845,496 @@ export function SpmsRequestForm({
   const deliveryEvidenceName =
     formik.values.deliveryEvidenceFileName || formik.values.evidenceFileName
 
-  const approvalTimelineItems: TimelineItem[] = [
+  const isDeliveryUploaded = Boolean(deliveryEvidenceName)
+  const isDeliveryApproved =
+    formik.values.approval1Status === 'APPROVED' &&
+    formik.values.approval2Status === 'APPROVED'
+  const isPickupUploaded = Boolean(formik.values.pickupEvidenceFileName)
+  const isPickupApproved =
+    formik.values.pickupApproval1Status === 'APPROVED' &&
+    formik.values.pickupApproval2Status === 'APPROVED'
+  const isTransactionClosed =
+    formik.values.pickupClosedStatus === 'CLOSED' ||
+    formik.values.closedStatus === 'CLOSED'
+
+  const transactionTimelineItems: TimelineItem[] = [
     {
       actor: formik.values.createdBy,
-      description: 'Request BA delivery dibuat',
+      description: 'Request transaksi SPMS dibuat',
       label: 'Open',
       meta: formik.values.requestDate,
       state: 'done' as TimelineState,
     },
     {
-      actor: formik.values.adminApprover,
-      description: 'Validasi admin / manager',
-      label: 'Approval 1',
-      meta: formik.values.adminApprovalDate,
-      state: getApprovalTimelineState(
-        formik.values.adminApprovalStatus,
-        'active',
-      ),
-    },
-    {
-      actor: formik.values.picBaRegion,
-      description: 'Konfirmasi PIC BA region',
-      label: 'Approval 2',
-      meta: formik.values.picBaApprovalDate,
-      state: getApprovalTimelineState(formik.values.picBaApprovalStatus),
-    },
-    {
       actor: formik.values.sendBy,
-      description: 'Material delivery process',
-      label: 'Closed In Customer',
+      description: deliveryEvidenceName
+        ? `Evidence: ${deliveryEvidenceName}`
+        : 'Menunggu tim lapangan upload BA delivery',
+      label: 'Upload BA Delivery',
       meta: formik.values.deliveryDateGoodUnit,
-      state:
-        deliveryEvidenceName || formik.values.deliveryStatus === 'DELIVERED'
-          ? 'done'
+      state: isDeliveryUploaded ? 'done' : 'active',
+    },
+    {
+      actor: formik.values.approval2By || formik.values.approval1By,
+      description: 'Menunggu approval BA delivery',
+      label: 'Approval BA Delivery',
+      meta: formik.values.approval2Date || formik.values.approval1Date,
+      state: isDeliveryApproved
+        ? 'done'
+        : isDeliveryUploaded
+          ? getApprovalTimelineState(
+              formik.values.approval2Status,
+              'active',
+            )
           : 'pending',
+    },
+    {
+      actor: formik.values.pickupBy,
+      description: formik.values.pickupEvidenceFileName
+        ? `Evidence: ${formik.values.pickupEvidenceFileName}`
+        : 'Menunggu upload BA pickup / return',
+      label: 'Upload BA Pickup',
+      meta: formik.values.pickupDate,
+      state: isPickupUploaded
+        ? 'done'
+        : isDeliveryApproved
+          ? 'active'
+          : 'pending',
+    },
+    {
+      actor:
+        formik.values.pickupApproval2By || formik.values.pickupApproval1By,
+      description: 'Menunggu approval BA pickup',
+      label: 'Approval BA Pickup',
+      meta:
+        formik.values.pickupApproval2Date ||
+        formik.values.pickupApproval1Date,
+      state: isPickupApproved
+        ? 'done'
+        : isPickupUploaded
+          ? getApprovalTimelineState(
+              formik.values.pickupApproval2Status,
+              'active',
+            )
+          : 'pending',
+    },
+    {
+      actor: formik.values.pickupClosedBy || formik.values.closedBy,
+      description: 'Transaksi selesai di customer',
+      label: 'Closed In Customer',
+      meta: formik.values.pickupClosedDate || formik.values.closedDate,
+      state: isTransactionClosed ? 'done' : isPickupApproved ? 'active' : 'pending',
     },
   ]
 
   const workflowItems = [
     { label: 'BA', value: formik.values.deliveryStatus },
-    { label: 'Approval 1', value: formik.values.adminApprovalStatus },
-    { label: 'Approval 2', value: formik.values.picBaApprovalStatus },
+    { label: 'Delivery A1', value: formik.values.approval1Status },
+    { label: 'Delivery A2', value: formik.values.approval2Status },
+    { label: 'Pickup A1', value: formik.values.pickupApproval1Status },
+    { label: 'Pickup A2', value: formik.values.pickupApproval2Status },
     { label: 'Stock', value: formik.values.reservationStatus },
   ]
+
+  const renderDetailRequestForm = () => (
+    <FormSection
+      icon={<AssignmentRoundedIcon fontSize="small" />}
+      subtitle="Input utama request SPMS"
+      title={isCreateMode ? 'Create SPMS Request' : 'Detail Request'}
+    >
+      <FieldGrid>
+        <SpmsTextInput
+          label="Order Number"
+          name="orderNumber"
+          readOnly
+          {...textProps('orderNumber')}
+        />
+        <FormAutocomplete
+          accent
+          label="Customer"
+          name="customer"
+          options={customerOptions}
+          required
+          {...autocompleteProps('customer')}
+        />
+        <SpmsTextInput
+          label="Customer Order Number"
+          name="customerOrderNumber"
+          required
+          {...textProps('customerOrderNumber')}
+        />
+        <SpmsTextInput
+          label="Create By"
+          name="createdBy"
+          readOnly
+          required
+          {...textProps('createdBy')}
+        />
+        <SpmsTextInput
+          label="Customer Requestor"
+          name="customerRequestor"
+          required
+          {...textProps('customerRequestor')}
+        />
+        <FormDateTimeField
+          label="Request Date"
+          name="requestDate"
+          required
+          disabled={formik.isSubmitting}
+          error={hasError('requestDate')}
+          helperText={getHelperText('requestDate')}
+          onBlur={() => {
+            void formik.setFieldTouched('requestDate', true)
+          }}
+          onChange={(value) => {
+            void formik.setFieldValue('requestDate', value)
+          }}
+          value={formik.values.requestDate}
+        />
+        <FormAutocomplete
+          accent
+          label="Area"
+          name="areal"
+          options={areaOptions}
+          required
+          {...autocompleteProps('areal')}
+        />
+        <FormAutocomplete
+          accent
+          label="DOP"
+          name="dop"
+          options={dopOptions}
+          required
+          {...autocompleteProps('dop')}
+        />
+        <SpmsTextInput
+          label="Site Name"
+          name="siteName"
+          required
+          {...textProps('siteName')}
+        />
+        <FormAutocomplete
+          accent
+          label="Category Material"
+          name="categoryMaterial"
+          options={categoryMaterialOptions}
+          required
+          {...autocompleteProps('categoryMaterial')}
+        />
+        <FormAutocomplete
+          accent
+          label="Type Material"
+          name="typeMaterial"
+          options={typeMaterialOptions}
+          required
+          {...autocompleteProps('typeMaterial')}
+        />
+        <FormAutocomplete
+          accent
+          label="Description"
+          name="description"
+          options={descriptionOptions}
+          required
+          {...autocompleteProps('description')}
+        />
+        <FormAutocomplete
+          accent
+          label="Part Number"
+          name="partNumber"
+          options={partNumberOptions}
+          required
+          {...autocompleteProps('partNumber')}
+        />
+        <SpmsTextInput
+          label="Quantity"
+          name="quantity"
+          required
+          type="number"
+          {...textProps('quantity')}
+        />
+        <FormAutocomplete
+          accent
+          label="Support Origin Material"
+          name="supportOriginMaterial"
+          options={supportOriginMaterialOptions}
+          required
+          {...autocompleteProps('supportOriginMaterial')}
+        />
+        <FormAutocomplete
+          accent
+          label="Support Destination Material"
+          name="supportDestinationMaterial"
+          options={supportDestinationMaterialOptions}
+          required
+          {...autocompleteProps('supportDestinationMaterial')}
+        />
+        <FormAutocomplete
+          accent
+          label="Severity"
+          name="severity"
+          options={severityOptions}
+          required
+          {...autocompleteProps('severity')}
+        />
+        <FormAutocomplete
+          accent
+          label="SLA (Hours)"
+          name="slaHours"
+          options={slaHourOptions}
+          required
+          {...autocompleteProps('slaHours')}
+        />
+        <SpmsTextInput
+          label="AWB Transfer"
+          name="awbTransfer"
+          {...textProps('awbTransfer')}
+        />
+        <SpmsTextInput
+          label="PM Area"
+          name="pmArea"
+          required
+          {...textProps('pmArea')}
+        />
+      </FieldGrid>
+    </FormSection>
+  )
+
+  const renderApprovalCards = (scope: 'delivery' | 'pickup') => {
+    const isDelivery = scope === 'delivery'
+    const scopeLabel = isDelivery ? 'Delivery' : 'Pickup'
+    const fields = isDelivery
+      ? {
+          approval1By: 'approval1By' as FieldName,
+          approval1Date: 'approval1Date' as FieldName,
+          approval1Notes: 'approval1Notes' as FieldName,
+          approval1Status: 'approval1Status' as FieldName,
+          approval2By: 'approval2By' as FieldName,
+          approval2Date: 'approval2Date' as FieldName,
+          approval2Notes: 'approval2Notes' as FieldName,
+          approval2Status: 'approval2Status' as FieldName,
+          closedBy: 'closedBy' as FieldName,
+          closedDate: 'closedDate' as FieldName,
+          closedNotes: 'closedNotes' as FieldName,
+          closedStatus: 'closedStatus' as FieldName,
+        }
+      : {
+          approval1By: 'pickupApproval1By' as FieldName,
+          approval1Date: 'pickupApproval1Date' as FieldName,
+          approval1Notes: 'pickupApproval1Notes' as FieldName,
+          approval1Status: 'pickupApproval1Status' as FieldName,
+          approval2By: 'pickupApproval2By' as FieldName,
+          approval2Date: 'pickupApproval2Date' as FieldName,
+          approval2Notes: 'pickupApproval2Notes' as FieldName,
+          approval2Status: 'pickupApproval2Status' as FieldName,
+          closedBy: 'pickupClosedBy' as FieldName,
+          closedDate: 'pickupClosedDate' as FieldName,
+          closedNotes: 'pickupClosedNotes' as FieldName,
+          closedStatus: 'pickupClosedStatus' as FieldName,
+        }
+
+    return (
+    <Stack spacing={2.25}>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}
+      >
+        <Chip
+          color="primary"
+          label={`Current role: ${currentRole.replace('_', ' ')}`}
+          size="small"
+          variant="outlined"
+        />
+        <Typography color="text.secondary" variant="body2">
+          Hanya role yang sesuai yang bisa mengubah approval {scopeLabel.toLowerCase()}.
+        </Typography>
+      </Stack>
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 2,
+          gridTemplateColumns: {
+            xs: '1fr',
+            md: 'repeat(2, minmax(0, 1fr))',
+            lg: 'repeat(3, minmax(0, 1fr))',
+          },
+        }}
+      >
+        <FormSection
+          icon={<FactCheckRoundedIcon fontSize="small" />}
+          subtitle={`Approval pertama ${scopeLabel.toLowerCase()} dari admin 1`}
+          title={`${scopeLabel} Approval 1`}
+        >
+          <FieldGrid columns={1}>
+            <SpmsTextInput
+              label="Approval 1 By"
+              name={fields.approval1By}
+              required
+              {...textProps(fields.approval1By)}
+              disabled={formik.isSubmitting || !canApprove1}
+            />
+            <ApprovalRadioGroup
+              label="Approval 1 Status"
+              name={fields.approval1Status}
+              required
+              disabled={formik.isSubmitting || !canApprove1}
+              error={hasError(fields.approval1Status)}
+              helperText={getHelperText(fields.approval1Status)}
+              onBlur={() => {
+                void formik.setFieldTouched(fields.approval1Status, true)
+              }}
+              onChange={(value) => {
+                void formik.setFieldValue(fields.approval1Status, value)
+              }}
+              sx={{ gridColumn: { md: '1 / -1' } }}
+              value={formik.values[fields.approval1Status]}
+            />
+            <SpmsTextInput
+              label="Approval 1 Notes"
+              name={fields.approval1Notes}
+              multiline
+              sx={{ gridColumn: { md: '1 / -1' } }}
+              {...textProps(fields.approval1Notes)}
+              disabled={formik.isSubmitting || !canApprove1}
+            />
+            <AppButton
+              disabled={formik.isSubmitting || !canApprove1}
+              onClick={() => {
+                void saveWorkflowAction(canApprove1, {
+                  by: fields.approval1By,
+                  date: fields.approval1Date,
+                  notes: fields.approval1Notes,
+                  status: fields.approval1Status,
+                  statusValue: 'APPROVED',
+                })
+              }}
+              startIcon={<CheckCircleRoundedIcon />}
+              type="button"
+              sx={{ width: '100%' }}
+            >
+              Save {scopeLabel} Approval 1
+            </AppButton>
+          </FieldGrid>
+        </FormSection>
+
+        <FormSection
+          icon={<AssignmentTurnedInRoundedIcon fontSize="small" />}
+          subtitle={`Approval kedua ${scopeLabel.toLowerCase()} dari admin 2 / PIC BA region`}
+          title={`${scopeLabel} Approval 2`}
+        >
+          <FieldGrid columns={1}>
+            <SpmsTextInput
+              label="Approval 2 By"
+              name={fields.approval2By}
+              required
+              {...textProps(fields.approval2By)}
+              disabled={formik.isSubmitting || !canApprove2}
+            />
+            <ApprovalRadioGroup
+              label="Approval 2 Status"
+              name={fields.approval2Status}
+              required
+              disabled={formik.isSubmitting || !canApprove2}
+              error={hasError(fields.approval2Status)}
+              helperText={getHelperText(fields.approval2Status)}
+              onBlur={() => {
+                void formik.setFieldTouched(fields.approval2Status, true)
+              }}
+              onChange={(value) => {
+                void formik.setFieldValue(fields.approval2Status, value)
+              }}
+              sx={{ gridColumn: { md: '1 / -1' } }}
+              value={formik.values[fields.approval2Status]}
+            />
+            <SpmsTextInput
+              label="Approval 2 Notes"
+              name={fields.approval2Notes}
+              multiline
+              sx={{ gridColumn: { md: '1 / -1' } }}
+              {...textProps(fields.approval2Notes)}
+              disabled={formik.isSubmitting || !canApprove2}
+            />
+            <AppButton
+              disabled={formik.isSubmitting || !canApprove2}
+              onClick={() => {
+                void saveWorkflowAction(canApprove2, {
+                  by: fields.approval2By,
+                  date: fields.approval2Date,
+                  notes: fields.approval2Notes,
+                  status: fields.approval2Status,
+                  statusValue: 'APPROVED',
+                })
+              }}
+              startIcon={<CheckCircleRoundedIcon />}
+              type="button"
+              sx={{ width: '100%' }}
+            >
+              Save {scopeLabel} Approval 2
+            </AppButton>
+          </FieldGrid>
+        </FormSection>
+
+        <FormSection
+          icon={<AssignmentTurnedInRoundedIcon fontSize="small" />}
+          subtitle={`${scopeLabel} closing customer oleh admin 3`}
+          title={`${scopeLabel} Closed in Customer`}
+        >
+          <FieldGrid columns={1}>
+            <SpmsTextInput
+              label="Closed By"
+              name={fields.closedBy}
+              required
+              {...textProps(fields.closedBy)}
+              disabled={formik.isSubmitting || !canCloseCustomer}
+            />
+            <ApprovalRadioGroup
+              label="Closed Status"
+              name={fields.closedStatus}
+              required
+              disabled={formik.isSubmitting || !canCloseCustomer}
+              error={hasError(fields.closedStatus)}
+              helperText={getHelperText(fields.closedStatus)}
+              onBlur={() => {
+                void formik.setFieldTouched(fields.closedStatus, true)
+              }}
+              onChange={(value) => {
+                void formik.setFieldValue(fields.closedStatus, value)
+              }}
+              sx={{ gridColumn: { md: '1 / -1' } }}
+              value={formik.values[fields.closedStatus]}
+              isClosedStatus
+            />
+            <SpmsTextInput
+              label="Closed Notes"
+              name={fields.closedNotes}
+              multiline
+              sx={{ gridColumn: { md: '1 / -1' } }}
+              {...textProps(fields.closedNotes)}
+              disabled={formik.isSubmitting || !canCloseCustomer}
+            />
+            <AppButton
+              disabled={formik.isSubmitting || !canCloseCustomer}
+              onClick={() => {
+                void saveWorkflowAction(canCloseCustomer, {
+                  by: fields.closedBy,
+                  date: fields.closedDate,
+                  notes: fields.closedNotes,
+                  status: fields.closedStatus,
+                  statusValue: 'CLOSED',
+                })
+              }}
+              startIcon={<CheckCircleRoundedIcon />}
+              type="button"
+              sx={{ width: '100%' }}
+            >
+              Save {scopeLabel} Closed Customer
+            </AppButton>
+          </FieldGrid>
+        </FormSection>
+      </Box>
+    </Stack>
+    )
+  }
 
   return (
     <Box
@@ -852,343 +1345,124 @@ export function SpmsRequestForm({
     >
       <LiquidPanel sx={{ p: { xs: 2, md: 3 } }}>
         <Stack spacing={2.5}>
-          <Tabs
-            value={activeStep}
-            onChange={(_, nextStep: number) => {
-              void goToStep(nextStep)
-            }}
-            variant="scrollable"
-            allowScrollButtonsMobile
-            sx={{
-              borderBottom: '1px solid',
-              borderColor: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? 'rgba(128, 205, 255, 0.14)'
-                  : 'rgba(18, 73, 126, 0.12)',
-              minHeight: 68,
-              '& .MuiTabs-indicator': {
-                height: 3,
-              },
-              '& .MuiTab-root': {
-                alignItems: 'flex-start',
-                borderRadius: 1,
-                minHeight: 64,
-                minWidth: { xs: 178, sm: 210 },
-                px: 1.5,
-                textAlign: 'left',
-              },
-            }}
-          >
-            {formSteps.map((step, index) => (
-              <Tab
-                key={step.title}
-                type="button"
-                value={index}
-                label={
-                  <Stack spacing={0.25}>
-                    <Typography sx={{ fontWeight: 900 }} variant="body2">
-                      {index + 1}. {step.title}
-                    </Typography>
-                    <Typography color="text.secondary" variant="caption">
-                      {step.subtitle}
-                    </Typography>
-                  </Stack>
-                }
-              />
-            ))}
-          </Tabs>
-
-          <Stack
-            direction="row"
-            spacing={1}
-            sx={{ flexWrap: 'wrap', rowGap: 1 }}
-          >
-            {workflowItems.map((item) => (
-              <Chip
-                key={item.label}
-                icon={<AssignmentTurnedInRoundedIcon />}
-                label={`${item.label}: ${item.value || '-'}`}
-                size="small"
-                variant="outlined"
-              />
-            ))}
-          </Stack>
-
-          <Divider />
-
-          {activeStep === 0 ? (
-            <Stack spacing={2}>
-              <FieldGrid columns={3}>
-                <SummaryTile
-                  icon={<AssignmentRoundedIcon />}
-                  label="Order Number"
-                  value={formik.values.orderNumber}
-                />
-                <SummaryTile
-                  icon={<FactCheckRoundedIcon />}
-                  label="BA Number"
-                  value={formik.values.baNumber}
-                />
-                <SummaryTile
-                  icon={<WarehouseRoundedIcon />}
-                  label="Reservation"
-                  value={formik.values.reservationStatus}
-                />
-              </FieldGrid>
-
-              <FormSection
-                icon={<AssignmentRoundedIcon fontSize="small" />}
-                subtitle="Data utama request dan customer order"
-                title="Request Identity"
-              >
-                <FieldGrid>
-                  <SpmsTextInput
-                    label="Order Number"
-                    name="orderNumber"
-                    readOnly
-                    {...textProps('orderNumber')}
-                  />
-                  <FormAutocomplete
-                    accent
-                    label="Operator"
-                    name="customer"
-                    options={customerOptions}
-                    required
-                    {...autocompleteProps('customer')}
-                  />
-                  <SpmsTextInput
-                    label="Customer Order Number"
-                    name="customerOrderNumber"
-                    required
-                    {...textProps('customerOrderNumber')}
-                  />
-                  <SpmsTextInput
-                    label="Create By"
-                    name="createdBy"
-                    readOnly
-                    required
-                    {...textProps('createdBy')}
-                  />
-                  <SpmsTextInput
-                    label="Customer Requestor"
-                    name="customerRequestor"
-                    required
-                    {...textProps('customerRequestor')}
-                  />
-                  <FormDateTimeField
-                    label="Request Date"
-                    name="requestDate"
-                    required
-                    disabled={formik.isSubmitting}
-                    error={hasError('requestDate')}
-                    helperText={getHelperText('requestDate')}
-                    onBlur={() => {
-                      void formik.setFieldTouched('requestDate', true)
-                    }}
-                    onChange={(value) => {
-                      void formik.setFieldValue('requestDate', value)
-                    }}
-                    value={formik.values.requestDate}
-                  />
-                </FieldGrid>
-              </FormSection>
-
+          {!isCreateMode ? (
+            <>
               <Box
                 sx={{
-                  display: 'grid',
-                  gap: 2,
-                  gridTemplateColumns: {
-                    xs: '1fr',
-                    md: 'repeat(2, minmax(0, 1fr))',
-                    lg: 'repeat(3, minmax(0, 1fr))',
+                  bgcolor: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? alpha(theme.palette.common.white, 0.035)
+                      : alpha(theme.palette.common.white, 0.48),
+                  border: '1px solid',
+                  borderColor: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? alpha(theme.palette.primary.light, 0.16)
+                      : alpha(theme.palette.primary.main, 0.1),
+                  borderRadius: 1,
+                  p: { xs: 1.5, md: 2 },
+                }}
+              >
+                <Stack spacing={1.5}>
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={1}
+                    sx={{
+                      alignItems: { sm: 'center' },
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography sx={{ fontWeight: 900 }} variant="subtitle1">
+                        Transaction Track
+                      </Typography>
+                      <Typography color="text.secondary" variant="body2">
+                        Posisi transaksi SPMS dari open sampai closed.
+                      </Typography>
+                    </Box>
+                    <Chip
+                      color={isTransactionClosed ? 'success' : 'warning'}
+                      label={
+                        isTransactionClosed
+                          ? 'Closed'
+                          : transactionTimelineItems.find(
+                              (item) => item.state === 'active',
+                            )?.label ?? 'In Progress'
+                      }
+                      size="small"
+                      variant="outlined"
+                    />
+                  </Stack>
+                  <ProcessTimeline items={transactionTimelineItems} />
+                </Stack>
+              </Box>
+
+              <Tabs
+                value={activeStep}
+                onChange={(_, nextStep: number) => {
+                  setActiveStep(nextStep)
+                }}
+                variant="scrollable"
+                allowScrollButtonsMobile
+                sx={{
+                  borderBottom: '1px solid',
+                  borderColor: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? 'rgba(128, 205, 255, 0.14)'
+                      : 'rgba(18, 73, 126, 0.12)',
+                  minHeight: 68,
+                  '& .MuiTabs-indicator': {
+                    height: 3,
+                  },
+                  '& .MuiTab-root': {
+                    alignItems: 'flex-start',
+                    borderRadius: 1,
+                    minHeight: 64,
+                    minWidth: { xs: 178, sm: 210 },
+                    px: 1.5,
+                    textAlign: 'left',
                   },
                 }}
               >
-                <FormSection
-                  icon={<LocalShippingRoundedIcon fontSize="small" />}
-                  subtitle="Lokasi kebutuhan dan prioritas SLA"
-                  title="Site & Delivery Need"
-                >
-                  <FieldGrid>
-                    <FormAutocomplete
-                      accent
-                      label="Area"
-                      name="areal"
-                      options={areaOptions}
-                      required
-                      {...autocompleteProps('areal')}
-                    />
-                    <FormAutocomplete
-                      accent
-                      label="DOP"
-                      name="dop"
-                      options={dopOptions}
-                      required
-                      {...autocompleteProps('dop')}
-                    />
-                    <SpmsTextInput
-                      label="Site Name"
-                      name="siteName"
-                      required
-                      {...textProps('siteName')}
-                    />
-                    <SpmsTextInput
-                      label="PM Area"
-                      name="pmArea"
-                      required
-                      {...textProps('pmArea')}
-                    />
-                    <FormAutocomplete
-                      accent
-                      label="Severity"
-                      name="severity"
-                      options={severityOptions}
-                      required
-                      {...autocompleteProps('severity')}
-                    />
-                    <FormAutocomplete
-                      accent
-                      label="SLA (Hours)"
-                      name="slaHours"
-                      options={slaHourOptions}
-                      required
-                      {...autocompleteProps('slaHours')}
-                    />
-                  </FieldGrid>
-                </FormSection>
+                {formSteps.map((step, index) => (
+                  <Tab
+                    key={step.title}
+                    type="button"
+                    value={index}
+                    label={
+                      <Stack spacing={0.25}>
+                        <Typography sx={{ fontWeight: 900 }} variant="body2">
+                          {step.title}
+                        </Typography>
+                        <Typography color="text.secondary" variant="caption">
+                          {step.subtitle}
+                        </Typography>
+                      </Stack>
+                    }
+                  />
+                ))}
+              </Tabs>
 
-                <FormSection
-                  icon={<Inventory2RoundedIcon fontSize="small" />}
-                  subtitle="Material yang diminta untuk BA"
-                  title="Material Request"
-                >
-                  <FieldGrid>
-                    <FormAutocomplete
-                      accent
-                      label="Category Material"
-                      name="categoryMaterial"
-                      options={categoryMaterialOptions}
-                      required
-                      {...autocompleteProps('categoryMaterial')}
-                    />
-                    <FormAutocomplete
-                      accent
-                      label="Type Material"
-                      name="typeMaterial"
-                      options={typeMaterialOptions}
-                      required
-                      {...autocompleteProps('typeMaterial')}
-                    />
-                    <FormAutocomplete
-                      accent
-                      label="Description"
-                      name="description"
-                      options={descriptionOptions}
-                      required
-                      {...autocompleteProps('description')}
-                      sx={{ gridColumn: { md: '1 / -1' } }}
-                    />
-                    <FormAutocomplete
-                      accent
-                      label="Part Number"
-                      name="partNumber"
-                      options={partNumberOptions}
-                      required
-                      {...autocompleteProps('partNumber')}
-                    />
-                    <SpmsTextInput
-                      label="Quantity"
-                      name="quantity"
-                      required
-                      type="number"
-                      {...textProps('quantity')}
-                    />
-                  </FieldGrid>
-                </FormSection>
-              </Box>
-
-              <FormSection
-                icon={<WarehouseRoundedIcon fontSize="small" />}
-                subtitle="Sumber material dan status reservasi stock"
-                title="Stock Source & Reservation"
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ flexWrap: 'wrap', rowGap: 1 }}
               >
-                <FieldGrid columns={3}>
-                  <FormAutocomplete
-                    accent
-                    label="Support Origin Material"
-                    name="supportOriginMaterial"
-                    options={supportOriginMaterialOptions}
-                    required
-                    {...autocompleteProps('supportOriginMaterial')}
+                {workflowItems.map((item) => (
+                  <Chip
+                    key={item.label}
+                    icon={<AssignmentTurnedInRoundedIcon />}
+                    label={`${item.label}: ${item.value || '-'}`}
+                    size="small"
+                    variant="outlined"
                   />
-                  <FormAutocomplete
-                    accent
-                    label="Support Destination Material"
-                    name="supportDestinationMaterial"
-                    options={supportDestinationMaterialOptions}
-                    required
-                    {...autocompleteProps('supportDestinationMaterial')}
-                  />
-                  <SpmsTextInput
-                    label="AWB Transfer"
-                    name="awbTransfer"
-                    {...textProps('awbTransfer')}
-                  />
-                  <FormAutocomplete
-                    accent
-                    label="Origin LSP"
-                    name="originLsp"
-                    options={lspOptions}
-                    required
-                    {...autocompleteProps('originLsp')}
-                  />
-                  <FormAutocomplete
-                    accent
-                    label="Destination LSP"
-                    name="destinationLsp"
-                    options={lspOptions}
-                    required
-                    {...autocompleteProps('destinationLsp')}
-                  />
-                  <SpmsTextInput
-                    label="Serial Number"
-                    name="materialSerialNumber"
-                    {...textProps('materialSerialNumber')}
-                  />
-                  <FormAutocomplete
-                    accent
-                    label="Stock Status"
-                    name="stockStatus"
-                    options={stockStatusOptions}
-                    required
-                    {...autocompleteProps('stockStatus')}
-                  />
-                  <FormAutocomplete
-                    accent
-                    label="System Label"
-                    name="systemLabel"
-                    options={systemLabelOptions}
-                    required
-                    {...autocompleteProps('systemLabel')}
-                  />
-                  <FormAutocomplete
-                    accent
-                    label="Reservation Status"
-                    name="reservationStatus"
-                    options={reservationStatusOptions}
-                    required
-                    {...autocompleteProps('reservationStatus')}
-                  />
-                  <SpmsTextInput
-                    label="Stock Remark"
-                    name="stockRemark"
-                    sx={{ gridColumn: { md: '1 / -1' } }}
-                    {...textProps('stockRemark')}
-                  />
-                </FieldGrid>
-              </FormSection>
-            </Stack>
+                ))}
+              </Stack>
+
+              <Divider />
+            </>
           ) : null}
+
+          {isCreateMode || activeStep === 0 ? renderDetailRequestForm() : null}
 
           {activeStep === 1 ? (
             <Box
@@ -1262,24 +1536,17 @@ export function SpmsRequestForm({
                 <FormSection
                   icon={<LocalShippingRoundedIcon fontSize="small" />}
                   subtitle="Status setelah evidence delivery diupload"
-                  title="Delivery Result"
+                  title="Status Return"
                 >
                   <FieldGrid>
                     <FormAutocomplete
                       accent
-                      label="Delivery Status"
+                      label="Status Return"
                       name="deliveryStatus"
                       options={deliveryStatusOptions}
                       required
+                      sx={{ gridColumn: { md: '1 / -1' } }}
                       {...autocompleteProps('deliveryStatus')}
-                    />
-                    <FormAutocomplete
-                      accent
-                      label="Stock Status"
-                      name="stockStatus"
-                      options={stockStatusOptions}
-                      required
-                      {...autocompleteProps('stockStatus')}
                     />
                   </FieldGrid>
                 </FormSection>
@@ -1287,130 +1554,7 @@ export function SpmsRequestForm({
             </Box>
           ) : null}
 
-          {activeStep === 2 ? (
-            <Stack spacing={2.25}>
-              <ProcessTimeline items={approvalTimelineItems} />
-              <Box
-                sx={{
-                  display: 'grid',
-                  gap: 2,
-                  gridTemplateColumns: {
-                    xs: '1fr',
-                    md: 'repeat(2, minmax(0, 1fr))',
-                    lg: 'repeat(3, minmax(0, 1fr))',
-                  },
-                }}
-              >
-                <FormSection
-                  icon={<FactCheckRoundedIcon fontSize="small" />}
-                  subtitle="Approval pertama dari admin atau manager"
-                  title="Approval 1"
-                >
-                  <FieldGrid columns={1}>
-                    <SpmsTextInput
-                      label="Approval 1 By"
-                      name="adminApprover"
-                      required
-                      {...textProps('adminApprover')}
-                    />
-                    <ApprovalRadioGroup
-                      label="Approval 1 Status"
-                      name="adminApprovalStatus"
-                      required
-                      disabled={formik.isSubmitting}
-                      error={hasError('adminApprovalStatus')}
-                      helperText={getHelperText('adminApprovalStatus')}
-                      onBlur={() => {
-                        void formik.setFieldTouched('adminApprovalStatus', true)
-                      }}
-                      onChange={(value) => {
-                        void formik.setFieldValue('adminApprovalStatus', value)
-                      }}
-                      sx={{ gridColumn: { md: '1 / -1' } }}
-                      value={formik.values.adminApprovalStatus}
-                    />
-                    <SpmsTextInput
-                      label="Approval 1 Notes"
-                      name="adminApprovalNotes"
-                      multiline
-                      sx={{ gridColumn: { md: '1 / -1' } }}
-                      {...textProps('adminApprovalNotes')}
-                    />
-                  </FieldGrid>
-                </FormSection>
-
-                <FormSection
-                  icon={<AssignmentTurnedInRoundedIcon fontSize="small" />}
-                  subtitle="Approval kedua oleh PIC BA region"
-                  title="Approval 2"
-                >
-                  <FieldGrid columns={1}>
-                    <SpmsTextInput
-                      label="Approval 2 By"
-                      name="picBaRegion"
-                      required
-                      {...textProps('picBaRegion')}
-                    />
-                    <ApprovalRadioGroup
-                      label="Approval 2 Status"
-                      name="picBaApprovalStatus"
-                      required
-                      disabled={formik.isSubmitting}
-                      error={hasError('picBaApprovalStatus')}
-                      helperText={getHelperText('picBaApprovalStatus')}
-                      onBlur={() => {
-                        void formik.setFieldTouched('picBaApprovalStatus', true)
-                      }}
-                      onChange={(value) => {
-                        void formik.setFieldValue('picBaApprovalStatus', value)
-                      }}
-                      sx={{ gridColumn: { md: '1 / -1' } }}
-                      value={formik.values.picBaApprovalStatus}
-                    />
-                    <SpmsTextInput
-                      label="Approval 2 Notes"
-                      name="adminApprovalNotes"
-                      multiline
-                      sx={{ gridColumn: { md: '1 / -1' } }}
-                      {...textProps('adminApprovalNotes')}
-                    />
-                  </FieldGrid>
-                </FormSection>
-
-                <FormSection
-                  icon={<AssignmentTurnedInRoundedIcon fontSize="small" />}
-                  subtitle="Gate closing setelah approval 2 selesai"
-                  title="Closed in Customer"
-                >
-                  <FieldGrid columns={1}>
-                    <SpmsTextInput
-                      label="Closed By"
-                      name="picBaRegion"
-                      required
-                      {...textProps('picBaRegion')}
-                    />
-                    <ApprovalRadioGroup
-                      label="Closed Status"
-                      name="picBaApprovalStatus"
-                      required
-                      disabled={formik.isSubmitting}
-                      error={hasError('picBaApprovalStatus')}
-                      helperText={getHelperText('picBaApprovalStatus')}
-                      onBlur={() => {
-                        void formik.setFieldTouched('picBaApprovalStatus', true)
-                      }}
-                      onChange={(value) => {
-                        void formik.setFieldValue('picBaApprovalStatus', value)
-                      }}
-                      sx={{ gridColumn: { md: '1 / -1' } }}
-                      value={formik.values.picBaApprovalStatus}
-                      isClosedStatus
-                    />
-                  </FieldGrid>
-                </FormSection>
-              </Box>
-            </Stack>
-          ) : null}
+          {activeStep === 2 ? renderApprovalCards('delivery') : null}
 
           {activeStep === 3 ? (
             <Box
@@ -1488,15 +1632,8 @@ export function SpmsRequestForm({
                       name="deliveryStatus"
                       options={deliveryStatusOptions}
                       required
+                      sx={{ gridColumn: { md: '1 / -1' } }}
                       {...autocompleteProps('deliveryStatus')}
-                    />
-                    <FormAutocomplete
-                      accent
-                      label="Stock Status"
-                      name="stockStatus"
-                      options={stockStatusOptions}
-                      required
-                      {...autocompleteProps('stockStatus')}
                     />
                   </FieldGrid>
                 </FormSection>
@@ -1504,130 +1641,7 @@ export function SpmsRequestForm({
             </Box>
           ) : null}
 
-          {activeStep === 4 ? (
-            <Stack spacing={2.25}>
-              <ProcessTimeline items={approvalTimelineItems} />
-              <Box
-                sx={{
-                  display: 'grid',
-                  gap: 2,
-                  gridTemplateColumns: {
-                    xs: '1fr',
-                    md: 'repeat(2, minmax(0, 1fr))',
-                    lg: 'repeat(3, minmax(0, 1fr))',
-                  },
-                }}
-              >
-                <FormSection
-                  icon={<FactCheckRoundedIcon fontSize="small" />}
-                  subtitle="Approval pertama dari admin atau manager"
-                  title="Approval 1"
-                >
-                  <FieldGrid columns={1}>
-                    <SpmsTextInput
-                      label="Approval 1 By"
-                      name="adminApprover"
-                      required
-                      {...textProps('adminApprover')}
-                    />
-                    <ApprovalRadioGroup
-                      label="Approval 1 Status"
-                      name="adminApprovalStatus"
-                      required
-                      disabled={formik.isSubmitting}
-                      error={hasError('adminApprovalStatus')}
-                      helperText={getHelperText('adminApprovalStatus')}
-                      onBlur={() => {
-                        void formik.setFieldTouched('adminApprovalStatus', true)
-                      }}
-                      onChange={(value) => {
-                        void formik.setFieldValue('adminApprovalStatus', value)
-                      }}
-                      sx={{ gridColumn: { md: '1 / -1' } }}
-                      value={formik.values.adminApprovalStatus}
-                    />
-                    <SpmsTextInput
-                      label="Approval 1 Notes"
-                      name="adminApprovalNotes"
-                      multiline
-                      sx={{ gridColumn: { md: '1 / -1' } }}
-                      {...textProps('adminApprovalNotes')}
-                    />
-                  </FieldGrid>
-                </FormSection>
-
-                <FormSection
-                  icon={<AssignmentTurnedInRoundedIcon fontSize="small" />}
-                  subtitle="Approval kedua oleh PIC BA region"
-                  title="Approval 2"
-                >
-                  <FieldGrid columns={1}>
-                    <SpmsTextInput
-                      label="Approval 2 By"
-                      name="picBaRegion"
-                      required
-                      {...textProps('picBaRegion')}
-                    />
-                    <ApprovalRadioGroup
-                      label="Approval 2 Status"
-                      name="picBaApprovalStatus"
-                      required
-                      disabled={formik.isSubmitting}
-                      error={hasError('picBaApprovalStatus')}
-                      helperText={getHelperText('picBaApprovalStatus')}
-                      onBlur={() => {
-                        void formik.setFieldTouched('picBaApprovalStatus', true)
-                      }}
-                      onChange={(value) => {
-                        void formik.setFieldValue('picBaApprovalStatus', value)
-                      }}
-                      sx={{ gridColumn: { md: '1 / -1' } }}
-                      value={formik.values.picBaApprovalStatus}
-                    />
-                    <SpmsTextInput
-                      label="Approval 2 Notes"
-                      name="adminApprovalNotes"
-                      multiline
-                      sx={{ gridColumn: { md: '1 / -1' } }}
-                      {...textProps('adminApprovalNotes')}
-                    />
-                  </FieldGrid>
-                </FormSection>
-
-                <FormSection
-                  icon={<AssignmentTurnedInRoundedIcon fontSize="small" />}
-                  subtitle="Gate closing setelah approval 2 selesai"
-                  title="Closed in Customer"
-                >
-                  <FieldGrid columns={1}>
-                    <SpmsTextInput
-                      label="Closed By"
-                      name="picBaRegion"
-                      required
-                      {...textProps('picBaRegion')}
-                    />
-                    <ApprovalRadioGroup
-                      label="Closed Status"
-                      name="picBaApprovalStatus"
-                      required
-                      disabled={formik.isSubmitting}
-                      error={hasError('picBaApprovalStatus')}
-                      helperText={getHelperText('picBaApprovalStatus')}
-                      onBlur={() => {
-                        void formik.setFieldTouched('picBaApprovalStatus', true)
-                      }}
-                      onChange={(value) => {
-                        void formik.setFieldValue('picBaApprovalStatus', value)
-                      }}
-                      sx={{ gridColumn: { md: '1 / -1' } }}
-                      value={formik.values.picBaApprovalStatus}
-                      isClosedStatus
-                    />
-                  </FieldGrid>
-                </FormSection>
-              </Box>
-            </Stack>
-          ) : null}
+          {activeStep === 4 ? renderApprovalCards('pickup') : null}
         </Stack>
       </LiquidPanel>
 
@@ -1670,51 +1684,20 @@ export function SpmsRequestForm({
             Cancel
           </Button>
         ) : null}
-        <Button
-          disabled={formik.isSubmitting || activeStep === 0}
-          onClick={() => setActiveStep((current) => Math.max(current - 1, 0))}
-          startIcon={<KeyboardArrowLeftRoundedIcon />}
+        <AppButton
+          disabled={formik.isSubmitting}
+          onClick={() => {
+            void handleSave()
+          }}
+          startIcon={<SaveRoundedIcon />}
           type="button"
-          variant="outlined"
           sx={{
-            background: 'transparent',
-            minWidth: 112,
+            minWidth: 132,
             width: { xs: '100%', sm: 'auto' },
           }}
         >
-          Previous
-        </Button>
-        {isLastStep ? (
-          <AppButton
-            disabled={formik.isSubmitting}
-            onClick={() => {
-              void handleSave()
-            }}
-            startIcon={<SaveRoundedIcon />}
-            type="button"
-            sx={{
-              minWidth: 132,
-              width: { xs: '100%', sm: 'auto' },
-            }}
-          >
-            Save BA
-          </AppButton>
-        ) : (
-          <AppButton
-            disabled={formik.isSubmitting}
-            endIcon={<KeyboardArrowRightRoundedIcon />}
-            onClick={() => {
-              void goToNextStep()
-            }}
-            type="button"
-            sx={{
-              minWidth: 112,
-              width: { xs: '100%', sm: 'auto' },
-            }}
-          >
-            Next
-          </AppButton>
-        )}
+          {isCreateMode ? 'Add SPMS' : `Save ${formSteps[activeStep].title}`}
+        </AppButton>
       </Stack>
     </Box>
   )
