@@ -39,12 +39,6 @@ export function SpmsListPage() {
     useSpmsList()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
 
-  const visibleRowIds = useMemo(() => rows.map((record) => record.id), [rows])
-  const allVisibleSelected =
-    visibleRowIds.length > 0 &&
-    visibleRowIds.every((id) => selectedIds.has(id))
-  const someVisibleSelected = visibleRowIds.some((id) => selectedIds.has(id))
-
   const toggleSelected = useCallback((id: string) => {
     setSelectedIds((current) => {
       const next = new Set(current)
@@ -59,19 +53,20 @@ export function SpmsListPage() {
     })
   }, [])
 
-  const toggleAllVisible = useCallback(() => {
+  const toggleRows = useCallback((ids: string[]) => {
     setSelectedIds((current) => {
       const next = new Set(current)
+      const allSelected = ids.length > 0 && ids.every((id) => next.has(id))
 
-      if (allVisibleSelected) {
-        visibleRowIds.forEach((id) => next.delete(id))
+      if (allSelected) {
+        ids.forEach((id) => next.delete(id))
       } else {
-        visibleRowIds.forEach((id) => next.add(id))
+        ids.forEach((id) => next.add(id))
       }
 
       return next
     })
-  }, [allVisibleSelected, visibleRowIds])
+  }, [])
 
   const columns = useMemo<DataTableColumn<SpmsRecord>[]>(
     () => [
@@ -248,18 +243,26 @@ export function SpmsListPage() {
       },
       {
         key: 'checkbox',
-        header: (
-          <Checkbox
-            checked={allVisibleSelected}
-            disabled={!visibleRowIds.length}
-            indeterminate={!allVisibleSelected && someVisibleSelected}
-            onChange={toggleAllVisible}
-            size="small"
-            slotProps={{
-              input: { 'aria-label': 'Select all visible SPMS rows' },
-            }}
-          />
-        ),
+        header: ({ visibleRows }) => {
+          const pageRowIds = visibleRows.map((record) => record.id)
+          const allPageSelected =
+            pageRowIds.length > 0 &&
+            pageRowIds.every((id) => selectedIds.has(id))
+          const somePageSelected = pageRowIds.some((id) => selectedIds.has(id))
+
+          return (
+            <Checkbox
+              checked={allPageSelected}
+              disabled={!pageRowIds.length}
+              indeterminate={!allPageSelected && somePageSelected}
+              onChange={() => toggleRows(pageRowIds)}
+              size="small"
+              slotProps={{
+                input: { 'aria-label': 'Select all visible SPMS rows' },
+              }}
+            />
+          )
+        },
         align: 'center',
         sticky: 'right',
         stickyOffset: 0,
@@ -277,13 +280,10 @@ export function SpmsListPage() {
       },
     ],
     [
-      allVisibleSelected,
       navigate,
       selectedIds,
-      someVisibleSelected,
-      toggleAllVisible,
       toggleSelected,
-      visibleRowIds.length,
+      toggleRows,
     ],
   )
 
@@ -314,6 +314,8 @@ export function SpmsListPage() {
         columns={columns}
         getRowId={(record) => record.id}
         emptyLabel="SPMS tidak ditemukan"
+        pagination
+        initialRowsPerPage={10}
         minWidth={3160}
       />
     </>

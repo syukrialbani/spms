@@ -5,6 +5,7 @@ import { AuthProvider } from '@features/auth/model/AuthProvider'
 import { ApiErrorProvider } from '@shared/api/ApiErrorProvider'
 import { ApiQueryProvider } from '@shared/api/ApiQueryProvider'
 import { ColorModeProvider, useColorMode } from '@shared/lib/color-mode'
+import { ConfirmationProvider } from '@shared/lib/confirmation'
 import { getAppTheme } from '../styles/theme'
 
 export function AppProviders({ children }: PropsWithChildren) {
@@ -24,7 +25,9 @@ function ThemedProviders({ children }: PropsWithChildren) {
       <CssBaseline enableColorScheme />
       <ApiQueryProvider>
         <ApiErrorProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <ConfirmationProvider>{children}</ConfirmationProvider>
+          </AuthProvider>
         </ApiErrorProvider>
       </ApiQueryProvider>
     </ThemeProvider>

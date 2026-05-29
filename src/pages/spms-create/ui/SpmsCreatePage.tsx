@@ -1,3 +1,5 @@
+import { deliveryOrderStorage } from '@entities/delivery-order'
+import { spmsStorage } from '@entities/spms'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import { AppButton } from '@shared/ui/AppButton'
 import { PageHeader } from '@shared/ui/PageHeader'
@@ -17,7 +19,11 @@ export function SpmsCreatePage() {
 
   const handleSaveSpms = useCallback(
     (values: SpmsRequestFormValues) => {
-      console.info('SPMS saved', values)
+      const createdSpms = spmsStorage.createFromForm(values)
+      deliveryOrderStorage.createFromSpms({
+        ...values,
+        orderNumber: createdSpms.orderNumber,
+      })
       navigate('/spms')
     },
     [navigate],
@@ -27,7 +33,7 @@ export function SpmsCreatePage() {
     <>
       <PageHeader
         title="Add SPMS"
-        subtitle="Create BA, reservasi material, approval, dan upload evidence dalam satu flow."
+        subtitle="Input request awal SPMS sebelum proses BA dan approval."
         actions={
           <AppButton
             onClick={goBackToList}
@@ -48,7 +54,11 @@ export function SpmsCreatePage() {
           </AppButton>
         }
       />
-      <SpmsRequestForm onCancel={goBackToList} onSave={handleSaveSpms} />
+      <SpmsRequestForm
+        mode="create"
+        onCancel={goBackToList}
+        onSave={handleSaveSpms}
+      />
     </>
   )
 }
