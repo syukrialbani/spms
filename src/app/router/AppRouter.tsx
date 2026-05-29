@@ -19,6 +19,16 @@ const SpmsDetailPage = lazy(() =>
     default: module.SpmsDetailPage,
   })),
 )
+const SpmsEditPage = lazy(() =>
+  import('@pages/spms-edit').then((module) => ({
+    default: module.SpmsEditPage,
+  })),
+)
+const SpmsCreatePage = lazy(() =>
+  import('@pages/spms-create').then((module) => ({
+    default: module.SpmsCreatePage,
+  })),
+)
 const SpmsListPage = lazy(() =>
   import('@pages/spms-list').then((module) => ({
     default: module.SpmsListPage,
@@ -36,6 +46,8 @@ export function AppRouter() {
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/spms" element={<SpmsListPage />} />
+              <Route path="/spms/add" element={<SpmsCreatePage />} />
+              <Route path="/spms/:id/edit" element={<SpmsEditPage />} />
               <Route path="/spms/:id" element={<SpmsDetailPage />} />
             </Route>
           </Route>

@@ -38,14 +38,13 @@ export function MainNavigation({ onNavigate }: MainNavigationProps) {
           theme.palette.mode === 'dark'
             ? 'linear-gradient(180deg, rgba(10, 42, 94, 0.88), rgba(7, 19, 35, 0.94) 62%, rgba(3, 11, 26, 0.96))'
             : 'linear-gradient(180deg, rgba(82, 197, 242, 0.82), rgba(29, 112, 183, 0.86) 52%, rgba(20, 58, 120, 0.92))',
-        backdropFilter: 'blur(28px) saturate(1.45)',
         border: '1px solid',
         borderColor: (theme) =>
           theme.palette.mode === 'dark'
             ? 'rgba(128, 205, 255, 0.18)'
             : 'rgba(255,255,255,0.34)',
         borderRadius: { xs: 0, md: 1 },
-        boxShadow: '0 26px 72px rgba(12, 67, 122, 0.26)',
+        boxShadow: '0 16px 40px rgba(12, 67, 122, 0.2)',
         color: 'common.white',
         display: 'flex',
         flexDirection: 'column',

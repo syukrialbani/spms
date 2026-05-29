@@ -30,7 +30,6 @@ body {
     linear-gradient(145deg, rgba(20, 58, 120, 0.96) 0%, rgba(29, 112, 183, 0.84) 38%, rgba(82, 197, 242, 0.34) 100%),
     linear-gradient(35deg, rgba(242, 140, 40, 0.22), rgba(255, 255, 255, 0) 42%),
     #edf7ff;
-  background-attachment: fixed;
 }
 
 :root[data-theme='dark'] body {
@@ -50,7 +49,7 @@ body::before {
     linear-gradient(172deg, rgba(255, 255, 255, 0.36) 0 12%, rgba(255, 255, 255, 0) 12% 100%),
     linear-gradient(18deg, rgba(7, 27, 63, 0.18) 0 28%, rgba(255, 255, 255, 0) 28% 100%),
     linear-gradient(150deg, rgba(255, 255, 255, 0) 0 58%, rgba(82, 197, 242, 0.26) 58% 100%);
-  mix-blend-mode: screen;
+  opacity: 0.82;
 }
 
 :root[data-theme='dark'] body::before {
@@ -58,7 +57,7 @@ body::before {
     linear-gradient(172deg, rgba(82, 197, 242, 0.14) 0 12%, rgba(255, 255, 255, 0) 12% 100%),
     linear-gradient(18deg, rgba(0, 0, 0, 0.3) 0 28%, rgba(255, 255, 255, 0) 28% 100%),
     linear-gradient(150deg, rgba(255, 255, 255, 0) 0 58%, rgba(29, 112, 183, 0.2) 58% 100%);
-  mix-blend-mode: screen;
+  opacity: 0.72;
 }
 
 #root {
