@@ -78,13 +78,13 @@ export const getAppTheme = (mode: PaletteMode) => {
               'linear-gradient(135deg, #52c5f2 0%, #1d70b7 54%, #143a78 100%)',
             borderRadius: 8,
             boxShadow: isDark
-              ? '0 16px 34px rgba(82, 197, 242, 0.2)'
-              : '0 16px 34px rgba(29, 112, 183, 0.28)',
+              ? '0 10px 22px rgba(82, 197, 242, 0.18)'
+              : '0 10px 22px rgba(29, 112, 183, 0.22)',
             minHeight: 40,
             '&:hover': {
               boxShadow: isDark
-                ? '0 18px 40px rgba(82, 197, 242, 0.3)'
-                : '0 18px 40px rgba(29, 112, 183, 0.36)',
+                ? '0 12px 26px rgba(82, 197, 242, 0.24)'
+                : '0 12px 26px rgba(29, 112, 183, 0.28)',
             },
           },
         },
@@ -112,10 +112,9 @@ export const getAppTheme = (mode: PaletteMode) => {
       MuiOutlinedInput: {
         styleOverrides: {
           root: {
-            backdropFilter: 'blur(18px) saturate(1.35)',
             backgroundColor: isDark
-              ? 'rgba(7, 19, 35, 0.58)'
-              : 'rgba(255, 255, 255, 0.62)',
+              ? 'rgba(7, 19, 35, 0.72)'
+              : 'rgba(255, 255, 255, 0.82)',
             borderRadius: 8,
           },
         },

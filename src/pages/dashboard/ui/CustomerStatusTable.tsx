@@ -321,7 +321,6 @@ export function CustomerStatusTable() {
                 theme.palette.mode === 'dark'
                   ? 'linear-gradient(145deg, rgba(7,19,35,0.94), rgba(10,42,94,0.82))'
                   : 'linear-gradient(145deg, rgba(255,255,255,0.92), rgba(232,247,255,0.82))',
-              backdropFilter: 'blur(28px) saturate(1.5)',
               border: '1px solid',
               borderColor: (theme) =>
                 theme.palette.mode === 'dark'
@@ -330,8 +329,8 @@ export function CustomerStatusTable() {
               borderRadius: 1,
               boxShadow: (theme) =>
                 theme.palette.mode === 'dark'
-                  ? '0 22px 60px rgba(0, 8, 20, 0.42)'
-                  : '0 22px 60px rgba(12, 67, 122, 0.22)',
+                  ? '0 14px 34px rgba(0, 8, 20, 0.34)'
+                  : '0 12px 30px rgba(12, 67, 122, 0.16)',
               maxWidth: 'calc(100vw - 24px)',
               minWidth: { xs: 0, sm: 320 },
               p: 2,

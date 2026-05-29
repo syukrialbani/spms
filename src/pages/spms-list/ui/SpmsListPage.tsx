@@ -5,6 +5,7 @@ import {
   type SpmsRecord,
 } from '@entities/spms'
 import { SpmsTableToolbar, useSpmsList } from '@features/spms-list'
+import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import EditRoundedIcon from '@mui/icons-material/EditRounded'
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded'
 import Box from '@mui/material/Box'
@@ -15,6 +16,7 @@ import Stack from '@mui/material/Stack'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { formatDate } from '@shared/lib/format'
+import { AppButton } from '@shared/ui/AppButton'
 import { DataTable, type DataTableColumn } from '@shared/ui/DataTable'
 import { PageHeader } from '@shared/ui/PageHeader'
 import { useCallback, useMemo, useState } from 'react'
@@ -228,7 +230,11 @@ export function SpmsListPage() {
               </IconButton>
             </Tooltip>
             <Tooltip title="Edit">
-              <IconButton aria-label={`Edit ${record.orderNumber}`} size="small">
+              <IconButton
+                aria-label={`Edit ${record.orderNumber}`}
+                onClick={() => navigate(`/spms/${record.id}/edit`)}
+                size="small"
+              >
                 <EditRoundedIcon fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -286,6 +292,15 @@ export function SpmsListPage() {
       <PageHeader
         title="SPMS List"
         subtitle="Monitoring order material, return status, dan severity."
+        actions={
+          <AppButton
+            onClick={() => navigate('/spms/add')}
+            startIcon={<AddRoundedIcon />}
+            sx={{ minWidth: 128 }}
+          >
+            Add SPMS
+          </AppButton>
+        }
       />
       <SpmsTableToolbar
         search={search}

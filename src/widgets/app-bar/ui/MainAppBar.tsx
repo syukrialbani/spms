@@ -22,18 +22,29 @@ type MainAppBarProps = {
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/spms': 'SPMS List',
+  '/spms/add': 'Add SPMS',
 }
 
 const getInitials = (firstName?: string, lastName?: string) =>
   `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}` || 'SP'
 
+const getPageTitle = (pathname: string) => {
+  if (pathname.endsWith('/edit')) {
+    return 'Edit SPMS'
+  }
+
+  if (pathname.startsWith('/spms/') && pathname !== '/spms/add') {
+    return 'SPMS Detail'
+  }
+
+  return pageTitles[pathname] ?? 'SPMS'
+}
+
 export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
   const location = useLocation()
   const { session } = useAuth()
   const { mode, toggleMode } = useColorMode()
-  const title = location.pathname.startsWith('/spms/')
-    ? 'SPMS Detail'
-    : pageTitles[location.pathname] ?? 'SPMS'
+  const title = getPageTitle(location.pathname)
   const displayName = session
     ? `${session.firstName} ${session.lastName}`
     : 'SPMS User'
@@ -46,9 +57,8 @@ export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
       sx={{
         background: (theme) =>
           theme.palette.mode === 'dark'
-            ? 'rgba(7, 19, 35, 0.58)'
-            : 'rgba(255,255,255,0.46)',
-        backdropFilter: 'blur(26px) saturate(1.55)',
+            ? 'rgba(7, 19, 35, 0.9)'
+            : 'rgba(255,255,255,0.88)',
         border: '1px solid',
         borderColor: (theme) =>
           theme.palette.mode === 'dark'
@@ -57,8 +67,8 @@ export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
         borderRadius: 1,
         boxShadow: (theme) =>
           theme.palette.mode === 'dark'
-            ? '0 18px 48px rgba(0, 8, 20, 0.32)'
-            : '0 18px 48px rgba(12, 67, 122, 0.12)',
+            ? '0 12px 30px rgba(0, 8, 20, 0.24)'
+            : '0 10px 26px rgba(12, 67, 122, 0.1)',
         left: { xs: 12, md: 'auto' },
         ml: { md: `${drawerWidth}px` },
         right: { xs: 12, md: 24 },
