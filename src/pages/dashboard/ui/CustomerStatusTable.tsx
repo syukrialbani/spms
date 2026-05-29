@@ -15,8 +15,8 @@ import Typography from '@mui/material/Typography'
 import { useNavigate } from 'react-router-dom'
 import {
   getSpmsStatusColor,
-  spmsRecords,
   spmsStatuses,
+  spmsStorage,
   type SpmsRecord,
   type SpmsStatus,
 } from '@entities/spms'
@@ -47,11 +47,12 @@ export function CustomerStatusTable() {
   const navigate = useNavigate()
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [activePopover, setActivePopover] = useState<ActivePopover | null>(null)
+  const records = useMemo(() => spmsStorage.getAll(), [])
 
   const summaries = useMemo(() => {
     const customerMap = new Map<string, CustomerStatusSummary>()
 
-    spmsRecords.forEach((record) => {
+    records.forEach((record) => {
       const summary =
         customerMap.get(record.customer) ??
         ({
@@ -68,7 +69,7 @@ export function CustomerStatusTable() {
     return Array.from(customerMap.values()).sort((first, second) =>
       first.customer.localeCompare(second.customer),
     )
-  }, [])
+  }, [records])
 
   const closePopover = () => {
     setAnchorEl(null)
@@ -114,7 +115,7 @@ export function CustomerStatusTable() {
           </Box>
           <Chip
             color="primary"
-            label={`${spmsRecords.length} total orders`}
+            label={`${records.length} total orders`}
             size="small"
             variant="outlined"
           />

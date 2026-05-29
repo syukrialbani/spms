@@ -1,16 +1,17 @@
 import { useMemo, useState } from 'react'
-import { spmsRecords, spmsStatuses, type SpmsStatus } from '@entities/spms'
+import { spmsStatuses, spmsStorage, type SpmsStatus } from '@entities/spms'
 
 export type SpmsStatusFilter = 'All' | SpmsStatus
 
 export function useSpmsList() {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<SpmsStatusFilter>('All')
+  const [records] = useState(() => spmsStorage.getAll())
 
   const rows = useMemo(() => {
     const keyword = search.trim().toLowerCase()
 
-    return spmsRecords.filter((record) => {
+    return records.filter((record) => {
       const matchesStatus = status === 'All' || record.statusSpms === status
       const matchesSearch =
         !keyword ||
@@ -24,7 +25,7 @@ export function useSpmsList() {
 
       return matchesStatus && matchesSearch
     })
-  }, [search, status])
+  }, [records, search, status])
 
   return {
     rows,

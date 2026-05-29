@@ -1,4 +1,5 @@
 export { spmsRecords } from './model/mock'
+export { spmsStorage } from './model/storage'
 export { getMonthlySpmsAnalytics } from './model/analytics'
 export { getSpmsRecordById } from './model/selectors'
 export {
@@ -12,6 +13,8 @@ export type {
   Severity,
   SpmsRecord,
   SpmsStatus,
+  WorkflowApprovalStatus,
+  WorkflowClosedStatus,
 } from './model/types'
 export type {
   MonthlySpmsAnalytics,

@@ -1,5 +1,6 @@
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded'
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded'
+import LocalShippingRoundedIcon from '@mui/icons-material/LocalShippingRounded'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import List from '@mui/material/List'
@@ -24,6 +25,11 @@ const navigationItems = [
     label: 'SPMS List',
     path: '/spms',
     icon: <AssignmentRoundedIcon />,
+  },
+  {
+    label: 'Delivery Order',
+    path: '/delivery-order',
+    icon: <LocalShippingRoundedIcon />,
   },
 ]
 

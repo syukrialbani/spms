@@ -1,4 +1,4 @@
-import { spmsRecords } from './mock'
+import { spmsStorage } from './storage'
 
 export const getSpmsRecordById = (id: string | undefined) =>
-  spmsRecords.find((record) => record.id === id) ?? null
+  spmsStorage.getById(id)
