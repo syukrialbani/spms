@@ -1,5 +1,15 @@
 import * as Yup from 'yup'
 
+export type SpmsMaterialFormValues = {
+  categoryMaterial: string
+  typeMaterial: string
+  description: string
+  partNumber: string
+  quantity: string
+  supportOriginMaterial: string
+  supportDestinationMaterial: string
+}
+
 export type SpmsRequestFormValues = {
   orderNumber: string
   customer: string
@@ -17,6 +27,7 @@ export type SpmsRequestFormValues = {
   quantity: string
   supportOriginMaterial: string
   supportDestinationMaterial: string
+  materials: SpmsMaterialFormValues[]
   originLsp: string
   destinationLsp: string
   materialSerialNumber: string
@@ -275,7 +286,10 @@ export const deliveryStatusOptions = [
   'CLOSED',
 ] as const
 
+export const defaultBaType = 'Material Delivery Note'
+
 export const baTypeOptions = [
+  defaultBaType,
   'MATERIAL DELIVERY NC',
   'MATERIAL DELIVERY RETURN',
   'MATERIAL SWAP',
@@ -283,11 +297,18 @@ export const baTypeOptions = [
 ] as const
 
 export const returnStatusOptions = [
+  'OPEN',
+  'UNRETURN',
+  'ROK',
+  'Faulty',
+  'RETURN',
   'GOOD',
   'FAULTY',
   'PARTIAL',
   'NOT RETURNED',
 ] as const
+
+export const pickupStatusOptions = ['ROK', 'FAULTY'] as const
 
 export const slaHourOptions = [
   '04:00:00',
@@ -296,6 +317,28 @@ export const slaHourOptions = [
   '24:00:00',
   '48:00:00',
 ] as const
+
+export const getSlaHoursForSeverity = (severity: string) => {
+  if (severity === 'CRITICAL') {
+    return '04:00:00'
+  }
+
+  if (severity === 'NON CRITICAL') {
+    return '24:00:00'
+  }
+
+  return ''
+}
+
+export const createDefaultMaterialValues = (): SpmsMaterialFormValues => ({
+  categoryMaterial: '',
+  typeMaterial: '',
+  description: '',
+  partNumber: '',
+  quantity: '1',
+  supportOriginMaterial: '',
+  supportDestinationMaterial: '',
+})
 
 export const createDefaultSpmsRequestValues = (): SpmsRequestFormValues => ({
   orderNumber: 'Will Generate by System',
@@ -314,6 +357,7 @@ export const createDefaultSpmsRequestValues = (): SpmsRequestFormValues => ({
   quantity: '',
   supportOriginMaterial: '',
   supportDestinationMaterial: '',
+  materials: [createDefaultMaterialValues()],
   originLsp: '',
   destinationLsp: '',
   materialSerialNumber: '',
@@ -326,13 +370,13 @@ export const createDefaultSpmsRequestValues = (): SpmsRequestFormValues => ({
   awbTransfer: '',
   pmArea: '',
   baNumber: 'Will Generate by System',
-  deliveryStatus: 'DRAFT BA',
-  baType: 'MATERIAL DELIVERY NC',
+  deliveryStatus: 'OPEN',
+  baType: defaultBaType,
   sendBy: '',
   deliveryDateGoodUnit: '',
   serialNumberGoodUnit: '',
   descriptionMaterial: '',
-  statusReturn: '',
+  statusReturn: 'OPEN',
   serialNumberFaultyUnit: '',
   pickupBy: '',
   pickupDate: '',
@@ -364,6 +408,24 @@ export const createDefaultSpmsRequestValues = (): SpmsRequestFormValues => ({
   pickupClosedStatus: 'PENDING CUSTOMER',
   pickupClosedDate: '',
   pickupClosedNotes: '',
+})
+
+const materialValidationSchema = Yup.object({
+  categoryMaterial: Yup.string()
+    .trim()
+    .required('Category material wajib diisi'),
+  typeMaterial: Yup.string().trim().required('Type material wajib diisi'),
+  description: Yup.string().trim().required('Description wajib diisi'),
+  partNumber: Yup.string().trim().required('Part number wajib diisi'),
+  quantity: Yup.string()
+    .oneOf(['1'], 'Quantity material harus 1')
+    .required('Quantity wajib diisi'),
+  supportOriginMaterial: Yup.string()
+    .trim()
+    .required('Support origin material wajib diisi'),
+  supportDestinationMaterial: Yup.string()
+    .trim()
+    .required('Support destination material wajib diisi'),
 })
 
 export const spmsRequestValidationSchema = Yup.object({
@@ -404,6 +466,10 @@ export const spmsRequestValidationSchema = Yup.object({
   supportDestinationMaterial: Yup.string()
     .trim()
     .required('Support destination material wajib diisi'),
+  materials: Yup.array()
+    .of(materialValidationSchema)
+    .min(1, 'Minimal 1 material wajib ditambahkan')
+    .required('Material wajib diisi'),
   originLsp: Yup.string().trim(),
   destinationLsp: Yup.string().trim(),
   materialSerialNumber: Yup.string().trim(),
@@ -423,6 +489,16 @@ export const spmsRequestValidationSchema = Yup.object({
   slaHours: Yup.string()
     .trim()
     .matches(/^\d{2}:\d{2}:\d{2}$/, 'SLA harus HH:MM:SS')
+    .test(
+      'matches-severity',
+      'SLA harus 04:00:00 untuk critical atau 24:00:00 untuk non critical',
+      function validateSla(value) {
+        const severity = this.parent.severity as string
+        const expectedSla = getSlaHoursForSeverity(severity)
+
+        return !expectedSla || value === expectedSla
+      },
+    )
     .required('SLA wajib diisi'),
   awbTransfer: Yup.string().trim(),
   pmArea: Yup.string().trim().required('PM area wajib diisi'),
@@ -442,7 +518,25 @@ export const spmsRequestValidationSchema = Yup.object({
     .trim()
     .required('Description material wajib diisi'),
   statusReturn: Yup.string()
-    .oneOf([...returnStatusOptions], 'Status return tidak valid')
+    .test(
+      'status-return-valid',
+      'Status return tidak valid',
+      (value) => !value || (returnStatusOptions as readonly string[]).includes(value),
+    )
+    .test(
+      'pickup-status-after-upload',
+      'BA Pickup Status wajib ROK atau FAULTY setelah BA pickup diupload',
+      function validatePickupStatus(value) {
+        const pickupEvidenceFileName = this.parent
+          .pickupEvidenceFileName as string
+
+        if (!pickupEvidenceFileName) {
+          return true
+        }
+
+        return value === 'ROK' || value === 'FAULTY' || value === 'Faulty'
+      },
+    )
     .required('Status return wajib diisi'),
   serialNumberFaultyUnit: Yup.string().trim(),
   pickupBy: Yup.string().trim(),
