@@ -1,7 +1,15 @@
 export { spmsRecords } from './model/mock'
 export { spmsStorage } from './model/storage'
 export { getMonthlySpmsAnalytics } from './model/analytics'
-export { getSpmsRecordById } from './model/selectors'
+export {
+  getDeliveryUploadStatus,
+  getPickupUploadStatus,
+  getSpmsRecordById,
+  getSpmsRecordMaterials,
+  getTicketStatus,
+  isDeliveryApprovalComplete,
+  isPickupApprovalComplete,
+} from './model/selectors'
 export {
   getReturnStatusColor,
   getSeverityColor,
@@ -11,11 +19,17 @@ export {
 export type {
   ReturnStatus,
   Severity,
+  SpmsMaterialItem,
   SpmsRecord,
   SpmsStatus,
   WorkflowApprovalStatus,
   WorkflowClosedStatus,
 } from './model/types'
+export type {
+  DeliveryUploadStatus,
+  PickupUploadStatus,
+  TicketStatus,
+} from './model/selectors'
 export type {
   MonthlySpmsAnalytics,
   SpmsAnalyticsMetric,
