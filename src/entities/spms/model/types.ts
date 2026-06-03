@@ -17,6 +17,16 @@ export type WorkflowApprovalStatus =
 
 export type WorkflowClosedStatus = 'PENDING CUSTOMER' | 'CLOSED'
 
+export type SpmsMaterialItem = {
+  categoryMaterial: string
+  typeMaterial: string
+  description: string
+  partNumber: string
+  qty: number
+  supportOriginMaterial: string
+  supportDestinationMaterial?: string
+}
+
 export type SpmsRecord = {
   id: string
   orderNumber: string
@@ -32,6 +42,7 @@ export type SpmsRecord = {
   partNumber: string
   qty: number
   supportOriginMaterial: string
+  materials?: SpmsMaterialItem[]
   severity: Severity
   site: string
   statusSpms: SpmsStatus

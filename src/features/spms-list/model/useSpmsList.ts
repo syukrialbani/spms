@@ -1,7 +1,14 @@
 import { useMemo, useState } from 'react'
-import { spmsStatuses, spmsStorage, type SpmsStatus } from '@entities/spms'
+import {
+  getDeliveryUploadStatus,
+  getPickupUploadStatus,
+  getSpmsRecordMaterials,
+  getTicketStatus,
+  spmsStorage,
+  type DeliveryUploadStatus,
+} from '@entities/spms'
 
-export type SpmsStatusFilter = 'All' | SpmsStatus
+export type SpmsStatusFilter = 'All' | DeliveryUploadStatus
 
 export function useSpmsList() {
   const [search, setSearch] = useState('')
@@ -12,7 +19,20 @@ export function useSpmsList() {
     const keyword = search.trim().toLowerCase()
 
     return records.filter((record) => {
-      const matchesStatus = status === 'All' || record.statusSpms === status
+      const deliveryStatus = getDeliveryUploadStatus(record)
+      const pickupStatus = getPickupUploadStatus(record)
+      const ticketStatus = getTicketStatus(record)
+      const matchesStatus = status === 'All' || deliveryStatus === status
+      const matchesMaterial = getSpmsRecordMaterials(record).some((material) =>
+        [
+          material.categoryMaterial,
+          material.typeMaterial,
+          material.description,
+          material.partNumber,
+          material.supportOriginMaterial,
+          material.supportDestinationMaterial ?? '',
+        ].some((value) => value.toLowerCase().includes(keyword)),
+      )
       const matchesSearch =
         !keyword ||
         record.orderNumber.toLowerCase().includes(keyword) ||
@@ -21,7 +41,11 @@ export function useSpmsList() {
         record.area.toLowerCase().includes(keyword) ||
         record.dop.toLowerCase().includes(keyword) ||
         record.siteName.toLowerCase().includes(keyword) ||
-        record.partNumber.toLowerCase().includes(keyword)
+        record.partNumber.toLowerCase().includes(keyword) ||
+        deliveryStatus.toLowerCase().includes(keyword) ||
+        pickupStatus.toLowerCase().includes(keyword) ||
+        ticketStatus.toLowerCase().includes(keyword) ||
+        Boolean(matchesMaterial)
 
       return matchesStatus && matchesSearch
     })
@@ -33,6 +57,6 @@ export function useSpmsList() {
     setSearch,
     status,
     setStatus,
-    statusOptions: ['All', ...spmsStatuses] as SpmsStatusFilter[],
+    statusOptions: ['All', 'OPEN', 'DELIVERED'] as SpmsStatusFilter[],
   }
 }

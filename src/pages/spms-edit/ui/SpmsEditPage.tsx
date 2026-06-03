@@ -1,13 +1,22 @@
-import { getSpmsRecordById, spmsStorage, type SpmsRecord } from '@entities/spms'
+import {
+  getSpmsRecordById,
+  getSpmsRecordMaterials,
+  spmsStorage,
+  type SpmsRecord,
+} from '@entities/spms'
 import { useAuth } from '@features/auth'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import { AppButton } from '@shared/ui/AppButton'
 import { useDevRole } from '@shared/lib/dev-role'
 import { PageHeader } from '@shared/ui/PageHeader'
 import {
+  createDefaultMaterialValues,
   createDefaultSpmsRequestValues,
+  defaultBaType,
+  getSlaHoursForSeverity,
   SpmsRequestForm,
   type SpmsApprovalRole,
+  type SpmsMaterialFormValues,
   type SpmsRequestFormValues,
 } from '@shared/ui/SpmsRequestForm'
 import { useCallback, useMemo } from 'react'
@@ -33,6 +42,56 @@ const getFormSeverity = (record: SpmsRecord) =>
   record.severity === 'Critical' || record.severity === 'High'
     ? 'CRITICAL'
     : 'NON CRITICAL'
+
+const getInitialPickupStatus = (record: SpmsRecord) => {
+  if (
+    record.baStatusReturn === 'Faulty' ||
+    record.baStatusReturn === 'FAULTY' ||
+    record.serialNumberFaultyUnit
+  ) {
+    return 'FAULTY'
+  }
+
+  if (
+    record.pickupEvidenceFileName ||
+    record.baStatusReturn === 'ROK' ||
+    record.baStatusReturn === 'RETURN' ||
+    record.statusReturn === 'Returned'
+  ) {
+    return 'ROK'
+  }
+
+  if (
+    record.deliveryEvidenceFileName ||
+    record.evidenceFileName ||
+    record.deliveryStatus === 'DELIVERED' ||
+    record.baStatusReturn === 'UNRETURN'
+  ) {
+    return 'UNRETURN'
+  }
+
+  return 'OPEN'
+}
+
+const getMaterialInitialValues = (
+  record: SpmsRecord,
+): SpmsMaterialFormValues[] => {
+  const materials = getSpmsRecordMaterials(record)
+
+  return materials.map((material) => ({
+    ...createDefaultMaterialValues(),
+    categoryMaterial: material.categoryMaterial.toUpperCase(),
+    typeMaterial: material.typeMaterial.toUpperCase(),
+    description: material.description,
+    partNumber: material.partNumber,
+    quantity: '1',
+    supportOriginMaterial: material.supportOriginMaterial,
+    supportDestinationMaterial:
+      material.supportDestinationMaterial ??
+      record.supportDestinationMaterial ??
+      record.area.toUpperCase(),
+  }))
+}
 
 const getCurrentRole = (
   role: string | undefined,
@@ -64,6 +123,7 @@ const getCurrentRole = (
 
 const getInitialValues = (record: SpmsRecord): SpmsRequestFormValues => ({
   ...createDefaultSpmsRequestValues(),
+  materials: getMaterialInitialValues(record),
   orderNumber: record.orderNumber,
   customer: record.customer.toUpperCase(),
   customerOrderNumber: record.customerOrderNumber,
@@ -77,7 +137,7 @@ const getInitialValues = (record: SpmsRecord): SpmsRequestFormValues => ({
   typeMaterial: record.typeMaterial.toUpperCase(),
   description: record.description,
   partNumber: record.partNumber,
-  quantity: String(record.qty),
+  quantity: '1',
   supportOriginMaterial: record.supportOriginMaterial,
   supportDestinationMaterial:
     record.supportDestinationMaterial ?? record.area.toUpperCase(),
@@ -101,7 +161,7 @@ const getInitialValues = (record: SpmsRecord): SpmsRequestFormValues => ({
         : 'WAITING APPROVAL'
   ),
   severity: getFormSeverity(record),
-  slaHours: record.slaHours ?? '24:00:00',
+  slaHours: getSlaHoursForSeverity(getFormSeverity(record)),
   awbTransfer: record.awbTransfer ?? '',
   pmArea: record.pmArea ?? record.area.toUpperCase(),
   baNumber: record.baNumber ?? `BA-${record.orderNumber}`,
@@ -136,26 +196,18 @@ const getInitialValues = (record: SpmsRecord): SpmsRequestFormValues => ({
   pickupClosedDate: record.pickupClosedDate ?? '',
   pickupClosedNotes: record.pickupClosedNotes ?? '',
   deliveryStatus:
-    record.deliveryStatus ?? (
-    record.statusSpms === 'Approved'
-      ? 'READY FOR DELIVERY'
-      : record.statusSpms === 'In Progress'
-        ? 'DELIVERY PROCESS'
-        : 'WAITING ADMIN APPROVAL'
-    ),
-  baType: record.baType ?? 'MATERIAL DELIVERY NC',
+    record.deliveryEvidenceFileName || record.evidenceFileName
+      ? 'DELIVERED'
+      : record.deliveryStatus === 'DRAFT BA'
+        ? 'OPEN'
+        : record.deliveryStatus ?? 'OPEN',
+  baType: defaultBaType,
   sendBy: record.sendBy ?? 'FIELD USER',
   deliveryDateGoodUnit:
     record.deliveryDateGoodUnit ?? toDateTimeLocalValue(record.requestDate),
   serialNumberGoodUnit: record.serialNumberGoodUnit ?? record.partNumber,
   descriptionMaterial: record.descriptionMaterial ?? record.description,
-  statusReturn:
-    record.baStatusReturn ??
-    (record.statusReturn === 'Returned'
-      ? 'GOOD'
-      : record.statusReturn === 'Partial Return'
-        ? 'PARTIAL'
-        : 'NOT RETURNED'),
+  statusReturn: getInitialPickupStatus(record),
   serialNumberFaultyUnit: record.serialNumberFaultyUnit ?? '',
   pickupBy: record.pickupBy ?? '',
   pickupDate: record.pickupDate ?? '',
@@ -200,11 +252,13 @@ export function SpmsEditPage() {
     return <Navigate to="/spms" replace />
   }
 
+  const materialCount = getSpmsRecordMaterials(record).length
+
   return (
     <>
       <PageHeader
         title="Edit SPMS"
-        subtitle={`${record.orderNumber} - ${record.customer}`}
+        subtitle={`${record.orderNumber} - ${record.customer} - ${materialCount} material`}
         actions={
           <AppButton
             onClick={goBackToList}
