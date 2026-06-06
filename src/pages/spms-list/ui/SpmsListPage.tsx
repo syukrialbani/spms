@@ -1,13 +1,14 @@
 import {
   getDeliveryUploadStatus,
   getPickupUploadStatus,
+  getReturnStatusColor,
   getSpmsRecordMaterials,
   getSeverityColor,
+  getSpmsStatusColor,
   getTicketStatus,
   type DeliveryUploadStatus,
   type PickupUploadStatus,
   type SpmsRecord,
-  type TicketStatus,
 } from '@entities/spms'
 import { SpmsTableToolbar, useSpmsList } from '@features/spms-list'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
@@ -44,22 +45,10 @@ const textCell = (value: string, color: 'primary' | 'secondary' = 'primary') => 
 const firstMaterial = (record: SpmsRecord) => getSpmsRecordMaterials(record)[0]
 
 const getDeliveryStatusColor = (status: DeliveryUploadStatus) =>
-  status === 'DELIVERED' ? 'success' : 'info'
+  getSpmsStatusColor(status)
 
-const getPickupStatusColor = (status: PickupUploadStatus) => {
-  if (status === 'ROK') {
-    return 'success'
-  }
-
-  if (status === 'FAULTY') {
-    return 'error'
-  }
-
-  return 'info'
-}
-
-const getTicketStatusColor = (status: TicketStatus) =>
-  status === 'CLOSE' ? 'success' : 'warning'
+const getPickupStatusColor = (status: PickupUploadStatus) =>
+  getReturnStatusColor(status)
 
 const renderMaterialCell = (
   record: SpmsRecord,
@@ -113,8 +102,15 @@ const renderMaterialCell = (
 
 export function SpmsListPage() {
   const navigate = useNavigate()
-  const { rows, search, setSearch, status, setStatus, statusOptions } =
-    useSpmsList()
+  const {
+    rows,
+    search,
+    setSearch,
+    status,
+    setStatus,
+    statusCounts,
+    statusOptions,
+  } = useSpmsList()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
   const [materialAnchorEl, setMaterialAnchorEl] =
     useState<HTMLButtonElement | null>(null)
@@ -249,8 +245,8 @@ export function SpmsListPage() {
       },
       {
         key: 'statusSpms',
-        header: 'Status Spms',
-        width: 170,
+        header: 'Status Delivery',
+        width: 230,
         render: (record) => {
           const deliveryStatus = getDeliveryUploadStatus(record)
 
@@ -266,7 +262,7 @@ export function SpmsListPage() {
       {
         key: 'statusReturn',
         header: 'Status Return',
-        width: 160,
+        width: 220,
         render: (record) => {
           const pickupStatus = getPickupUploadStatus(record)
 
@@ -283,13 +279,13 @@ export function SpmsListPage() {
       {
         key: 'statusTicket',
         header: 'Status Ticket',
-        width: 150,
+        width: 230,
         render: (record) => {
           const ticketStatus = getTicketStatus(record)
 
           return (
             <Chip
-              color={getTicketStatusColor(ticketStatus)}
+              color={getSpmsStatusColor(ticketStatus)}
               label={ticketStatus}
               size="small"
               variant="outlined"
@@ -397,6 +393,7 @@ export function SpmsListPage() {
       <SpmsTableToolbar
         search={search}
         status={status}
+        statusCounts={statusCounts}
         statusOptions={statusOptions}
         onSearchChange={setSearch}
         onStatusChange={setStatus}

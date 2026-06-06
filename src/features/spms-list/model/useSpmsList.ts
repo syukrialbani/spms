@@ -4,16 +4,32 @@ import {
   getPickupUploadStatus,
   getSpmsRecordMaterials,
   getTicketStatus,
+  spmsStatuses,
   spmsStorage,
-  type DeliveryUploadStatus,
+  type SpmsStatus,
 } from '@entities/spms'
 
-export type SpmsStatusFilter = 'All' | DeliveryUploadStatus
+export type SpmsStatusFilter = 'All' | SpmsStatus
 
 export function useSpmsList() {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<SpmsStatusFilter>('All')
   const [records] = useState(() => spmsStorage.getAll())
+  const statusCounts = useMemo(
+    () =>
+      (['All', ...spmsStatuses] as SpmsStatusFilter[]).reduce(
+        (result, option) => ({
+          ...result,
+          [option]:
+            option === 'All'
+              ? records.length
+              : records.filter((record) => getTicketStatus(record) === option)
+                  .length,
+        }),
+        {} as Record<SpmsStatusFilter, number>,
+      ),
+    [records],
+  )
 
   const rows = useMemo(() => {
     const keyword = search.trim().toLowerCase()
@@ -22,7 +38,7 @@ export function useSpmsList() {
       const deliveryStatus = getDeliveryUploadStatus(record)
       const pickupStatus = getPickupUploadStatus(record)
       const ticketStatus = getTicketStatus(record)
-      const matchesStatus = status === 'All' || deliveryStatus === status
+      const matchesStatus = status === 'All' || ticketStatus === status
       const matchesMaterial = getSpmsRecordMaterials(record).some((material) =>
         [
           material.categoryMaterial,
@@ -57,6 +73,7 @@ export function useSpmsList() {
     setSearch,
     status,
     setStatus,
-    statusOptions: ['All', 'OPEN', 'DELIVERED'] as SpmsStatusFilter[],
+    statusCounts,
+    statusOptions: ['All', ...spmsStatuses] as SpmsStatusFilter[],
   }
 }

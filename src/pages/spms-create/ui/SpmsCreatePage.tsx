@@ -1,4 +1,3 @@
-import { deliveryOrderStorage } from '@entities/delivery-order'
 import { spmsStorage } from '@entities/spms'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import { AppButton } from '@shared/ui/AppButton'
@@ -19,11 +18,7 @@ export function SpmsCreatePage() {
 
   const handleSaveSpms = useCallback(
     (values: SpmsRequestFormValues) => {
-      const createdSpms = spmsStorage.createFromForm(values)
-      deliveryOrderStorage.createFromSpms({
-        ...values,
-        orderNumber: createdSpms.orderNumber,
-      })
+      spmsStorage.createFromForm(values)
       navigate('/spms')
     },
     [navigate],

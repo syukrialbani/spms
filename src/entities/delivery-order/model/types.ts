@@ -1,9 +1,9 @@
 export type DeliveryOrderKind = 'DELIVERY' | 'PICKUP'
 
 export type DeliveryOrderStatus =
-  | 'GENERATED'
-  | 'DELIVERY PROCESS'
-  | 'PICKUP GENERATED'
+  | 'WAITING_UPLOAD_DO'
+  | 'WAITING_APPROVAL_DO'
+  | 'PICKUP_GENERATED'
   | 'CLOSED'
 
 export type DeliveryOrderRecord = {
@@ -21,6 +21,9 @@ export type DeliveryOrderRecord = {
   destination: string
   destinationAddress: string
   destinationPic: string
+  awbTransfer?: string
+  materialSerialNumbers?: string[]
+  sourceSpmsId?: string
   sourceSpmsOrderNumber?: string
   sourceDeliveryOrder?: string
 }

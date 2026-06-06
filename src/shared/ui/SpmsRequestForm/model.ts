@@ -6,6 +6,7 @@ export type SpmsMaterialFormValues = {
   description: string
   partNumber: string
   quantity: string
+  serialNumber: string
   supportOriginMaterial: string
   supportDestinationMaterial: string
 }
@@ -78,6 +79,8 @@ export type SpmsRequestFormValues = {
   pickupClosedStatus: string
   pickupClosedDate: string
   pickupClosedNotes: string
+  deliveryOrderNumber: string
+  pickupDeliveryOrderNumber: string
 }
 
 export const customerOptions = [
@@ -336,6 +339,7 @@ export const createDefaultMaterialValues = (): SpmsMaterialFormValues => ({
   description: '',
   partNumber: '',
   quantity: '1',
+  serialNumber: '',
   supportOriginMaterial: '',
   supportDestinationMaterial: '',
 })
@@ -408,6 +412,8 @@ export const createDefaultSpmsRequestValues = (): SpmsRequestFormValues => ({
   pickupClosedStatus: 'PENDING CUSTOMER',
   pickupClosedDate: '',
   pickupClosedNotes: '',
+  deliveryOrderNumber: '',
+  pickupDeliveryOrderNumber: '',
 })
 
 const materialValidationSchema = Yup.object({
@@ -420,12 +426,9 @@ const materialValidationSchema = Yup.object({
   quantity: Yup.string()
     .oneOf(['1'], 'Quantity material harus 1')
     .required('Quantity wajib diisi'),
-  supportOriginMaterial: Yup.string()
-    .trim()
-    .required('Support origin material wajib diisi'),
-  supportDestinationMaterial: Yup.string()
-    .trim()
-    .required('Support destination material wajib diisi'),
+  serialNumber: Yup.string().trim(),
+  supportOriginMaterial: Yup.string().trim(),
+  supportDestinationMaterial: Yup.string().trim(),
 })
 
 export const spmsRequestValidationSchema = Yup.object({
@@ -460,12 +463,8 @@ export const spmsRequestValidationSchema = Yup.object({
     .trim()
     .matches(/^[1-9]\d*$/, 'Quantity harus lebih dari 0')
     .required('Quantity wajib diisi'),
-  supportOriginMaterial: Yup.string()
-    .trim()
-    .required('Support origin material wajib diisi'),
-  supportDestinationMaterial: Yup.string()
-    .trim()
-    .required('Support destination material wajib diisi'),
+  supportOriginMaterial: Yup.string().trim(),
+  supportDestinationMaterial: Yup.string().trim(),
   materials: Yup.array()
     .of(materialValidationSchema)
     .min(1, 'Minimal 1 material wajib ditambahkan')
@@ -581,4 +580,6 @@ export const spmsRequestValidationSchema = Yup.object({
     .required('Pickup closed status wajib diisi'),
   pickupClosedDate: Yup.string().trim(),
   pickupClosedNotes: Yup.string().trim(),
+  deliveryOrderNumber: Yup.string().trim(),
+  pickupDeliveryOrderNumber: Yup.string().trim(),
 })

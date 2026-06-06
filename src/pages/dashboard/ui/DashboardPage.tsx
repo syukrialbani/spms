@@ -28,11 +28,15 @@ export function DashboardPage() {
   const records = useMemo(() => spmsStorage.getAll(), [])
   const recentRecords = records.slice(0, 4)
   const totalQty = records.reduce((total, record) => total + record.qty, 0)
-  const approvedCount = records.filter(
-    (record) => record.statusSpms === 'Approved',
+  const closedCount = records.filter(
+    (record) => record.statusSpms === 'Closed',
   ).length
   const approvalQueueCount = records.filter(
-    (record) => record.statusSpms === 'Waiting Approval',
+    (record) =>
+      record.statusSpms === 'Waiting Approval Delivery' ||
+      record.statusSpms === 'Waiting Review Delivery' ||
+      record.statusSpms === 'Waiting Approval Pickup' ||
+      record.statusSpms === 'Waiting Review Pickup',
   ).length
   const highSeverityCount = records.filter(
     (record) => record.severity === 'High' || record.severity === 'Critical',
@@ -67,9 +71,9 @@ export function DashboardPage() {
         />
         <StatCard
           icon={<AssignmentTurnedInRoundedIcon />}
-          label="Approved"
-          value={String(approvedCount)}
-          helper="Ready for material flow"
+          label="Closed"
+          value={String(closedCount)}
+          helper="Completed tickets"
         />
         <StatCard
           icon={<PendingActionsRoundedIcon />}
