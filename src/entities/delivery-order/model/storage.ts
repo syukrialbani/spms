@@ -1,12 +1,12 @@
 import { deliveryOrderRecords } from './mock'
-import type { DeliveryOrderRecord } from './types'
+import type { SpmsRecord } from '@entities/spms'
+import type { DeliveryOrderRecord, DeliveryOrderStatus } from './types'
 
 type SpmsDeliveryOrderInput = {
-  areal: string
-  customerOrderNumber: string
-  orderNumber: string
-  requestDate: string
-  severity: string
+  awbTransfer: string
+  expedition: string
+  materialSerialNumbers: string[]
+  service: string
   supportDestinationMaterial: string
   supportOriginMaterial: string
 }
@@ -99,6 +99,29 @@ const saveOrders = (orders: DeliveryOrderRecord[]) => {
   getStorage()?.setItem(storageKey, JSON.stringify(orders))
 }
 
+const normalizeDeliveryOrderStatus = (
+  status: string,
+): DeliveryOrderStatus => {
+  if (status === 'CLOSED') {
+    return 'CLOSED'
+  }
+
+  if (status === 'PICKUP GENERATED' || status === 'PICKUP_GENERATED') {
+    return 'PICKUP_GENERATED'
+  }
+
+  if (status === 'DELIVERY PROCESS' || status === 'WAITING_APPROVAL_DO') {
+    return 'WAITING_APPROVAL_DO'
+  }
+
+  return 'WAITING_UPLOAD_DO'
+}
+
+const normalizeOrder = (order: DeliveryOrderRecord): DeliveryOrderRecord => ({
+  ...order,
+  statusDo: normalizeDeliveryOrderStatus(order.statusDo),
+})
+
 const normalizeLocation = (value: string) => {
   const cleaned = value.trim()
 
@@ -159,11 +182,16 @@ export const deliveryOrderStorage = {
     const persistedOrders = readPersistedOrders()
 
     if (persistedOrders) {
-      return persistedOrders
+      const normalizedOrders = persistedOrders.map(normalizeOrder)
+
+      saveOrders(normalizedOrders)
+      return normalizedOrders
     }
 
-    saveOrders(deliveryOrderRecords)
-    return deliveryOrderRecords
+    const normalizedOrders = deliveryOrderRecords.map(normalizeOrder)
+
+    saveOrders(normalizedOrders)
+    return normalizedOrders
   },
   getByDeliveryOrder(deliveryOrder: string): DeliveryOrderRecord | null {
     return (
@@ -171,16 +199,16 @@ export const deliveryOrderStorage = {
       null
     )
   },
-  createFromSpms(values: SpmsDeliveryOrderInput): DeliveryOrderRecord {
+  createFromSpms(
+    record: SpmsRecord,
+    values: SpmsDeliveryOrderInput,
+  ): DeliveryOrderRecord {
     const orders = this.getAll()
-    const sourceOrder =
-      values.orderNumber && !/^will generate/i.test(values.orderNumber)
-        ? values.orderNumber
-        : values.customerOrderNumber || `SPMS-DRAFT-${Date.now()}`
     const existing = orders.find(
       (order) =>
         order.kind === 'DELIVERY' &&
-        order.sourceSpmsOrderNumber === sourceOrder,
+        (order.sourceSpmsId === record.id ||
+          order.sourceSpmsOrderNumber === record.orderNumber),
     )
 
     if (existing) {
@@ -189,24 +217,28 @@ export const deliveryOrderStorage = {
 
     const origin = getLocationInfo(values.supportOriginMaterial)
     const destination = getLocationInfo(
-      values.supportDestinationMaterial || values.areal,
+      values.supportDestinationMaterial || record.area,
     )
+    const now = new Date().toISOString()
     const nextOrder: DeliveryOrderRecord = {
       id: `do-${crypto.randomUUID()}`,
       deliveryOrder: createDeliveryOrderNumber(orders),
       kind: 'DELIVERY',
-      expedition: 'FIN LOGISTICS',
-      dateRequest: formatDatePart(values.requestDate),
-      timeRequest: formatTimePart(values.requestDate),
-      statusDo: 'GENERATED',
-      service: values.severity === 'CRITICAL' ? 'HANDCARRY' : 'PORT TO PORT',
+      expedition: values.expedition,
+      dateRequest: formatDatePart(now),
+      timeRequest: formatTimePart(now),
+      statusDo: 'WAITING_UPLOAD_DO',
+      service: values.service,
       origin: origin.label,
       originAddress: origin.address,
       originPic: origin.pic,
       destination: destination.label,
       destinationAddress: destination.address,
       destinationPic: destination.pic,
-      sourceSpmsOrderNumber: sourceOrder,
+      awbTransfer: values.awbTransfer,
+      materialSerialNumbers: values.materialSerialNumbers,
+      sourceSpmsId: record.id,
+      sourceSpmsOrderNumber: record.orderNumber,
     }
 
     saveOrders([nextOrder, ...orders])
@@ -237,7 +269,7 @@ export const deliveryOrderStorage = {
       id: `do-preview-${source.id}`,
       deliveryOrder: createDeliveryOrderNumber(orders, 'MS-AVIAT-PU-26'),
       kind: 'PICKUP',
-      statusDo: 'PICKUP GENERATED',
+      statusDo: 'PICKUP_GENERATED',
       service: 'PICKUP RETURN',
       origin: source.destination,
       originAddress: source.destinationAddress,

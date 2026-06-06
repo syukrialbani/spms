@@ -55,8 +55,7 @@ const getInitialPickupStatus = (record: SpmsRecord) => {
   if (
     record.pickupEvidenceFileName ||
     record.baStatusReturn === 'ROK' ||
-    record.baStatusReturn === 'RETURN' ||
-    record.statusReturn === 'Returned'
+    record.baStatusReturn === 'RETURN'
   ) {
     return 'ROK'
   }
@@ -85,6 +84,7 @@ const getMaterialInitialValues = (
     description: material.description,
     partNumber: material.partNumber,
     quantity: '1',
+    serialNumber: material.serialNumber ?? '',
     supportOriginMaterial: material.supportOriginMaterial,
     supportDestinationMaterial:
       material.supportDestinationMaterial ??
@@ -144,37 +144,33 @@ const getInitialValues = (record: SpmsRecord): SpmsRequestFormValues => ({
   originLsp: record.originLsp ?? record.supportOriginMaterial.toUpperCase(),
   destinationLsp: record.destinationLsp ?? record.area.toUpperCase(),
   materialSerialNumber: record.materialSerialNumber ?? '',
-  stockStatus: record.stockStatus ?? (
-    record.statusSpms === 'Approved'
-      ? 'RESERVED'
-      : record.statusSpms === 'In Progress'
-        ? 'IN USE'
-        : 'WAITING APPROVAL'
-  ),
+  stockStatus:
+    record.stockStatus ??
+    (record.statusSpms === 'Closed'
+      ? 'RETURNED'
+      : record.statusSpms === 'New'
+        ? 'WAITING APPROVAL'
+        : 'IN USE'),
   systemLabel: record.systemLabel ?? 'NOT COMPLETE',
   stockRemark: record.stockRemark ?? 'A-STOCK TAKE',
-  reservationStatus: record.reservationStatus ?? (
-    record.statusSpms === 'Approved'
-      ? 'RESERVED'
-      : record.statusSpms === 'In Progress'
-        ? 'ALLOCATED'
-        : 'WAITING APPROVAL'
-  ),
+  reservationStatus:
+    record.reservationStatus ??
+    (record.statusSpms === 'Closed'
+      ? 'RELEASED'
+      : record.statusSpms === 'New'
+        ? 'WAITING APPROVAL'
+        : 'ALLOCATED'),
   severity: getFormSeverity(record),
   slaHours: getSlaHoursForSeverity(getFormSeverity(record)),
   awbTransfer: record.awbTransfer ?? '',
   pmArea: record.pmArea ?? record.area.toUpperCase(),
   baNumber: record.baNumber ?? `BA-${record.orderNumber}`,
   approval1By: record.approval1By ?? '',
-  approval1Status:
-    record.approval1Status ??
-    (record.statusSpms === 'Approved' ? 'APPROVED' : 'PENDING APPROVAL'),
+  approval1Status: record.approval1Status ?? 'PENDING APPROVAL',
   approval1Date: record.approval1Date ?? '',
   approval1Notes: record.approval1Notes ?? '',
   approval2By: record.approval2By ?? '',
-  approval2Status:
-    record.approval2Status ??
-    (record.statusSpms === 'Approved' ? 'APPROVED' : 'PENDING APPROVAL'),
+  approval2Status: record.approval2Status ?? 'PENDING APPROVAL',
   approval2Date: record.approval2Date ?? '',
   approval2Notes: record.approval2Notes ?? '',
   closedBy: record.closedBy ?? '',
@@ -215,6 +211,8 @@ const getInitialValues = (record: SpmsRecord): SpmsRequestFormValues => ({
   deliveryEvidenceFileName: record.deliveryEvidenceFileName ?? '',
   pickupEvidenceFileName: record.pickupEvidenceFileName ?? '',
   evidenceNotes: record.evidenceNotes ?? '',
+  deliveryOrderNumber: record.deliveryOrderNumber ?? '',
+  pickupDeliveryOrderNumber: record.pickupDeliveryOrderNumber ?? '',
 })
 
 export function SpmsEditPage() {

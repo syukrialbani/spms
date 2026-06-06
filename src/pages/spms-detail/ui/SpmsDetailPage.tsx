@@ -158,6 +158,59 @@ export function SpmsDetailPage() {
 
           <Stack spacing={1.5}>
             <Typography sx={{ fontWeight: 900 }} variant="subtitle1">
+              Delivery Order Support
+            </Typography>
+            <Box
+              sx={{
+                display: 'grid',
+                gap: 1.5,
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(2, minmax(0, 1fr))',
+                  lg: 'repeat(5, minmax(0, 1fr))',
+                },
+              }}
+            >
+              {[
+                ['DO Number', record.deliveryOrderNumber ?? '-'],
+                ['Origin', record.supportOriginMaterial || '-'],
+                ['Destination', record.supportDestinationMaterial ?? '-'],
+                ['AWB', record.awbTransfer ?? '-'],
+                ['Serial Number', record.materialSerialNumber ?? '-'],
+              ].map(([label, value]) => (
+                <Box
+                  key={label}
+                  sx={{
+                    bgcolor: (theme) =>
+                      theme.palette.mode === 'dark'
+                        ? 'rgba(7,19,35,0.42)'
+                        : 'rgba(255,255,255,0.42)',
+                    border: '1px solid',
+                    borderColor: (theme) =>
+                      theme.palette.mode === 'dark'
+                        ? 'rgba(128, 205, 255, 0.16)'
+                        : 'rgba(255,255,255,0.56)',
+                    borderRadius: 1,
+                    p: 2,
+                  }}
+                >
+                  <Typography color="text.secondary" variant="caption">
+                    {label}
+                  </Typography>
+                  <Typography
+                    sx={{ fontWeight: 800, mt: 0.35, overflowWrap: 'anywhere' }}
+                  >
+                    {value}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Stack>
+
+          <Divider />
+
+          <Stack spacing={1.5}>
+            <Typography sx={{ fontWeight: 900 }} variant="subtitle1">
               Materials
             </Typography>
             <Stack spacing={1.25}>
@@ -208,6 +261,7 @@ export function SpmsDetailPage() {
                         ['Type', material.typeMaterial],
                         ['Description', material.description],
                         ['Part Number', material.partNumber],
+                        ['Serial Number', material.serialNumber ?? '-'],
                         ['Origin', material.supportOriginMaterial],
                         [
                           'Destination',

@@ -11,12 +11,18 @@ export {
   isPickupApprovalComplete,
 } from './model/selectors'
 export {
+  deliveryWorkflowStatuses,
+  getDeliveryWorkflowStatus,
   getReturnStatusColor,
   getSeverityColor,
   getSpmsStatusColor,
+  getTicketWorkflowStatus,
+  getPickupWorkflowStatus,
+  returnStatuses,
   spmsStatuses,
 } from './model/status'
 export type {
+  DeliveryWorkflowStatus,
   ReturnStatus,
   Severity,
   SpmsMaterialItem,

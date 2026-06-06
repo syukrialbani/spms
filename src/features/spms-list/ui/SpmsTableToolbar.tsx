@@ -1,9 +1,10 @@
+import { getSpmsStatusColor } from '@entities/spms'
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded'
 import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
 import InputAdornment from '@mui/material/InputAdornment'
-import MenuItem from '@mui/material/MenuItem'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import { LiquidPanel } from '@shared/ui/LiquidPanel'
@@ -12,6 +13,7 @@ import type { SpmsStatusFilter } from '../model/useSpmsList'
 type SpmsTableToolbarProps = {
   search: string
   status: SpmsStatusFilter
+  statusCounts: Record<SpmsStatusFilter, number>
   statusOptions: SpmsStatusFilter[]
   onSearchChange: (value: string) => void
   onStatusChange: (value: SpmsStatusFilter) => void
@@ -20,6 +22,7 @@ type SpmsTableToolbarProps = {
 export function SpmsTableToolbar({
   search,
   status,
+  statusCounts,
   statusOptions,
   onSearchChange,
   onStatusChange,
@@ -31,11 +34,41 @@ export function SpmsTableToolbar({
         p: { xs: 1.5, sm: 2 },
       }}
     >
-      <Stack
-        direction={{ xs: 'column', md: 'row' }}
-        spacing={1.5}
-        sx={{ alignItems: 'stretch' }}
-      >
+      <Stack spacing={1.5}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            flexWrap: 'wrap',
+            rowGap: 1,
+          }}
+        >
+          {statusOptions.map((option) => {
+            const selected = status === option
+            const color =
+              option === 'All' ? 'default' : getSpmsStatusColor(option)
+
+            return (
+              <Chip
+                key={option}
+                color={color}
+                label={`${option} (${statusCounts[option]})`}
+                onClick={() => onStatusChange(option)}
+                size="small"
+                variant={selected ? 'filled' : 'outlined'}
+                sx={{
+                  fontWeight: selected ? 900 : 750,
+                  minWidth: 126,
+                }}
+              />
+            )
+          })}
+        </Stack>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={1.5}
+          sx={{ alignItems: 'stretch' }}
+        >
         <TextField
           fullWidth
           placeholder="Search order, customer, area, site..."
@@ -52,73 +85,6 @@ export function SpmsTableToolbar({
             },
           }}
         />
-        <TextField
-          aria-label="Status"
-          select
-          size="small"
-          value={status}
-          onChange={(event) =>
-            onStatusChange(event.target.value as SpmsStatusFilter)
-          }
-          slotProps={{
-            input: {
-              sx: {
-                backdropFilter: 'none',
-                bgcolor: (theme) =>
-                  theme.palette.mode === 'dark' ? '#071323' : '#ffffff',
-              },
-            },
-            select: {
-              MenuProps: {
-                slotProps: {
-                  paper: {
-                    sx: {
-                      backdropFilter: 'none',
-                      backgroundImage: 'none',
-                      bgcolor: (theme) =>
-                        theme.palette.mode === 'dark' ? '#071323' : '#ffffff',
-                      border: '1px solid',
-                      borderColor: (theme) =>
-                        theme.palette.mode === 'dark'
-                          ? 'rgba(82, 197, 242, 0.42)'
-                          : 'rgba(29, 112, 183, 0.18)',
-                      boxShadow: (theme) =>
-                        theme.palette.mode === 'dark'
-                          ? '0 18px 42px rgba(0, 8, 20, 0.48)'
-                          : '0 18px 42px rgba(12, 67, 122, 0.18)',
-                      '& .MuiMenu-list': {
-                        bgcolor: (theme) =>
-                          theme.palette.mode === 'dark' ? '#071323' : '#ffffff',
-                      },
-                      '& .MuiMenuItem-root': {
-                        bgcolor: 'transparent',
-                        '&.Mui-selected': {
-                          bgcolor: (theme) =>
-                            theme.palette.mode === 'dark'
-                              ? '#12395f'
-                              : '#e7f7ff',
-                        },
-                        '&.Mui-selected:hover, &:hover': {
-                          bgcolor: (theme) =>
-                            theme.palette.mode === 'dark'
-                              ? '#164a78'
-                              : '#dff5ff',
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          }}
-          sx={{ minWidth: { md: 190 }, width: { xs: '100%', md: 190 } }}
-        >
-          {statusOptions.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </TextField>
         <Button
           variant="contained"
           startIcon={<FilterListRoundedIcon />}
@@ -136,6 +102,7 @@ export function SpmsTableToolbar({
         >
           Export
         </Button>
+        </Stack>
       </Stack>
     </LiquidPanel>
   )

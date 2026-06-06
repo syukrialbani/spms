@@ -48,8 +48,6 @@ import {
   pickupStatusOptions,
   severityOptions,
   spmsRequestValidationSchema,
-  supportDestinationMaterialOptions,
-  supportOriginMaterialOptions,
   typeMaterialOptions,
   type SpmsMaterialFormValues,
   type SpmsRequestFormValues,
@@ -205,8 +203,6 @@ const materialFieldNames: MaterialFieldName[] = [
   'description',
   'partNumber',
   'quantity',
-  'supportOriginMaterial',
-  'supportDestinationMaterial',
 ]
 
 const normalizeFormMaterials = (values: SpmsRequestFormValues) => {
@@ -973,6 +969,12 @@ export function SpmsRequestForm({
       description: firstMaterial.description,
       partNumber: firstMaterial.partNumber,
       quantity: '1',
+      materialSerialNumber:
+        values.materialSerialNumber ||
+        materials
+          .map((material) => material.serialNumber)
+          .filter(Boolean)
+          .join(', '),
       supportOriginMaterial: firstMaterial.supportOriginMaterial,
       supportDestinationMaterial: firstMaterial.supportDestinationMaterial,
       materials,
@@ -1043,7 +1045,7 @@ export function SpmsRequestForm({
     const confirmed = await confirm({
       confirmLabel: isCreateMode ? 'Create SPMS' : 'Save',
       description: isCreateMode
-        ? 'SPMS baru akan dibuat dan Delivery Order delivery akan digenerate otomatis.'
+        ? 'SPMS baru akan dibuat dengan status New. Delivery Order dibuat manual dari menu Delivery Order.'
         : `Perubahan pada tab ${formSteps[activeStep].title} akan disimpan.`,
       title: isCreateMode
         ? 'Create new SPMS?'
@@ -1120,6 +1122,7 @@ export function SpmsRequestForm({
 
         if (field === 'deliveryEvidenceFileName') {
           void formik.setFieldValue('evidenceFileName', file.name)
+          void formik.setFieldValue('deliveryStatus', 'DELIVERED')
         }
 
         if (field === 'pickupEvidenceFileName') {
@@ -1161,8 +1164,9 @@ export function SpmsRequestForm({
   const deliveryEvidenceName =
     formik.values.deliveryEvidenceFileName || formik.values.evidenceFileName
 
+  const hasDeliveryOrder = Boolean(formik.values.deliveryOrderNumber)
   const isDeliveryDelivered =
-    Boolean(deliveryEvidenceName) && formik.values.deliveryStatus === 'DELIVERED'
+    Boolean(deliveryEvidenceName) || formik.values.deliveryStatus === 'DELIVERED'
   const isDeliveryApproval1Approved = formik.values.approval1Status === 'APPROVED'
   const isDeliveryApproval2Approved = formik.values.approval2Status === 'APPROVED'
   const isDeliveryCustomerClosed = formik.values.closedStatus === 'CLOSED'
@@ -1170,6 +1174,7 @@ export function SpmsRequestForm({
     isDeliveryApproval1Approved && isDeliveryApproval2Approved
   const isDeliveryApprovalComplete =
     isDeliveryApproved && isDeliveryCustomerClosed
+  const isPickupAvailable = isDeliveryApprovalComplete
   const isPickupUploaded = Boolean(formik.values.pickupEvidenceFileName)
   const pickupUploadStatus = getAutoPickupStatus(formik.values)
   const isPickupApproval1Approved =
@@ -1320,13 +1325,25 @@ export function SpmsRequestForm({
       timestamp: formik.values.requestDate,
     },
     {
+      actor: hasDeliveryOrder ? formik.values.createdBy : '',
+      description: hasDeliveryOrder
+        ? `Delivery Order ${formik.values.deliveryOrderNumber} sudah dibuat`
+        : 'Menunggu create Delivery Order',
+      label: 'Create DO',
+      meta: hasDeliveryOrder ? 'Created' : 'New',
+      state: hasDeliveryOrder ? 'done' : 'active',
+      timestamp: '',
+    },
+    {
       actor: isDeliveryDelivered ? formik.values.sendBy : '',
       description: isDeliveryDelivered && deliveryEvidenceName
         ? 'BA delivery sudah diupload oleh'
-        : 'Menunggu upload BA delivery',
+        : hasDeliveryOrder
+          ? 'Menunggu upload BA delivery'
+          : 'Create DO terlebih dahulu',
       label: 'Upload BA Delivery',
       meta: isDeliveryDelivered ? 'Delivered' : 'Open',
-      state: isDeliveryDelivered ? 'done' : 'active',
+      state: isDeliveryDelivered ? 'done' : hasDeliveryOrder ? 'active' : 'pending',
       timestamp: isDeliveryDelivered ? formik.values.deliveryDateGoodUnit : '',
     },
     {
@@ -1345,12 +1362,14 @@ export function SpmsRequestForm({
       actor: isPickupUploaded ? formik.values.pickupBy : '',
       description: formik.values.pickupEvidenceFileName
         ? 'BA pickup sudah diupload oleh'
-        : 'Menunggu upload BA pickup',
+        : isPickupAvailable
+          ? 'Menunggu upload BA pickup'
+          : 'Menunggu closed delivery',
       label: 'Upload BA Pickup',
       meta: pickupUploadStatus,
       state: isPickupUploaded
         ? 'done'
-        : pickupUploadStatus === 'UNRETURN'
+        : isPickupAvailable
           ? 'active'
         : 'pending',
       timestamp: isPickupUploaded ? formik.values.pickupDate : '',
@@ -1513,11 +1532,14 @@ export function SpmsRequestForm({
                 required
                 {...textProps('pmArea')}
               />
-              <SpmsTextInput
-                label="AWB Transfer"
-                name="awbTransfer"
-                {...textProps('awbTransfer')}
-              />
+              {!isCreateMode ? (
+                <SpmsTextInput
+                  label="Delivery Order"
+                  name="deliveryOrderNumber"
+                  readOnly
+                  {...textProps('deliveryOrderNumber')}
+                />
+              ) : null}
             </FieldGrid>
           </FormSection>
         </Box>
@@ -1626,30 +1648,6 @@ export function SpmsRequestForm({
                     />
                   </Box>
 
-                  <FieldGrid>
-                    <FormAutocomplete
-                      accent
-                      label="Support Origin Material"
-                      name={getMaterialPath(index, 'supportOriginMaterial')}
-                      options={supportOriginMaterialOptions}
-                      required
-                      {...materialAutocompleteProps(
-                        index,
-                        'supportOriginMaterial',
-                      )}
-                    />
-                    <FormAutocomplete
-                      accent
-                      label="Support Destination Material"
-                      name={getMaterialPath(index, 'supportDestinationMaterial')}
-                      options={supportDestinationMaterialOptions}
-                      required
-                      {...materialAutocompleteProps(
-                        index,
-                        'supportDestinationMaterial',
-                      )}
-                    />
-                  </FieldGrid>
                 </Stack>
               </Box>
             ))}
@@ -1986,6 +1984,10 @@ export function SpmsRequestForm({
               <Tabs
                 value={activeStep}
                 onChange={(_, nextStep: number) => {
+                  if (!hasDeliveryOrder && nextStep > 0) {
+                    return
+                  }
+
                   setActiveStep(nextStep)
                 }}
                 variant="scrollable"
@@ -2013,6 +2015,7 @@ export function SpmsRequestForm({
                 {formSteps.map((step, index) => (
                   <Tab
                     key={step.title}
+                    disabled={!hasDeliveryOrder && index > 0}
                     type="button"
                     value={index}
                     label={

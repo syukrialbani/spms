@@ -1,11 +1,28 @@
 export type SpmsStatus =
   | 'New'
-  | 'In Progress'
-  | 'Waiting Approval'
-  | 'Approved'
-  | 'Rejected'
+  | 'Need Upload Delivery'
+  | 'Waiting Approval Delivery'
+  | 'Waiting Review Delivery'
+  | 'Closed Delivery'
+  | 'Need Upload Pickup'
+  | 'Waiting Approval Pickup'
+  | 'Waiting Review Pickup'
+  | 'Closed Pickup'
+  | 'Closed'
 
-export type ReturnStatus = 'Not Returned' | 'Partial Return' | 'Returned' | 'Closed'
+export type DeliveryWorkflowStatus =
+  | 'New'
+  | 'Need Upload Delivery'
+  | 'Waiting Approval Delivery'
+  | 'Waiting Review Delivery'
+  | 'Closed Delivery'
+
+export type ReturnStatus =
+  | 'Need Upload Pickup'
+  | 'Waiting Approval Pickup'
+  | 'Waiting Review Pickup'
+  | 'Closed Pickup'
+  | 'Closed'
 
 export type Severity = 'Low' | 'Medium' | 'High' | 'Critical'
 
@@ -23,6 +40,7 @@ export type SpmsMaterialItem = {
   description: string
   partNumber: string
   qty: number
+  serialNumber?: string
   supportOriginMaterial: string
   supportDestinationMaterial?: string
 }
@@ -47,6 +65,8 @@ export type SpmsRecord = {
   site: string
   statusSpms: SpmsStatus
   statusReturn: ReturnStatus
+  deliveryOrderNumber?: string
+  pickupDeliveryOrderNumber?: string
   createdBy?: string
   customerRequestor?: string
   supportDestinationMaterial?: string

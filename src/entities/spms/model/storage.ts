@@ -1,10 +1,9 @@
 import { spmsRecords } from './mock'
+import { getPickupWorkflowStatus, getTicketWorkflowStatus } from './status'
 import type {
-  ReturnStatus,
   Severity,
   SpmsMaterialItem,
   SpmsRecord,
-  SpmsStatus,
   WorkflowApprovalStatus,
   WorkflowClosedStatus,
 } from './types'
@@ -15,6 +14,7 @@ type SpmsMaterialFormInput = {
   description: string
   partNumber: string
   quantity: string
+  serialNumber?: string
   supportOriginMaterial: string
   supportDestinationMaterial: string
 }
@@ -87,6 +87,16 @@ type SpmsFormInput = {
   pickupClosedStatus: string
   pickupClosedDate: string
   pickupClosedNotes: string
+  deliveryOrderNumber: string
+  pickupDeliveryOrderNumber: string
+}
+
+type SpmsDeliveryOrderAttachment = {
+  awbTransfer: string
+  deliveryOrderNumber: string
+  materialSerialNumbers: string[]
+  supportDestinationMaterial: string
+  supportOriginMaterial: string
 }
 
 const storageKey = 'spms.records'
@@ -149,8 +159,7 @@ const hasMaterialValue = (material: SpmsMaterialFormInput) =>
       material.typeMaterial ||
       material.description ||
       material.partNumber ||
-      material.supportOriginMaterial ||
-      material.supportDestinationMaterial,
+      material.serialNumber,
   )
 
 const normalizeMaterials = (
@@ -166,6 +175,7 @@ const normalizeMaterials = (
             description: values.description,
             partNumber: values.partNumber,
             quantity: values.quantity,
+            serialNumber: values.materialSerialNumber,
             supportOriginMaterial: values.supportOriginMaterial,
             supportDestinationMaterial: values.supportDestinationMaterial,
           },
@@ -179,6 +189,7 @@ const normalizeMaterials = (
       description: material.description,
       partNumber: material.partNumber,
       qty: 1,
+      serialNumber: material.serialNumber,
       supportOriginMaterial: material.supportOriginMaterial,
       supportDestinationMaterial: material.supportDestinationMaterial,
     }))
@@ -194,6 +205,7 @@ const normalizeMaterials = (
       description: values.description,
       partNumber: values.partNumber,
       qty: 1,
+      serialNumber: values.materialSerialNumber,
       supportOriginMaterial: values.supportOriginMaterial,
       supportDestinationMaterial: values.supportDestinationMaterial,
     },
@@ -215,61 +227,6 @@ const normalizeApprovalStatus = (value: string): WorkflowApprovalStatus => {
 
 const normalizeClosedStatus = (value: string): WorkflowClosedStatus =>
   value === 'CLOSED' ? 'CLOSED' : 'PENDING CUSTOMER'
-
-const getStatusSpms = (values: SpmsFormInput): SpmsStatus => {
-  if (values.closedStatus === 'CLOSED') {
-    return 'Approved'
-  }
-
-  if (
-    values.approval1Status === 'REJECTED' ||
-    values.approval2Status === 'REJECTED'
-  ) {
-    return 'Rejected'
-  }
-
-  if (
-    values.approval1Status === 'APPROVED' &&
-    values.approval2Status === 'APPROVED'
-  ) {
-    return values.deliveryEvidenceFileName || values.evidenceFileName
-      ? 'In Progress'
-      : 'Approved'
-  }
-
-  if (values.approval1Status === 'APPROVED') {
-    return 'Waiting Approval'
-  }
-
-  if (values.deliveryEvidenceFileName || values.deliveryStatus === 'DELIVERY PROCESS') {
-    return 'In Progress'
-  }
-
-  return 'New'
-}
-
-const getReturnStatus = (values: SpmsFormInput): ReturnStatus => {
-  if (values.closedStatus === 'CLOSED') {
-    return 'Closed'
-  }
-
-  if (values.statusReturn === 'PARTIAL') {
-    return 'Partial Return'
-  }
-
-  if (
-    values.statusReturn === 'ROK' ||
-    values.statusReturn === 'Faulty' ||
-    values.statusReturn === 'RETURN' ||
-    values.statusReturn === 'GOOD' ||
-    values.statusReturn === 'FAULTY' ||
-    values.pickupEvidenceFileName
-  ) {
-    return 'Returned'
-  }
-
-  return 'Not Returned'
-}
 
 const getAutoPickupStatus = (
   values: SpmsFormInput,
@@ -308,6 +265,12 @@ const createSpmsOrderNumber = (records: SpmsRecord[]) =>
 const shouldGenerateOrderNumber = (value: string) =>
   !value || /^will generate/i.test(value)
 
+const withWorkflowStatuses = (record: SpmsRecord): SpmsRecord => ({
+  ...record,
+  statusReturn: getPickupWorkflowStatus(record),
+  statusSpms: getTicketWorkflowStatus(record),
+})
+
 const buildRecordFromForm = (
   values: SpmsFormInput,
   records: SpmsRecord[],
@@ -326,7 +289,7 @@ const buildRecordFromForm = (
         : values.deliveryStatus || 'OPEN'
   const baStatusReturn = getAutoPickupStatus(values, deliveryStatus)
 
-  return {
+  const nextRecord: SpmsRecord = {
     id: existing?.id ?? `spms-${crypto.randomUUID()}`,
     orderNumber,
     customer: toTitleCase(values.customer),
@@ -344,11 +307,12 @@ const buildRecordFromForm = (
     materials,
     severity: toSeverity(values.severity),
     site: existing?.site ?? 'On Site',
-    statusSpms: getStatusSpms(values),
-    statusReturn: getReturnStatus({
-      ...values,
-      statusReturn: baStatusReturn,
-    }),
+    statusSpms: existing?.statusSpms ?? 'New',
+    statusReturn: existing?.statusReturn ?? 'Need Upload Pickup',
+    deliveryOrderNumber:
+      values.deliveryOrderNumber || existing?.deliveryOrderNumber,
+    pickupDeliveryOrderNumber:
+      values.pickupDeliveryOrderNumber || existing?.pickupDeliveryOrderNumber,
     createdBy: values.createdBy,
     customerRequestor: values.customerRequestor,
     supportDestinationMaterial:
@@ -405,6 +369,8 @@ const buildRecordFromForm = (
     pickupClosedDate: values.pickupClosedDate,
     pickupClosedNotes: values.pickupClosedNotes,
   }
+
+  return withWorkflowStatuses(nextRecord)
 }
 
 export const spmsStorage = {
@@ -412,11 +378,16 @@ export const spmsStorage = {
     const persistedRecords = readPersistedRecords()
 
     if (persistedRecords) {
-      return persistedRecords
+      const normalizedRecords = persistedRecords.map(withWorkflowStatuses)
+
+      saveRecords(normalizedRecords)
+      return normalizedRecords
     }
 
-    saveRecords(spmsRecords)
-    return spmsRecords
+    const normalizedRecords = spmsRecords.map(withWorkflowStatuses)
+
+    saveRecords(normalizedRecords)
+    return normalizedRecords
   },
   getById(id: string | undefined): SpmsRecord | null {
     if (!id) {
@@ -441,6 +412,67 @@ export const spmsStorage = {
     }
 
     const nextRecord = buildRecordFromForm(values, records, existing)
+    saveRecords(
+      records.map((record) => (record.id === id ? nextRecord : record)),
+    )
+
+    return nextRecord
+  },
+  attachDeliveryOrder(
+    id: string,
+    values: SpmsDeliveryOrderAttachment,
+  ): SpmsRecord | null {
+    const records = this.getAll()
+    const existing = records.find((record) => record.id === id)
+
+    if (!existing) {
+      return null
+    }
+
+    const sourceMaterials =
+      existing.materials?.length
+        ? existing.materials
+        : [
+            {
+              categoryMaterial: existing.categoryMaterial,
+              typeMaterial: existing.typeMaterial,
+              description: existing.description,
+              partNumber: existing.partNumber,
+              qty: Math.max(1, existing.qty || 1),
+              supportOriginMaterial: existing.supportOriginMaterial,
+              supportDestinationMaterial: existing.supportDestinationMaterial,
+            },
+          ]
+    const nextMaterials = sourceMaterials.map((material, index) => ({
+      ...material,
+      serialNumber:
+        values.materialSerialNumbers[index] ?? material.serialNumber ?? '',
+      supportDestinationMaterial: values.supportDestinationMaterial,
+      supportOriginMaterial: values.supportOriginMaterial,
+    }))
+    const firstMaterial = nextMaterials[0]
+    const nextRecord = withWorkflowStatuses({
+      ...existing,
+      awbTransfer: values.awbTransfer,
+      deliveryOrderNumber: values.deliveryOrderNumber,
+      destinationLsp: values.supportDestinationMaterial,
+      materialSerialNumber: values.materialSerialNumbers
+        .filter(Boolean)
+        .join(', '),
+      materials: nextMaterials,
+      originLsp: values.supportOriginMaterial,
+      supportDestinationMaterial: values.supportDestinationMaterial,
+      supportOriginMaterial: values.supportOriginMaterial,
+      ...(firstMaterial
+        ? {
+            categoryMaterial: firstMaterial.categoryMaterial,
+            description: firstMaterial.description,
+            partNumber: firstMaterial.partNumber,
+            typeMaterial: firstMaterial.typeMaterial,
+          }
+        : {}),
+    })
+
     saveRecords(
       records.map((record) => (record.id === id ? nextRecord : record)),
     )
