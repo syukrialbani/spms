@@ -1,9 +1,20 @@
 import { spmsStorage } from './storage'
-import type { SpmsMaterialItem, SpmsRecord } from './types'
+import {
+  getDeliveryWorkflowStatus,
+  getPickupWorkflowStatus,
+  getTicketWorkflowStatus,
+} from './status'
+import type {
+  DeliveryWorkflowStatus,
+  ReturnStatus,
+  SpmsMaterialItem,
+  SpmsRecord,
+  SpmsStatus,
+} from './types'
 
-export type DeliveryUploadStatus = 'OPEN' | 'DELIVERED'
-export type PickupUploadStatus = 'OPEN' | 'UNRETURN' | 'ROK' | 'FAULTY'
-export type TicketStatus = 'OPEN' | 'CLOSE'
+export type DeliveryUploadStatus = DeliveryWorkflowStatus
+export type PickupUploadStatus = ReturnStatus
+export type TicketStatus = SpmsStatus
 
 export const getSpmsRecordById = (id: string | undefined) =>
   spmsStorage.getById(id)
@@ -34,33 +45,11 @@ export const getSpmsRecordMaterials = (
 
 export const getDeliveryUploadStatus = (
   record: SpmsRecord,
-): DeliveryUploadStatus =>
-  record.deliveryEvidenceFileName ||
-  record.evidenceFileName ||
-  record.deliveryStatus === 'DELIVERED'
-    ? 'DELIVERED'
-    : 'OPEN'
+): DeliveryUploadStatus => getDeliveryWorkflowStatus(record)
 
 export const getPickupUploadStatus = (
   record: SpmsRecord,
-): PickupUploadStatus => {
-  if (!record.pickupEvidenceFileName) {
-    return getDeliveryUploadStatus(record) === 'DELIVERED' ||
-      record.baStatusReturn === 'UNRETURN'
-      ? 'UNRETURN'
-      : 'OPEN'
-  }
-
-  if (
-    record.baStatusReturn === 'Faulty' ||
-    record.baStatusReturn === 'FAULTY' ||
-    record.serialNumberFaultyUnit
-  ) {
-    return 'FAULTY'
-  }
-
-  return 'ROK'
-}
+): PickupUploadStatus => getPickupWorkflowStatus(record)
 
 export const isDeliveryApprovalComplete = (record: SpmsRecord) =>
   record.approval1Status === 'APPROVED' &&
@@ -73,6 +62,4 @@ export const isPickupApprovalComplete = (record: SpmsRecord) =>
   record.pickupClosedStatus === 'CLOSED'
 
 export const getTicketStatus = (record: SpmsRecord): TicketStatus =>
-  isDeliveryApprovalComplete(record) && isPickupApprovalComplete(record)
-    ? 'CLOSE'
-    : 'OPEN'
+  getTicketWorkflowStatus(record)

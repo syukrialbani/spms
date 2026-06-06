@@ -24,6 +24,11 @@ const DeliveryOrderPickupPage = lazy(() =>
     default: module.DeliveryOrderPickupPage,
   })),
 )
+const DeliveryOrderCreatePage = lazy(() =>
+  import('@pages/delivery-order').then((module) => ({
+    default: module.DeliveryOrderCreatePage,
+  })),
+)
 const SpmsDetailPage = lazy(() =>
   import('@pages/spms-detail').then((module) => ({
     default: module.SpmsDetailPage,
@@ -62,6 +67,10 @@ export function AppRouter() {
               <Route
                 path="/delivery-order/generate-pickup/:deliveryOrder"
                 element={<DeliveryOrderPickupPage />}
+              />
+              <Route
+                path="/delivery-order/create"
+                element={<DeliveryOrderCreatePage />}
               />
               <Route path="/delivery-order" element={<DeliveryOrderPage />} />
             </Route>
