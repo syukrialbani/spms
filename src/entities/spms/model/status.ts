@@ -29,6 +29,7 @@ export const deliveryWorkflowStatuses: DeliveryWorkflowStatus[] = [
 ]
 
 export const returnStatuses: ReturnStatus[] = [
+  'New',
   'Need Upload Pickup',
   'Waiting Approval Pickup',
   'Waiting Review Pickup',
@@ -70,6 +71,7 @@ export const getReturnStatusColor = (
   status: ReturnStatus,
 ): ChipProps['color'] => {
   const colorMap: Record<ReturnStatus, ChipProps['color']> = {
+    New: 'default',
     'Need Upload Pickup': 'warning',
     'Waiting Approval Pickup': 'secondary',
     'Waiting Review Pickup': 'info',
@@ -107,8 +109,18 @@ export const getDeliveryWorkflowStatus = (
 }
 
 export const getPickupWorkflowStatus = (record: SpmsRecord): ReturnStatus => {
-  if (record.closedStatus !== 'CLOSED') {
-    return 'Need Upload Pickup'
+  const deliveryStatus = getDeliveryWorkflowStatus(record)
+
+  if (deliveryStatus !== 'Closed Delivery' || record.closedStatus !== 'CLOSED') {
+    return 'New'
+  }
+
+  if (record.statusTransaction === 'ARF') {
+    return 'Closed'
+  }
+
+  if (!record.pickupDeliveryOrderNumber) {
+    return 'New'
   }
 
   if (!record.pickupEvidenceFileName) {
@@ -141,5 +153,7 @@ export const getTicketWorkflowStatus = (record: SpmsRecord): SpmsStatus => {
     return 'Closed Delivery'
   }
 
-  return getPickupWorkflowStatus(record)
+  const pickupStatus = getPickupWorkflowStatus(record)
+
+  return pickupStatus === 'New' ? 'Closed Delivery' : pickupStatus
 }

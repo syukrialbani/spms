@@ -28,6 +28,9 @@ type SpmsFormInput = {
   requestDate: string
   areal: string
   dop: string
+  feId: string
+  neId: string
+  regional: string
   siteName: string
   categoryMaterial: string
   typeMaterial: string
@@ -89,6 +92,12 @@ type SpmsFormInput = {
   pickupClosedNotes: string
   deliveryOrderNumber: string
   pickupDeliveryOrderNumber: string
+  picKancabEmail: string
+  picKancabName: string
+  picKancabPhone: string
+  requestorEmail: string
+  requestorPhone: string
+  statusTransaction: string
 }
 
 type SpmsDeliveryOrderAttachment = {
@@ -97,6 +106,10 @@ type SpmsDeliveryOrderAttachment = {
   materialSerialNumbers: string[]
   supportDestinationMaterial: string
   supportOriginMaterial: string
+}
+
+type SpmsPickupDeliveryOrderAttachment = {
+  pickupDeliveryOrderNumber: string
 }
 
 const storageKey = 'spms.records'
@@ -297,6 +310,9 @@ const buildRecordFromForm = (
     requestDate: toDatePart(values.requestDate),
     area: toTitleCase(values.areal),
     dop: values.dop,
+    feId: values.feId,
+    neId: values.neId,
+    regional: values.regional,
     siteName: values.siteName,
     categoryMaterial: firstMaterial.categoryMaterial,
     typeMaterial: firstMaterial.typeMaterial,
@@ -308,13 +324,19 @@ const buildRecordFromForm = (
     severity: toSeverity(values.severity),
     site: existing?.site ?? 'On Site',
     statusSpms: existing?.statusSpms ?? 'New',
-    statusReturn: existing?.statusReturn ?? 'Need Upload Pickup',
+    statusReturn: existing?.statusReturn ?? 'New',
     deliveryOrderNumber:
       values.deliveryOrderNumber || existing?.deliveryOrderNumber,
     pickupDeliveryOrderNumber:
       values.pickupDeliveryOrderNumber || existing?.pickupDeliveryOrderNumber,
     createdBy: values.createdBy,
     customerRequestor: values.customerRequestor,
+    picKancabEmail: values.picKancabEmail,
+    picKancabName: values.picKancabName,
+    picKancabPhone: values.picKancabPhone,
+    requestorEmail: values.requestorEmail,
+    requestorPhone: values.requestorPhone,
+    statusTransaction: values.statusTransaction,
     supportDestinationMaterial:
       firstMaterial.supportDestinationMaterial ?? values.supportDestinationMaterial,
     originLsp: values.originLsp,
@@ -471,6 +493,28 @@ export const spmsStorage = {
             typeMaterial: firstMaterial.typeMaterial,
           }
         : {}),
+    })
+
+    saveRecords(
+      records.map((record) => (record.id === id ? nextRecord : record)),
+    )
+
+    return nextRecord
+  },
+  attachPickupDeliveryOrder(
+    id: string,
+    values: SpmsPickupDeliveryOrderAttachment,
+  ): SpmsRecord | null {
+    const records = this.getAll()
+    const existing = records.find((record) => record.id === id)
+
+    if (!existing) {
+      return null
+    }
+
+    const nextRecord = withWorkflowStatuses({
+      ...existing,
+      pickupDeliveryOrderNumber: values.pickupDeliveryOrderNumber,
     })
 
     saveRecords(

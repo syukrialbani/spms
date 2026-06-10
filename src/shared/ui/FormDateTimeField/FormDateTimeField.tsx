@@ -50,13 +50,14 @@ export function FormDateTimeField({
   sx,
 }: FormDateTimeFieldProps) {
   return (
-    <Stack spacing={0.75} sx={sx}>
+    <Stack spacing={0.35} sx={sx}>
       <Typography
         component="label"
         htmlFor={id}
         variant="caption"
         sx={{
           color: error ? 'error.main' : 'text.secondary',
+          fontSize: 11,
           fontWeight: 800,
           lineHeight: 1.2,
           px: 0.25,
@@ -175,7 +176,7 @@ export function FormDateTimeField({
                     backgroundImage: 'none',
                     borderRadius: 1,
                     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.52)',
-                    minHeight: 46,
+                    minHeight: 34,
                   },
                 '& .MuiPickersOutlinedInput-notchedOutline': {
                   borderColor:
@@ -194,12 +195,12 @@ export function FormDateTimeField({
                   },
                 '& .MuiPickersInputBase-sectionContent, & .MuiPickersInputBase-sectionBefore, & .MuiPickersInputBase-sectionAfter':
                   {
-                    fontSize: 15,
+                    fontSize: 12.5,
                     fontWeight: 700,
                     lineHeight: 1.4375,
                   },
                 '& .MuiPickersOutlinedInput-input': {
-                  padding: '8.5px 0',
+                  padding: '4.5px 0',
                 },
                 '& .MuiOutlinedInput-root': {
                   bgcolor:
@@ -208,7 +209,7 @@ export function FormDateTimeField({
                       : alpha(theme.palette.common.white, 0.82),
                   backgroundImage: 'none',
                   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.52)',
-                  minHeight: 46,
+                  minHeight: 34,
                   '& fieldset': {
                     borderColor:
                       theme.palette.mode === 'dark'
@@ -226,13 +227,13 @@ export function FormDateTimeField({
                 '& .MuiInputAdornment-root .MuiButtonBase-root': {
                   borderRadius: 1,
                   color: 'primary.main',
-                  height: 32,
-                  width: 32,
+                  height: 26,
+                  width: 26,
                 },
                 '& .MuiInputBase-input': {
-                  fontSize: 15,
+                  fontSize: 12.5,
                   fontWeight: 700,
-                  py: 1.25,
+                  py: 0.65,
                 },
                 '& .MuiFormHelperText-root': {
                   mx: 0,

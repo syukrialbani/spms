@@ -20,6 +20,9 @@ export type SpmsRequestFormValues = {
   requestDate: string
   areal: string
   dop: string
+  feId: string
+  neId: string
+  regional: string
   siteName: string
   categoryMaterial: string
   typeMaterial: string
@@ -81,6 +84,12 @@ export type SpmsRequestFormValues = {
   pickupClosedNotes: string
   deliveryOrderNumber: string
   pickupDeliveryOrderNumber: string
+  picKancabEmail: string
+  picKancabName: string
+  picKancabPhone: string
+  requestorEmail: string
+  requestorPhone: string
+  statusTransaction: string
 }
 
 export const customerOptions = [
@@ -212,6 +221,80 @@ export const supportDestinationMaterialOptions = [
 
 export const severityOptions = ['NON CRITICAL', 'CRITICAL'] as const
 
+export const regionalOptions = [
+  'SUMBAGSEL',
+  'SUMBAGTENG',
+  'SUMBAGUT',
+  'JABODETABEK',
+  'JAWA BARAT',
+  'JAWA TENGAH',
+  'JAWA TIMUR',
+  'BALINUSRA',
+  'KALIMANTAN',
+  'SULAWESI',
+  'MALUKU PAPUA',
+] as const
+
+export const requestorOptions = [
+  'Andi Rahman',
+  'Budi Santoso',
+  'Citra Lestari',
+  'Dewi Anggraini',
+] as const
+
+export const requestorContactMap: Record<
+  string,
+  { email: string; phone: string }
+> = {
+  'Andi Rahman': {
+    email: 'andirhman@gmail.com',
+    phone: '08129892923',
+  },
+  'Budi Santoso': {
+    email: 'budi.santoso@customer.id',
+    phone: '08127770011',
+  },
+  'Citra Lestari': {
+    email: 'citra.lestari@customer.id',
+    phone: '08136660221',
+  },
+  'Dewi Anggraini': {
+    email: 'dewi.anggraini@customer.id',
+    phone: '08125550888',
+  },
+}
+
+export const picKancabOptions = [
+  'Saepulloh',
+  'Admin Marunda',
+  'Ridwan Kancab',
+  'Agus Riyanto',
+] as const
+
+export const picKancabContactMap: Record<
+  string,
+  { email: string; phone: string }
+> = {
+  'Saepulloh': {
+    email: 'saepulloh@aviat.id',
+    phone: '082177708337',
+  },
+  'Admin Marunda': {
+    email: 'admin.marunda@aviat.id',
+    phone: '081210002026',
+  },
+  'Ridwan Kancab': {
+    email: 'ridwan.kancab@aviat.id',
+    phone: '081222097781',
+  },
+  'Agus Riyanto': {
+    email: 'agus.riyanto@aviat.id',
+    phone: '08125563310',
+  },
+}
+
+export const statusTransactionOptions = ['OOW', 'ARF', 'Warr'] as const
+
 export const lspOptions = [
   'MS AVIAT MARUNDA',
   'WAREHOUSE JAKARTA',
@@ -314,11 +397,9 @@ export const returnStatusOptions = [
 export const pickupStatusOptions = ['ROK', 'FAULTY'] as const
 
 export const slaHourOptions = [
+  '02:00:00',
   '04:00:00',
-  '08:00:00',
-  '12:00:00',
   '24:00:00',
-  '48:00:00',
 ] as const
 
 export const getSlaHoursForSeverity = (severity: string) => {
@@ -353,6 +434,9 @@ export const createDefaultSpmsRequestValues = (): SpmsRequestFormValues => ({
   requestDate: '',
   areal: '',
   dop: '',
+  feId: '',
+  neId: '',
+  regional: '',
   siteName: '',
   categoryMaterial: '',
   typeMaterial: '',
@@ -414,6 +498,12 @@ export const createDefaultSpmsRequestValues = (): SpmsRequestFormValues => ({
   pickupClosedNotes: '',
   deliveryOrderNumber: '',
   pickupDeliveryOrderNumber: '',
+  picKancabEmail: '',
+  picKancabName: '',
+  picKancabPhone: '',
+  requestorEmail: '',
+  requestorPhone: '',
+  statusTransaction: '',
 })
 
 const materialValidationSchema = Yup.object({
@@ -452,6 +542,11 @@ export const spmsRequestValidationSchema = Yup.object({
     .required('Request date wajib diisi'),
   areal: Yup.string().trim().required('Area wajib diisi'),
   dop: Yup.string().trim().required('DOP wajib diisi'),
+  feId: Yup.string().trim().required('FE ID wajib diisi'),
+  neId: Yup.string().trim().required('NE ID wajib diisi'),
+  regional: Yup.string()
+    .oneOf([...regionalOptions], 'Regional tidak valid')
+    .required('Regional wajib diisi'),
   siteName: Yup.string().trim().required('Site name wajib diisi'),
   categoryMaterial: Yup.string()
     .trim()
@@ -486,18 +581,7 @@ export const spmsRequestValidationSchema = Yup.object({
     .oneOf([...severityOptions], 'Severity tidak valid')
     .required('Severity wajib diisi'),
   slaHours: Yup.string()
-    .trim()
-    .matches(/^\d{2}:\d{2}:\d{2}$/, 'SLA harus HH:MM:SS')
-    .test(
-      'matches-severity',
-      'SLA harus 04:00:00 untuk critical atau 24:00:00 untuk non critical',
-      function validateSla(value) {
-        const severity = this.parent.severity as string
-        const expectedSla = getSlaHoursForSeverity(severity)
-
-        return !expectedSla || value === expectedSla
-      },
-    )
+    .oneOf([...slaHourOptions], 'SLA tidak valid')
     .required('SLA wajib diisi'),
   awbTransfer: Yup.string().trim(),
   pmArea: Yup.string().trim().required('PM area wajib diisi'),
@@ -582,4 +666,17 @@ export const spmsRequestValidationSchema = Yup.object({
   pickupClosedNotes: Yup.string().trim(),
   deliveryOrderNumber: Yup.string().trim(),
   pickupDeliveryOrderNumber: Yup.string().trim(),
+  picKancabEmail: Yup.string().trim().email('Email PIC Kancab tidak valid'),
+  picKancabName: Yup.string()
+    .trim()
+    .required('PIC/LSP name wajib diisi'),
+  picKancabPhone: Yup.string().trim(),
+  requestorEmail: Yup.string()
+    .trim()
+    .email('Email requestor tidak valid')
+    .required('Email requestor wajib diisi'),
+  requestorPhone: Yup.string().trim().required('No HP requestor wajib diisi'),
+  statusTransaction: Yup.string()
+    .oneOf([...statusTransactionOptions], 'Status transaction tidak valid')
+    .required('Status transaction wajib diisi'),
 })

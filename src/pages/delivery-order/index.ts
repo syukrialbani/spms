@@ -1,3 +1,5 @@
 export { DeliveryOrderCreatePage } from './ui/DeliveryOrderCreatePage'
+export { DeliveryOrderDetailPage } from './ui/DeliveryOrderDetailPage'
+export { DeliveryOrderEditPage } from './ui/DeliveryOrderEditPage'
 export { DeliveryOrderPage } from './ui/DeliveryOrderPage'
 export { DeliveryOrderPickupPage } from './ui/DeliveryOrderPickupPage'

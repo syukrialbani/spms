@@ -11,8 +11,10 @@ import {
 } from '@entities/spms'
 import AddTaskRoundedIcon from '@mui/icons-material/AddTaskRounded'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
+import EditRoundedIcon from '@mui/icons-material/EditRounded'
 import LocalShippingRoundedIcon from '@mui/icons-material/LocalShippingRounded'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
+import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import InputAdornment from '@mui/material/InputAdornment'
@@ -25,8 +27,9 @@ import { AppButton } from '@shared/ui/AppButton'
 import { DataTable, type DataTableColumn } from '@shared/ui/DataTable'
 import { LiquidPanel } from '@shared/ui/LiquidPanel'
 import { PageHeader } from '@shared/ui/PageHeader'
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { IconButton } from '@mui/material'
 
 type DeliveryOrderListRow = DeliveryOrderRecord & {
   displayStatus: DeliveryOrderStatus
@@ -74,9 +77,24 @@ const getDerivedDeliveryOrderStatus = (
   sourceSpms: SpmsRecord | undefined,
 ): DeliveryOrderStatus => {
   if (order.kind === 'PICKUP') {
-    return sourceSpms && getPickupUploadStatus(sourceSpms) === 'Closed'
-      ? 'CLOSED'
-      : 'PICKUP_GENERATED'
+    if (!sourceSpms) {
+      return order.statusDo
+    }
+
+    const pickupStatus = getPickupUploadStatus(sourceSpms)
+
+    if (pickupStatus === 'Closed' || pickupStatus === 'Closed Pickup') {
+      return 'CLOSED'
+    }
+
+    if (
+      pickupStatus === 'Waiting Approval Pickup' ||
+      pickupStatus === 'Waiting Review Pickup'
+    ) {
+      return 'WAITING_APPROVAL_DO'
+    }
+
+    return 'WAITING_UPLOAD_DO'
   }
 
   if (!sourceSpms) {
@@ -205,17 +223,6 @@ export function DeliveryOrderPage() {
     [allRows],
   )
 
-  const openPickupGenerator = useCallback(
-    (record: DeliveryOrderRecord) => {
-      navigate(
-        `/delivery-order/generate-pickup/${encodeURIComponent(
-          record.deliveryOrder,
-        )}`,
-      )
-    },
-    [navigate],
-  )
-
   const columns = useMemo<DataTableColumn<DeliveryOrderListRow>[]>(
     () => [
       {
@@ -241,9 +248,20 @@ export function DeliveryOrderPage() {
       },
       {
         key: 'sourceSpmsOrderNumber',
-        header: 'SPMS',
+        header: 'Source',
         width: 180,
-        render: (record) => textCell(record.sourceSpmsOrderNumber ?? '-'),
+        render: (record) => (
+          <Box>
+            {textCell(
+              record.sourceSpmsOrderNumber ??
+                record.orderNumber ??
+                (record.sourceType === 'NON_SPMS' ? 'Non-SPMS' : '-'),
+            )}
+            <Typography color="text.secondary" variant="caption">
+              {record.sourceType === 'NON_SPMS' ? 'Non-SPMS' : 'SPMS'}
+            </Typography>
+          </Box>
+        ),
       },
       {
         key: 'expedition',
@@ -325,59 +343,94 @@ export function DeliveryOrderPage() {
         align: 'center',
         sticky: 'right',
         stickyOffset: 0,
-        width: 176,
-        render: (record) => {
-          const disabled =
-            record.kind === 'PICKUP' ||
-            generatedPickupSources.has(record.deliveryOrder) ||
-            record.displayStatus !== 'CLOSED'
-
-          return (
-            <Stack spacing={0.75} sx={{ alignItems: 'center' }}>
-              <AppButton
-                disabled={!record.sourceSpms}
-                onClick={() => {
-                  if (record.sourceSpms) {
-                    navigate(`/spms/${record.sourceSpms.id}/edit`)
-                  }
-                }}
+        width: 190,
+        render: (record) => (
+          <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'center' }}>
+            <Tooltip title="View">
+              <IconButton
+                aria-label={`View ${record.orderNumber}`}
+                onClick={() => navigate(`/delivery-order/${record.deliveryOrder}`)}
                 size="small"
-                type="button"
-                sx={{ minWidth: 128 }}
               >
-                Review
-              </AppButton>
-              <Tooltip
-                title={
-                  disabled
-                    ? 'DO pickup tersedia setelah delivery closed'
-                    : 'Generate DO pickup dari baris ini'
-                }
+                <VisibilityRoundedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Edit">
+              <IconButton
+                aria-label={`Edit ${record.orderNumber}`}
+                onClick={() => navigate(`/delivery-order/${record.deliveryOrder}/edit`)}
+                size="small"
               >
-                <span>
-                  <AppButton
-                    disabled={disabled}
-                    onClick={() => openPickupGenerator(record)}
-                    size="small"
-                    startIcon={<AddTaskRoundedIcon />}
-                    type="button"
-                    variant="outlined"
-                    sx={{
-                      background: 'transparent',
-                      boxShadow: 'none',
-                      minWidth: 128,
-                    }}
-                  >
-                    DO Pickup
-                  </AppButton>
-                </span>
-              </Tooltip>
-            </Stack>
-          )
-        },
+                <EditRoundedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            {/* <Tooltip title="More">
+              <IconButton aria-label={`More ${record.orderNumber}`} size="small">
+                <MoreVertRoundedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip> */}
+          </Stack>
+        ),
       },
+      // {
+      //   key: 'action2',
+      //   header: 'Action 2',
+      //   align: 'center',
+      //   sticky: 'right',
+      //   stickyOffset: 48,
+      //   width: 190,
+      //    render: (record) => {
+      //     const disabled =
+      //       record.kind === 'PICKUP' ||
+      //       generatedPickupSources.has(record.deliveryOrder) ||
+      //       record.displayStatus !== 'CLOSED'
+
+      //     return (
+      //       <Stack spacing={0.75} sx={{ alignItems: 'center' }}>
+      //         <AppButton
+      //           disabled={!record.sourceSpms}
+      //           onClick={() => {
+      //             if (record.sourceSpms) {
+      //               navigate(`/spms/${record.sourceSpms.id}/edit`)
+      //             }
+      //           }}
+      //           size="small"
+      //           type="button"
+      //           sx={{ minWidth: 136 }}
+      //         >
+      //           Review
+      //         </AppButton>
+      //         <Tooltip
+      //           title={
+      //             disabled
+      //               ? 'DO pickup tersedia setelah delivery closed'
+      //               : 'Generate DO pickup dari baris ini'
+      //           }
+      //         >
+      //           <span>
+      //             <AppButton
+      //               disabled={disabled}
+      //               onClick={() => navigate('/delivery-order/create')}
+      //               size="small"
+      //               startIcon={<AddTaskRoundedIcon />}
+      //               type="button"
+      //               variant="outlined"
+      //               sx={{
+      //                 background: 'transparent',
+      //                 boxShadow: 'none',
+      //                 minWidth: 136,
+      //               }}
+      //             >
+      //               DO Pickup
+      //             </AppButton>
+      //           </span>
+      //         </Tooltip>
+      //       </Stack>
+      //     )
+      //   },
+      // }
     ],
-    [generatedPickupSources, navigate, openPickupGenerator],
+    [generatedPickupSources, navigate],
   )
 
   return (
