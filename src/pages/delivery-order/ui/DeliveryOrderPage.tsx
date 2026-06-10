@@ -9,7 +9,6 @@ import {
   spmsStorage,
   type SpmsRecord,
 } from '@entities/spms'
-import AddTaskRoundedIcon from '@mui/icons-material/AddTaskRounded'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import EditRoundedIcon from '@mui/icons-material/EditRounded'
 import LocalShippingRoundedIcon from '@mui/icons-material/LocalShippingRounded'
