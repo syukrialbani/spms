@@ -29,6 +29,16 @@ const DeliveryOrderCreatePage = lazy(() =>
     default: module.DeliveryOrderCreatePage,
   })),
 )
+const DeliveryOrderDetailPage = lazy(() =>
+  import('@pages/delivery-order').then((module) => ({
+    default: module.DeliveryOrderDetailPage,
+  })),
+)
+const DeliveryOrderEditPage = lazy(() =>
+  import('@pages/delivery-order').then((module) => ({
+    default: module.DeliveryOrderEditPage,
+  })),
+)
 const SpmsDetailPage = lazy(() =>
   import('@pages/spms-detail').then((module) => ({
     default: module.SpmsDetailPage,
@@ -71,6 +81,14 @@ export function AppRouter() {
               <Route
                 path="/delivery-order/create"
                 element={<DeliveryOrderCreatePage />}
+              />
+              <Route
+                path="/delivery-order/:deliveryOrder/edit"
+                element={<DeliveryOrderEditPage />}
+              />
+              <Route
+                path="/delivery-order/:deliveryOrder"
+                element={<DeliveryOrderDetailPage />}
               />
               <Route path="/delivery-order" element={<DeliveryOrderPage />} />
             </Route>

@@ -45,9 +45,16 @@ import {
   dopOptions,
   getSlaHoursForSeverity,
   partNumberOptions,
+  picKancabContactMap,
+  picKancabOptions,
   pickupStatusOptions,
+  regionalOptions,
+  requestorContactMap,
+  requestorOptions,
   severityOptions,
+  slaHourOptions,
   spmsRequestValidationSchema,
+  statusTransactionOptions,
   typeMaterialOptions,
   type SpmsMaterialFormValues,
   type SpmsRequestFormValues,
@@ -139,7 +146,16 @@ const detailRequestFields: DetailFieldName[] = [
   'requestDate',
   'areal',
   'dop',
+  'feId',
+  'neId',
+  'regional',
   'siteName',
+  'requestorEmail',
+  'requestorPhone',
+  'picKancabEmail',
+  'picKancabName',
+  'picKancabPhone',
+  'statusTransaction',
   'materials',
   'severity',
   'slaHours',
@@ -250,7 +266,7 @@ function FieldGrid({
     <Box
       sx={{
         display: 'grid',
-        gap: 2,
+        gap: 1,
         gridTemplateColumns: {
           xs: '1fr',
           md:
@@ -294,11 +310,11 @@ function FormSection({
         borderRadius: 1,
         height: '100%',
         minWidth: 0,
-        p: { xs: 1.5, sm: 2 },
+        p: { xs: 1, sm: 1.25 },
       }}
     >
-      <Stack spacing={2}>
-        <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
+      <Stack spacing={1}>
+        <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
               alignItems: 'center',
@@ -309,19 +325,19 @@ function FormSection({
               borderRadius: 1,
               color: 'primary.main',
               display: 'flex',
-              height: 36,
+              height: 30,
               justifyContent: 'center',
-              width: 36,
+              width: 30,
             }}
           >
             {icon}
           </Box>
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 900 }} variant="subtitle1">
+            <Typography sx={{ fontSize: 13, fontWeight: 900 }} variant="subtitle1">
               {title}
             </Typography>
             {subtitle ? (
-              <Typography color="text.secondary" variant="body2">
+              <Typography color="text.secondary" sx={{ fontSize: 11 }} variant="body2">
                 {subtitle}
               </Typography>
             ) : null}
@@ -572,14 +588,14 @@ function EvidenceUpload({
         borderRadius: 1,
         display: 'flex',
         flexDirection: 'column',
-        gap: 1.5,
+        gap: 1,
         justifyContent: 'center',
-        minHeight: 280,
-        p: 2,
+        minHeight: 220,
+        p: 1.25,
         textAlign: 'center',
       }}
     >
-      <CloudUploadRoundedIcon sx={{ color: 'primary.main', fontSize: 58 }} />
+      <CloudUploadRoundedIcon sx={{ color: 'primary.main', fontSize: 42 }} />
       <Box sx={{ maxWidth: 320 }}>
         <Typography sx={{ fontWeight: 900 }}>{title}</Typography>
         <Typography color="text.secondary" variant="body2">
@@ -632,6 +648,7 @@ function ApprovalRadioGroup({
         variant="caption"
         sx={{
           color: error ? 'error.main' : 'text.secondary',
+          fontSize: 11,
           fontWeight: 800,
           lineHeight: 1.2,
           mb: 0.75,
@@ -648,7 +665,7 @@ function ApprovalRadioGroup({
         value={value}
         sx={{
           display: 'grid',
-          gap: 1,
+          gap: 0.6,
           gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
         }}
       >
@@ -679,12 +696,12 @@ function ApprovalRadioGroup({
                       : alpha(theme.palette.primary.main, 0.1),
                 borderRadius: 1,
                 m: 0,
-                minHeight: 44,
-                px: 1,
+                minHeight: 34,
+                px: 0.75,
                 transition:
                   'border-color 160ms ease, background-color 160ms ease',
                 '& .MuiFormControlLabel-label': {
-                  fontSize: 13,
+                  fontSize: 11.5,
                   fontWeight: selected ? 900 : 750,
                 },
                 '&:hover': {
@@ -721,13 +738,14 @@ function SpmsTextInput({
   const inputId = id ?? `spms-${name}`
 
   return (
-    <Stack spacing={0.75} sx={sx}>
+    <Stack spacing={0.35} sx={sx}>
       <Typography
         component="label"
         htmlFor={inputId}
         variant="caption"
         sx={{
           color: error ? 'error.main' : 'text.secondary',
+          fontSize: 11,
           fontWeight: 800,
           lineHeight: 1.2,
           px: 0.25,
@@ -766,7 +784,7 @@ function SpmsTextInput({
                 : theme.palette.mode === 'dark'
                   ? alpha(theme.palette.common.black, 0.24)
                   : alpha(theme.palette.common.white, 0.82),
-            minHeight: multiline ? undefined : 46,
+            minHeight: multiline ? undefined : 34,
             '& fieldset': {
               borderColor: (theme) =>
                 theme.palette.mode === 'dark'
@@ -782,9 +800,9 @@ function SpmsTextInput({
             },
           },
           '& .MuiInputBase-input': {
-            fontSize: 15,
+            fontSize: 12.5,
             fontWeight: 700,
-            py: 1.25,
+            py: 0.65,
           },
           '& .MuiFormHelperText-root': {
             mx: 0,
@@ -952,7 +970,7 @@ export function SpmsRequestForm({
   function withNormalizedValues(values: SpmsRequestFormValues) {
     const materials = normalizeFormMaterials(values)
     const firstMaterial = materials[0] ?? createDefaultMaterialValues()
-    const slaHours = getSlaHoursForSeverity(values.severity) || values.slaHours
+    const slaHours = values.slaHours || getSlaHoursForSeverity(values.severity)
     const hasDeliveryEvidence = Boolean(
       values.deliveryEvidenceFileName || values.evidenceFileName,
     )
@@ -1158,13 +1176,40 @@ export function SpmsRequestForm({
 
   const handleSeverityChange = (value: string) => {
     void formik.setFieldValue('severity', value)
-    void formik.setFieldValue('slaHours', getSlaHoursForSeverity(value))
+    void formik.setFieldValue(
+      'slaHours',
+      formik.values.slaHours || getSlaHoursForSeverity(value),
+    )
+  }
+
+  const handleRequestorChange = (value: string) => {
+    const contact = requestorContactMap[value]
+
+    void formik.setFieldValue('customerRequestor', value)
+
+    if (contact) {
+      void formik.setFieldValue('requestorEmail', contact.email)
+      void formik.setFieldValue('requestorPhone', contact.phone)
+    }
+  }
+
+  const handlePicKancabChange = (value: string) => {
+    const contact = picKancabContactMap[value]
+
+    void formik.setFieldValue('picKancabName', value)
+
+    if (contact) {
+      void formik.setFieldValue('picKancabEmail', contact.email)
+      void formik.setFieldValue('picKancabPhone', contact.phone)
+    }
   }
 
   const deliveryEvidenceName =
     formik.values.deliveryEvidenceFileName || formik.values.evidenceFileName
 
   const hasDeliveryOrder = Boolean(formik.values.deliveryOrderNumber)
+  const hasPickupDeliveryOrder = Boolean(formik.values.pickupDeliveryOrderNumber)
+  const isArfTransaction = formik.values.statusTransaction === 'ARF'
   const isDeliveryDelivered =
     Boolean(deliveryEvidenceName) || formik.values.deliveryStatus === 'DELIVERED'
   const isDeliveryApproval1Approved = formik.values.approval1Status === 'APPROVED'
@@ -1174,7 +1219,8 @@ export function SpmsRequestForm({
     isDeliveryApproval1Approved && isDeliveryApproval2Approved
   const isDeliveryApprovalComplete =
     isDeliveryApproved && isDeliveryCustomerClosed
-  const isPickupAvailable = isDeliveryApprovalComplete
+  const isPickupAvailable =
+    isDeliveryApprovalComplete && hasPickupDeliveryOrder && !isArfTransaction
   const isPickupUploaded = Boolean(formik.values.pickupEvidenceFileName)
   const pickupUploadStatus = getAutoPickupStatus(formik.values)
   const isPickupApproval1Approved =
@@ -1185,7 +1231,7 @@ export function SpmsRequestForm({
   const isPickupApproved =
     isPickupApproval1Approved && isPickupApproval2Approved
   const isPickupApprovalComplete =
-    isPickupApproved && isPickupCustomerClosed
+    isArfTransaction || (isPickupApproved && isPickupCustomerClosed)
   const isTicketClosed =
     isDeliveryApprovalComplete && isPickupApprovalComplete
   const isTransactionClosed = isTicketClosed
@@ -1359,15 +1405,39 @@ export function SpmsRequestForm({
       timestamp: isDeliveryApprovalComplete ? formik.values.closedDate : '',
     },
     {
+      actor: formik.values.createdBy,
+      description: isArfTransaction
+        ? 'Pickup dilewati karena status transaksi ARF'
+        : hasPickupDeliveryOrder
+          ? `DO Pickup ${formik.values.pickupDeliveryOrderNumber} sudah dibuat`
+          : 'Menunggu create DO Pickup',
+      label: 'Create DO Pickup',
+      meta: isArfTransaction
+        ? 'Skipped'
+        : hasPickupDeliveryOrder
+          ? 'Created'
+          : 'Waiting',
+      state: isArfTransaction || hasPickupDeliveryOrder
+        ? 'done'
+        : isDeliveryApprovalComplete
+          ? 'active'
+          : 'pending',
+      timestamp: '',
+    },
+    {
       actor: isPickupUploaded ? formik.values.pickupBy : '',
       description: formik.values.pickupEvidenceFileName
         ? 'BA pickup sudah diupload oleh'
         : isPickupAvailable
           ? 'Menunggu upload BA pickup'
-          : 'Menunggu closed delivery',
+          : isArfTransaction
+            ? 'Pickup tidak dibutuhkan untuk ARF'
+            : 'Menunggu create DO pickup',
       label: 'Upload BA Pickup',
-      meta: pickupUploadStatus,
-      state: isPickupUploaded
+      meta: isArfTransaction ? 'Skipped' : pickupUploadStatus,
+      state: isArfTransaction
+        ? 'done'
+        : isPickupUploaded
         ? 'done'
         : isPickupAvailable
           ? 'active'
@@ -1378,8 +1448,8 @@ export function SpmsRequestForm({
       actor: '',
       description: <ApprovalChain items={pickupApprovalChain} />,
       label: 'Approval BA Pickup',
-      meta: getPickupApprovalMeta(),
-      state: isPickupApprovalComplete
+      meta: isArfTransaction ? 'Skipped' : getPickupApprovalMeta(),
+      state: isArfTransaction || isPickupApprovalComplete
         ? 'done'
         : isPickupUploaded
           ? 'active'
@@ -1398,286 +1468,363 @@ export function SpmsRequestForm({
     },
   ]
 
-  const renderDetailRequestForm = () => {
-    const slaHoursValue =
-      getSlaHoursForSeverity(formik.values.severity) || formik.values.slaHours
-
-    return (
-      <Stack spacing={2}>
-        <FormSection
-          icon={<AssignmentRoundedIcon fontSize="small" />}
-          subtitle="Input utama request SPMS"
-          title={isCreateMode ? 'Create SPMS Request' : 'Detail Request'}
-        >
-          <FieldGrid columns={3}>
+  const renderDetailRequestForm = () => (
+    <Stack spacing={1.25}>
+      <FormSection
+        icon={<AssignmentRoundedIcon fontSize="small" />}
+        subtitle="Order, site, dan identitas network"
+        title={isCreateMode ? 'Create SPMS Request' : 'Detail Request'}
+      >
+        <FieldGrid columns={3}>
+          <SpmsTextInput
+            label="Order Number"
+            name="orderNumber"
+            readOnly
+            {...textProps('orderNumber')}
+          />
+          <FormAutocomplete
+            accent
+            label="Area"
+            name="areal"
+            options={areaOptions}
+            required
+            {...autocompleteProps('areal')}
+          />
+          <SpmsTextInput
+            label="NE ID"
+            name="neId"
+            required
+            {...textProps('neId')}
+          />
+          <FormAutocomplete
+            accent
+            label="Customer"
+            name="customer"
+            options={customerOptions}
+            required
+            {...autocompleteProps('customer')}
+          />
+          <FormAutocomplete
+            accent
+            label="DOP"
+            name="dop"
+            options={dopOptions}
+            required
+            {...autocompleteProps('dop')}
+          />
+          <SpmsTextInput
+            label="FE ID"
+            name="feId"
+            required
+            {...textProps('feId')}
+          />
+          <SpmsTextInput
+            label="Ticket Customer"
+            name="customerOrderNumber"
+            required
+            {...textProps('customerOrderNumber')}
+          />
+          <FormAutocomplete
+            accent
+            label="Regional"
+            name="regional"
+            options={regionalOptions}
+            required
+            {...autocompleteProps('regional')}
+          />
+          <SpmsTextInput
+            label="Create By"
+            name="createdBy"
+            readOnly
+            required
+            {...textProps('createdBy')}
+          />
+          <FormDateTimeField
+            label="Req Date"
+            name="requestDate"
+            required
+            disabled={formik.isSubmitting}
+            error={hasError('requestDate')}
+            helperText={getHelperText('requestDate')}
+            onBlur={() => {
+              void formik.setFieldTouched('requestDate', true)
+            }}
+            onChange={(value) => {
+              void formik.setFieldValue('requestDate', value)
+            }}
+            value={formik.values.requestDate}
+          />
+          <SpmsTextInput
+            label="Site Name"
+            name="siteName"
+            required
+            {...textProps('siteName')}
+          />
+          {!isCreateMode ? (
             <SpmsTextInput
-              label="Order Number"
-              name="orderNumber"
+              label="Delivery Order"
+              name="deliveryOrderNumber"
               readOnly
-              {...textProps('orderNumber')}
+              {...textProps('deliveryOrderNumber')}
             />
-            <FormAutocomplete
-              accent
-              label="Customer"
-              name="customer"
-              options={customerOptions}
-              required
-              {...autocompleteProps('customer')}
-            />
+          ) : null}
+        </FieldGrid>
+      </FormSection>
+
+      <FormSection
+        icon={<FactCheckRoundedIcon fontSize="small" />}
+        subtitle="Requestor customer"
+        title="PIC Requestor"
+      >
+        <FieldGrid columns={3}>
+          <FormAutocomplete
+            accent
+            label="Requestor Name"
+            name="customerRequestor"
+            options={requestorOptions}
+            required
+            error={hasError('customerRequestor')}
+            helperText={getHelperText('customerRequestor')}
+            onBlur={() => {
+              void formik.setFieldTouched('customerRequestor', true)
+            }}
+            onChange={handleRequestorChange}
+            value={formik.values.customerRequestor}
+          />
+          <SpmsTextInput
+            label="Email"
+            name="requestorEmail"
+            required
+            {...textProps('requestorEmail')}
+          />
+          <SpmsTextInput
+            label="No.Hp"
+            name="requestorPhone"
+            required
+            {...textProps('requestorPhone')}
+          />
+        </FieldGrid>
+      </FormSection>
+
+      <FormSection
+        icon={<LocalShippingRoundedIcon fontSize="small" />}
+        subtitle="PIC kancab / LSP"
+        title="PIC Kancab"
+      >
+        <FieldGrid columns={3}>
+          <FormAutocomplete
+            accent
+            label="PIC/LSP Name"
+            name="picKancabName"
+            options={picKancabOptions}
+            required
+            error={hasError('picKancabName')}
+            helperText={getHelperText('picKancabName')}
+            onBlur={() => {
+              void formik.setFieldTouched('picKancabName', true)
+            }}
+            onChange={handlePicKancabChange}
+            value={formik.values.picKancabName}
+          />
+          <SpmsTextInput
+            label="Email"
+            name="picKancabEmail"
+            {...textProps('picKancabEmail')}
+          />
+          <SpmsTextInput
+            label="No.Hp"
+            name="picKancabPhone"
+            {...textProps('picKancabPhone')}
+          />
+        </FieldGrid>
+      </FormSection>
+
+      <FormSection
+        icon={<FactCheckRoundedIcon fontSize="small" />}
+        subtitle="Status transaksi dan PIC area"
+        title="Detail"
+      >
+        <FieldGrid columns={3}>
+          <FormAutocomplete
+            accent
+            label="Status Transaction"
+            name="statusTransaction"
+            options={statusTransactionOptions}
+            required
+            {...autocompleteProps('statusTransaction')}
+          />
+          <SpmsTextInput
+            label="PM Area"
+            name="pmArea"
+            required
+            {...textProps('pmArea')}
+          />
+          {!isCreateMode ? (
             <SpmsTextInput
-              label="Customer Order Number"
-              name="customerOrderNumber"
-              required
-              {...textProps('customerOrderNumber')}
-            />
-            <SpmsTextInput
-              label="Create By"
-              name="createdBy"
+              label="DO Pickup"
+              name="pickupDeliveryOrderNumber"
               readOnly
-              required
-              {...textProps('createdBy')}
+              {...textProps('pickupDeliveryOrderNumber')}
             />
-            <SpmsTextInput
-              label="Customer Requestor"
-              name="customerRequestor"
-              required
-              {...textProps('customerRequestor')}
-            />
-            <FormDateTimeField
-              label="Request Date"
-              name="requestDate"
-              required
-              disabled={formik.isSubmitting}
-              error={hasError('requestDate')}
-              helperText={getHelperText('requestDate')}
-              onBlur={() => {
-                void formik.setFieldTouched('requestDate', true)
-              }}
-              onChange={(value) => {
-                void formik.setFieldValue('requestDate', value)
-              }}
-              value={formik.values.requestDate}
-            />
-          </FieldGrid>
-        </FormSection>
+          ) : null}
+        </FieldGrid>
+      </FormSection>
 
-        <Box
-          sx={{
-            display: 'grid',
-            gap: 2,
-            gridTemplateColumns: { xs: '1fr', lg: '1.1fr 0.9fr' },
-          }}
-        >
-          <FormSection
-            icon={<LocalShippingRoundedIcon fontSize="small" />}
-            subtitle="Lokasi site dan tujuan request"
-            title="Site & Route"
-          >
-            <FieldGrid columns={3}>
-              <FormAutocomplete
-                accent
-                label="Area"
-                name="areal"
-                options={areaOptions}
-                required
-                {...autocompleteProps('areal')}
-              />
-              <FormAutocomplete
-                accent
-                label="DOP"
-                name="dop"
-                options={dopOptions}
-                required
-                {...autocompleteProps('dop')}
-              />
-              <SpmsTextInput
-                label="Site Name"
-                name="siteName"
-                required
-                {...textProps('siteName')}
-              />
-            </FieldGrid>
-          </FormSection>
-
-          <FormSection
-            icon={<FactCheckRoundedIcon fontSize="small" />}
-            subtitle="Prioritas dan PIC area"
-            title="Priority"
-          >
-            <FieldGrid>
-              <FormAutocomplete
-                accent
-                label="Severity"
-                name="severity"
-                options={severityOptions}
-                required
-                {...autocompleteProps('severity')}
-                onChange={handleSeverityChange}
-              />
-              <SpmsTextInput
-                label="SLA (Hours)"
-                name="slaHours"
-                readOnly
-                required
-                disabled={formik.isSubmitting}
-                error={hasError('slaHours')}
-                helperText={getHelperText('slaHours')}
-                onBlur={formik.handleBlur}
-                onChange={formik.handleChange}
-                value={slaHoursValue}
-              />
-              <SpmsTextInput
-                label="PM Area"
-                name="pmArea"
-                required
-                {...textProps('pmArea')}
-              />
-              {!isCreateMode ? (
-                <SpmsTextInput
-                  label="Delivery Order"
-                  name="deliveryOrderNumber"
-                  readOnly
-                  {...textProps('deliveryOrderNumber')}
-                />
-              ) : null}
-            </FieldGrid>
-          </FormSection>
-        </Box>
-
-        <FormSection
-          icon={<AssignmentTurnedInRoundedIcon fontSize="small" />}
-          subtitle="Daftar material request"
-          title="Material"
-        >
-          <Stack spacing={1.5}>
-            {materialRows.map((_, index) => (
-              <Box
-                key={`material-${index}`}
-                sx={{
-                  bgcolor: (theme) =>
-                    theme.palette.mode === 'dark'
-                      ? alpha(theme.palette.common.black, 0.2)
-                      : alpha(theme.palette.common.white, 0.62),
-                  border: '1px solid',
-                  borderColor: (theme) =>
-                    theme.palette.mode === 'dark'
-                      ? alpha(theme.palette.primary.light, 0.18)
-                      : alpha(theme.palette.primary.main, 0.12),
-                  borderRadius: 1,
-                  p: { xs: 1.25, md: 1.5 },
-                }}
-              >
-                <Stack spacing={1.5}>
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    sx={{
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <Chip
-                      color="primary"
-                      label={`Material ${index + 1}`}
-                      size="small"
-                      variant="outlined"
-                    />
-                    <Tooltip title="Remove material">
-                      <span>
-                        <IconButton
-                          aria-label={`Remove material ${index + 1}`}
-                          disabled={formik.isSubmitting || materialRows.length <= 1}
-                          onClick={() => handleRemoveMaterial(index)}
-                          size="small"
-                        >
-                          <DeleteRoundedIcon fontSize="small" />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                  </Stack>
-
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      gap: 1.5,
-                      gridTemplateColumns: {
-                        xs: '1fr',
-                        md: 'repeat(2, minmax(0, 1fr))',
-                        xl: '1fr 1fr 1.35fr 1fr 92px',
-                      },
-                    }}
-                  >
-                    <FormAutocomplete
-                      accent
-                      label="Category Material"
-                      name={getMaterialPath(index, 'categoryMaterial')}
-                      options={categoryMaterialOptions}
-                      required
-                      {...materialAutocompleteProps(index, 'categoryMaterial')}
-                    />
-                    <FormAutocomplete
-                      accent
-                      label="Type Material"
-                      name={getMaterialPath(index, 'typeMaterial')}
-                      options={typeMaterialOptions}
-                      required
-                      {...materialAutocompleteProps(index, 'typeMaterial')}
-                    />
-                    <FormAutocomplete
-                      accent
-                      label="Description"
-                      name={getMaterialPath(index, 'description')}
-                      options={descriptionOptions}
-                      required
-                      {...materialAutocompleteProps(index, 'description')}
-                    />
-                    <FormAutocomplete
-                      accent
-                      label="Part Number"
-                      name={getMaterialPath(index, 'partNumber')}
-                      options={partNumberOptions}
-                      required
-                      {...materialAutocompleteProps(index, 'partNumber')}
-                    />
-                    <SpmsTextInput
-                      label="Qty"
-                      name={getMaterialPath(index, 'quantity')}
-                      required
-                      type="number"
-                      {...materialTextProps(index, 'quantity')}
-                    />
-                  </Box>
-
-                </Stack>
-              </Box>
-            ))}
-
-            {getMaterialsError() ? (
-              <FormHelperText error sx={{ mx: 0 }}>
-                {getMaterialsError()}
-              </FormHelperText>
-            ) : null}
-
-            <Button
-              disabled={formik.isSubmitting}
-              onClick={handleAddMaterial}
-              startIcon={<AddRoundedIcon />}
-              type="button"
-              variant="outlined"
+      <FormSection
+        icon={<AssignmentTurnedInRoundedIcon fontSize="small" />}
+        subtitle="Daftar material request"
+        title="Material"
+      >
+        <Stack spacing={1}>
+          {materialRows.map((_, index) => (
+            <Box
+              key={`material-${index}`}
               sx={{
-                alignSelf: 'flex-start',
-                background: 'transparent',
-                boxShadow: 'none',
-                color: 'primary.main',
+                bgcolor: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? alpha(theme.palette.common.black, 0.2)
+                    : alpha(theme.palette.common.white, 0.62),
+                border: '1px solid',
+                borderColor: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? alpha(theme.palette.primary.light, 0.18)
+                    : alpha(theme.palette.primary.main, 0.12),
+                borderRadius: 1,
+                p: { xs: 1, md: 1 },
               }}
             >
-              Add Material
-            </Button>
-          </Stack>
-        </FormSection>
-      </Stack>
-    )
-  }
+              <Stack spacing={1}>
+                <Stack
+                  direction="row"
+                  spacing={0.75}
+                  sx={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Chip
+                    color="primary"
+                    label={`Material ${index + 1}`}
+                    size="small"
+                    variant="outlined"
+                  />
+                  <Tooltip title="Remove material">
+                    <span>
+                      <IconButton
+                        aria-label={`Remove material ${index + 1}`}
+                        disabled={formik.isSubmitting || materialRows.length <= 1}
+                        onClick={() => handleRemoveMaterial(index)}
+                        size="small"
+                      >
+                        <DeleteRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </Stack>
+
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gap: 1,
+                    gridTemplateColumns: {
+                      xs: '1fr',
+                      md: 'repeat(2, minmax(0, 1fr))',
+                      xl: '1.4fr 1fr 92px 1.2fr 1fr 1fr 1.2fr',
+                    },
+                  }}
+                >
+                  <FormAutocomplete
+                    accent
+                    label="Spare Part Name"
+                    name={getMaterialPath(index, 'description')}
+                    options={descriptionOptions}
+                    required
+                    {...materialAutocompleteProps(index, 'description')}
+                  />
+                  <FormAutocomplete
+                    accent
+                    label="Type"
+                    name={getMaterialPath(index, 'typeMaterial')}
+                    options={typeMaterialOptions}
+                    required
+                    {...materialAutocompleteProps(index, 'typeMaterial')}
+                  />
+                  <SpmsTextInput
+                    label="Qty"
+                    name={getMaterialPath(index, 'quantity')}
+                    required
+                    type="number"
+                    {...materialTextProps(index, 'quantity')}
+                  />
+                  <FormAutocomplete
+                    accent
+                    label="Detail Equipment"
+                    name={getMaterialPath(index, 'categoryMaterial')}
+                    options={categoryMaterialOptions}
+                    required
+                    {...materialAutocompleteProps(index, 'categoryMaterial')}
+                  />
+                  <FormAutocomplete
+                    accent
+                    label="Severity"
+                    name="severity"
+                    options={severityOptions}
+                    required
+                    {...autocompleteProps('severity')}
+                    onChange={handleSeverityChange}
+                  />
+                  <FormAutocomplete
+                    accent
+                    label="Product Number"
+                    name={getMaterialPath(index, 'partNumber')}
+                    options={partNumberOptions}
+                    required
+                    {...materialAutocompleteProps(index, 'partNumber')}
+                  />
+                  <FormAutocomplete
+                    accent
+                    label="SLA"
+                    name="slaHours"
+                    options={slaHourOptions}
+                    required
+                    {...autocompleteProps('slaHours')}
+                  />
+                  <SpmsTextInput
+                    label="Serial Number"
+                    name={getMaterialPath(index, 'serialNumber')}
+                    readOnly
+                    {...materialTextProps(index, 'serialNumber')}
+                  />
+                </Box>
+              </Stack>
+            </Box>
+          ))}
+
+          {getMaterialsError() ? (
+            <FormHelperText error sx={{ mx: 0 }}>
+              {getMaterialsError()}
+            </FormHelperText>
+          ) : null}
+
+          <Button
+            disabled={formik.isSubmitting}
+            onClick={handleAddMaterial}
+            startIcon={<AddRoundedIcon />}
+            type="button"
+            variant="outlined"
+            sx={{
+              alignSelf: 'flex-start',
+              background: 'transparent',
+              boxShadow: 'none',
+              color: 'primary.main',
+            }}
+          >
+            Add Material
+          </Button>
+        </Stack>
+      </FormSection>
+    </Stack>
+  )
 
   const renderApprovalCards = (scope: 'delivery' | 'pickup') => {
     const isDelivery = scope === 'delivery'
@@ -1713,10 +1860,10 @@ export function SpmsRequestForm({
         }
 
     return (
-    <Stack spacing={2.25}>
+    <Stack spacing={1.25}>
       <Stack
         direction="row"
-        spacing={1}
+        spacing={0.75}
         sx={{ alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}
       >
         <Chip
@@ -1732,7 +1879,7 @@ export function SpmsRequestForm({
       <Box
         sx={{
           display: 'grid',
-          gap: 2,
+          gap: 1,
           gridTemplateColumns: {
             xs: '1fr',
             md: 'repeat(2, minmax(0, 1fr))',
@@ -1923,8 +2070,8 @@ export function SpmsRequestForm({
       autoComplete="off"
       onSubmit={(event) => event.preventDefault()}
     >
-      <LiquidPanel sx={{ p: { xs: 2, md: 3 } }}>
-        <Stack spacing={2.5}>
+      <LiquidPanel sx={{ p: { xs: 1.25, md: 1.5 } }}>
+        <Stack spacing={1.25}>
           {!isCreateMode ? (
             <>
               <Box
@@ -1942,10 +2089,10 @@ export function SpmsRequestForm({
                   p: { xs: 1.25, md: 1.5 },
                 }}
               >
-                <Stack spacing={1}>
+                <Stack spacing={0.75}>
                   <Stack
                     direction={{ xs: 'column', sm: 'row' }}
-                    spacing={0.75}
+                    spacing={0.5}
                     sx={{
                       alignItems: { sm: 'center' },
                       justifyContent: 'space-between',
@@ -1988,6 +2135,13 @@ export function SpmsRequestForm({
                     return
                   }
 
+                  if (
+                    nextStep > 2 &&
+                    (isArfTransaction || !hasPickupDeliveryOrder)
+                  ) {
+                    return
+                  }
+
                   setActiveStep(nextStep)
                 }}
                 variant="scrollable"
@@ -2015,7 +2169,11 @@ export function SpmsRequestForm({
                 {formSteps.map((step, index) => (
                   <Tab
                     key={step.title}
-                    disabled={!hasDeliveryOrder && index > 0}
+                    disabled={
+                      (!hasDeliveryOrder && index > 0) ||
+                      (index > 2 &&
+                        (isArfTransaction || !hasPickupDeliveryOrder))
+                    }
                     type="button"
                     value={index}
                     label={
@@ -2041,7 +2199,7 @@ export function SpmsRequestForm({
             <Box
               sx={{
                 display: 'grid',
-                gap: 2,
+                gap: 1,
                 gridTemplateColumns: { xs: '1fr', lg: 'minmax(300px, 0.9fr) 1.4fr' },
               }}
             >
@@ -2052,7 +2210,46 @@ export function SpmsRequestForm({
                 title="Delivery Evidence"
               />
 
-              <Stack spacing={2}>
+              <Stack spacing={1}>
+                <FormSection
+                  icon={<AssignmentTurnedInRoundedIcon fontSize="small" />}
+                  subtitle="SN hasil input saat create DO"
+                  title="Serial Number Reference"
+                >
+                  <Stack spacing={0.75}>
+                    {materialRows.map((material, index) => (
+                      <Box
+                        key={`${material.partNumber}-${index}`}
+                        sx={{
+                          alignItems: 'center',
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: 1,
+                          display: 'grid',
+                          gap: 0.75,
+                          gridTemplateColumns: {
+                            xs: '1fr',
+                            sm: '1.4fr 1fr 1fr',
+                          },
+                          p: 1.25,
+                        }}
+                      >
+                        <Typography sx={{ fontWeight: 850 }} variant="body2">
+                          {material.description || `Material ${index + 1}`}
+                        </Typography>
+                        <Typography color="text.secondary" variant="body2">
+                          {material.partNumber || '-'}
+                        </Typography>
+                        <Chip
+                          label={material.serialNumber || 'SN belum tersedia'}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </Box>
+                    ))}
+                  </Stack>
+                </FormSection>
+
                 <FormSection
                   icon={<CloudUploadRoundedIcon fontSize="small" />}
                   subtitle="Data pengiriman good unit ke lokasi tujuan"
@@ -2119,7 +2316,7 @@ export function SpmsRequestForm({
             <Box
               sx={{
                 display: 'grid',
-                gap: 2,
+                gap: 1,
                 gridTemplateColumns: { xs: '1fr', lg: 'minmax(300px, 0.9fr) 1.4fr' },
               }}
             >
@@ -2130,7 +2327,7 @@ export function SpmsRequestForm({
                 title="Pickup Evidence"
               />
 
-              <Stack spacing={2}>
+              <Stack spacing={1}>
                 <FormSection
                   icon={<ReplayRoundedIcon fontSize="small" />}
                   subtitle="Data pickup faulty unit atau material return"

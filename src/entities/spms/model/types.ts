@@ -18,6 +18,7 @@ export type DeliveryWorkflowStatus =
   | 'Closed Delivery'
 
 export type ReturnStatus =
+  | 'New'
   | 'Need Upload Pickup'
   | 'Waiting Approval Pickup'
   | 'Waiting Review Pickup'
@@ -53,6 +54,9 @@ export type SpmsRecord = {
   requestDate: string
   area: string
   dop: string
+  feId?: string
+  neId?: string
+  regional?: string
   siteName: string
   categoryMaterial: string
   typeMaterial: string
@@ -69,6 +73,12 @@ export type SpmsRecord = {
   pickupDeliveryOrderNumber?: string
   createdBy?: string
   customerRequestor?: string
+  picKancabEmail?: string
+  picKancabName?: string
+  picKancabPhone?: string
+  requestorEmail?: string
+  requestorPhone?: string
+  statusTransaction?: string
   supportDestinationMaterial?: string
   originLsp?: string
   destinationLsp?: string

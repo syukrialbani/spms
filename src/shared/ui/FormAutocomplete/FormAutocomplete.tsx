@@ -40,13 +40,14 @@ export function FormAutocomplete({
   sx,
 }: FormAutocompleteProps) {
   return (
-    <Stack spacing={0.75} sx={sx}>
+    <Stack spacing={0.35} sx={sx}>
       <Typography
         component="label"
         htmlFor={id}
         variant="caption"
         sx={{
           color: error ? 'error.main' : 'text.secondary',
+          fontSize: 11,
           fontWeight: 800,
           lineHeight: 1.2,
           px: 0.25,
@@ -111,7 +112,7 @@ export function FormAutocomplete({
               theme.palette.mode === 'dark'
                 ? alpha(theme.palette.common.black, 0.24)
                 : alpha(theme.palette.common.white, 0.82),
-            minHeight: 46,
+            minHeight: 34,
             pr: accent ? '50px !important' : undefined,
             '& fieldset': {
               borderColor:
@@ -128,9 +129,9 @@ export function FormAutocomplete({
             },
           },
           '& .MuiAutocomplete-input': {
-            fontSize: 15,
+            fontSize: 12.5,
             fontWeight: 700,
-            py: '8px !important',
+            py: '4.5px !important',
           },
           ...(accent
             ? {
@@ -142,9 +143,9 @@ export function FormAutocomplete({
                     0.28,
                   )}`,
                   color: 'primary.contrastText',
-                  height: 32,
+                  height: 26,
                   mr: 0.25,
-                  width: 32,
+                  width: 26,
                   '&:hover': {
                     bgcolor: 'primary.dark',
                   },
