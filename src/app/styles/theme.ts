@@ -49,19 +49,33 @@ export const getAppTheme = (mode: PaletteMode) => {
     },
     typography: {
       fontFamily: 'Roboto, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+      fontSize: 12,
+      body1: {
+        fontSize: '0.78rem',
+      },
+      body2: {
+        fontSize: '0.72rem',
+      },
+      caption: {
+        fontSize: '0.66rem',
+      },
       h4: {
         fontWeight: 700,
         letterSpacing: 0,
+        fontSize: '1.35rem',
       },
       h5: {
         fontWeight: 700,
         letterSpacing: 0,
+        fontSize: '1.12rem',
       },
       h6: {
         fontWeight: 700,
         letterSpacing: 0,
+        fontSize: '0.95rem',
       },
       button: {
+        fontSize: '0.72rem',
         fontWeight: 700,
         letterSpacing: 0,
         textTransform: 'none',
@@ -80,7 +94,9 @@ export const getAppTheme = (mode: PaletteMode) => {
             boxShadow: isDark
               ? '0 10px 22px rgba(82, 197, 242, 0.18)'
               : '0 10px 22px rgba(29, 112, 183, 0.22)',
-            minHeight: 40,
+            minHeight: 32,
+            paddingLeft: 12,
+            paddingRight: 12,
             '&:hover': {
               boxShadow: isDark
                 ? '0 12px 26px rgba(82, 197, 242, 0.24)'
@@ -116,6 +132,25 @@ export const getAppTheme = (mode: PaletteMode) => {
               ? 'rgba(7, 19, 35, 0.72)'
               : 'rgba(255, 255, 255, 0.82)',
             borderRadius: 8,
+            minHeight: 34,
+          },
+          input: {
+            fontSize: 12.5,
+            fontWeight: 700,
+            paddingBottom: 7,
+            paddingTop: 7,
+          },
+        },
+      },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            fontSize: 11,
+            fontWeight: 800,
+            height: 24,
+          },
+          sizeSmall: {
+            height: 22,
           },
         },
       },
@@ -125,10 +160,13 @@ export const getAppTheme = (mode: PaletteMode) => {
             borderBottom: isDark
               ? '1px solid rgba(128, 205, 255, 0.12)'
               : '1px solid rgba(18, 73, 126, 0.1)',
+            fontSize: 11.5,
+            paddingBottom: 8,
+            paddingTop: 8,
           },
           head: {
             color: isDark ? '#a9dfff' : '#2e5d98',
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: 700,
             textTransform: 'uppercase',
           },

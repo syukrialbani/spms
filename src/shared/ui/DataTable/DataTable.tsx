@@ -147,9 +147,9 @@ export function DataTable<Row>({
                     theme.palette.mode === 'dark'
                       ? 'rgba(10, 42, 94, 0.92)'
                       : 'rgba(231, 247, 255, 0.92)',
-                  fontSize: { xs: 12, sm: 13 },
-                  px: { xs: 1, sm: 1.5 },
-                  py: 1.45,
+                  fontSize: { xs: 11, sm: 11.5 },
+                  px: { xs: 0.75, sm: 1 },
+                  py: 0.8,
                 },
               }}
             >
@@ -201,9 +201,9 @@ export function DataTable<Row>({
                           maxWidth: column.width,
                           minWidth: column.minWidth,
                           overflow: 'hidden',
-                          fontSize: { xs: 12, sm: 13 },
-                          px: { xs: 1, sm: 1.5 },
-                          py: 1.35,
+                          fontSize: { xs: 11, sm: 11.5 },
+                          px: { xs: 0.75, sm: 1 },
+                          py: 0.75,
                           textOverflow: 'ellipsis',
                           whiteSpace:
                             column.nowrap === false ? 'normal' : 'nowrap',

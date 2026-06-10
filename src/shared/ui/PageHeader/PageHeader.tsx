@@ -13,11 +13,11 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
     <Stack
       direction={{ xs: 'column', sm: 'row' }}
-      spacing={2}
+      spacing={1.25}
       sx={{
         alignItems: { sm: 'flex-end' },
         justifyContent: 'space-between',
-        mb: { xs: 2, md: 3 },
+        mb: { xs: 1.25, md: 1.75 },
       }}
     >
       <Box sx={{ minWidth: 0 }}>
@@ -25,7 +25,7 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
           variant="h4"
           component="h1"
           sx={{
-            fontSize: { xs: 28, sm: 32, md: 34 },
+            fontSize: { xs: 20, sm: 22, md: 24 },
             lineHeight: 1.12,
             overflowWrap: 'anywhere',
           }}
@@ -35,7 +35,7 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
         {subtitle ? (
           <Typography
             color="text.secondary"
-            sx={{ mt: 0.75, maxWidth: 680 }}
+            sx={{ fontSize: 12, mt: 0.35, maxWidth: 680 }}
             variant="body2"
           >
             {subtitle}
