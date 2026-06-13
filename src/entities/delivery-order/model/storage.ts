@@ -23,6 +23,7 @@ type StandaloneDeliveryOrderInput = SpmsDeliveryOrderInput & {
   dop: string
   kind: DeliveryOrderKind
   materials: DeliveryOrderMaterialItem[]
+  onDeliveryDate?: string
   orderNumber: string
   packaging: string
   qtyBox: string
@@ -128,19 +129,39 @@ const saveOrders = (orders: DeliveryOrderRecord[]) => {
 const normalizeDeliveryOrderStatus = (
   status: string,
 ): DeliveryOrderStatus => {
+  if (status === 'OPEN' || status === 'DRAFT' || status === 'NEW') {
+    return 'OPEN'
+  }
+
+  if (
+    status === 'ON_PROGRESS' ||
+    status === 'ON_DELIVERY' ||
+    status === 'WAITING_UPLOAD_DO'
+  ) {
+    return 'ON_PROGRESS'
+  }
+
+  if (status === 'NEED_UPLOAD_DO') {
+    return 'NEED_UPLOAD_DO'
+  }
+
+  if (
+    status === 'NEED_REVIEW_DO' ||
+    status === 'DELIVERY PROCESS' ||
+    status === 'WAITING_APPROVAL_DO'
+  ) {
+    return 'NEED_REVIEW_DO'
+  }
+
   if (status === 'CLOSED') {
     return 'CLOSED'
   }
 
-  if (status === 'PICKUP GENERATED' || status === 'PICKUP_GENERATED') {
-    return 'PICKUP_GENERATED'
+  if (status === 'REJECTED' || status === 'REVISI') {
+    return 'REJECTED'
   }
 
-  if (status === 'DELIVERY PROCESS' || status === 'WAITING_APPROVAL_DO') {
-    return 'WAITING_APPROVAL_DO'
-  }
-
-  return 'WAITING_UPLOAD_DO'
+  return 'OPEN'
 }
 
 const syncSerialNumbers = (materials: DeliveryOrderMaterialItem[] = []) =>
@@ -165,6 +186,13 @@ const normalizeOrder = (order: DeliveryOrderRecord): DeliveryOrderRecord => {
     materials,
     sourceType:
       order.sourceType ?? (order.sourceSpmsOrderNumber ? 'SPMS' : 'NON_SPMS'),
+    sourceSpmsIds:
+      order.sourceSpmsIds ?? (order.sourceSpmsId ? [order.sourceSpmsId] : undefined),
+    sourceSpmsOrderNumbers:
+      order.sourceSpmsOrderNumbers ??
+      (order.sourceSpmsOrderNumber ? [order.sourceSpmsOrderNumber] : undefined),
+    ticketNumbers:
+      order.ticketNumbers ?? (order.ticketNumber ? [order.ticketNumber] : undefined),
     statusDo: normalizeDeliveryOrderStatus(order.statusDo),
   }
 }
@@ -224,16 +252,56 @@ const createDeliveryOrderNumber = (
   prefix = 'MS-AVIAT-26',
 ) => `${prefix}-${String(getNextSequence(orders)).padStart(5, '0')}`
 
-const createMaterialsFromSpms = (
-  record: SpmsRecord,
+const uniqueText = (values: Array<string | undefined>) =>
+  Array.from(
+    new Set(values.map((value) => value?.trim()).filter(Boolean) as string[]),
+  )
+
+const createSpmsSummary = (records: SpmsRecord[]) => {
+  const firstRecord = records[0]
+  const orderNumbers = records.map((record) => record.orderNumber)
+  const ticketNumbers = records.map((record) => record.customerOrderNumber)
+
+  return {
+    area: uniqueText(records.map((record) => record.area)).join(', '),
+    customer: uniqueText(records.map((record) => record.customer)).join(', '),
+    dop: uniqueText(records.map((record) => record.dop)).join(', '),
+    orderNumber: orderNumbers.join(', '),
+    requestDate: firstRecord?.requestDate ?? '',
+    severity: uniqueText(records.map((record) => record.severity)).join(', '),
+    siteName: uniqueText(records.map((record) => record.siteName)).join(', '),
+    sourceSpmsIds: records.map((record) => record.id),
+    sourceSpmsOrderNumbers: orderNumbers,
+    ticketNumber: ticketNumbers.join(', '),
+    ticketNumbers,
+  }
+}
+
+const createMaterialsFromSpmsRecords = (
+  records: SpmsRecord[],
   serialNumbers: string[],
-): DeliveryOrderMaterialItem[] =>
-  getSpmsRecordMaterials(record).map((material, index) => ({
-    description: material.description,
-    partNumber: material.partNumber,
-    qty: material.qty,
-    serialNumber: serialNumbers[index] ?? material.serialNumber ?? '',
-  }))
+): DeliveryOrderMaterialItem[] => {
+  let serialIndex = 0
+
+  return records.flatMap((record) =>
+    getSpmsRecordMaterials(record).map((material) => {
+      const serialNumber =
+        serialNumbers[serialIndex] ?? material.serialNumber ?? ''
+
+      serialIndex += 1
+
+      return {
+        description:
+          records.length > 1
+            ? `${record.orderNumber} - ${material.description}`
+            : material.description,
+        partNumber: material.partNumber,
+        qty: material.qty,
+        serialNumber,
+      }
+    }),
+  )
+}
 
 const normalizeStandaloneMaterials = (
   materials: DeliveryOrderMaterialItem[],
@@ -288,12 +356,27 @@ export const deliveryOrderStorage = {
     record: SpmsRecord,
     values: SpmsDeliveryOrderInput,
   ): DeliveryOrderRecord {
+    return this.createFromSpmsBatch([record], values)
+  },
+  createFromSpmsBatch(
+    records: SpmsRecord[],
+    values: SpmsDeliveryOrderInput,
+  ): DeliveryOrderRecord {
     const orders = this.getAll()
+    const [record] = records
+
+    if (!record) {
+      throw new Error('SPMS record wajib dipilih')
+    }
+
     const existing = orders.find(
       (order) =>
         order.kind === 'DELIVERY' &&
-        (order.sourceSpmsId === record.id ||
-          order.sourceSpmsOrderNumber === record.orderNumber),
+        records.length === 1 &&
+        ((order.sourceSpmsIds?.includes(record.id) ??
+          order.sourceSpmsId === record.id) ||
+          (order.sourceSpmsOrderNumbers?.includes(record.orderNumber) ??
+            order.sourceSpmsOrderNumber === record.orderNumber)),
     )
 
     if (existing) {
@@ -305,6 +388,7 @@ export const deliveryOrderStorage = {
       values.supportDestinationMaterial || record.area,
     )
     const now = new Date().toISOString()
+    const summary = createSpmsSummary(records)
     const nextOrder: DeliveryOrderRecord = {
       id: `do-${crypto.randomUUID()}`,
       deliveryOrder: createDeliveryOrderNumber(orders),
@@ -313,16 +397,17 @@ export const deliveryOrderStorage = {
       expedition: values.expedition,
       dateRequest: formatDatePart(now),
       timeRequest: formatTimePart(now),
-      statusDo: 'WAITING_UPLOAD_DO',
+      statusDo: 'OPEN',
       service: values.service,
-      area: record.area,
-      customer: record.customer,
-      dop: record.dop,
-      orderNumber: record.orderNumber,
-      requestDate: record.requestDate,
-      severity: record.severity,
-      siteName: record.siteName,
-      ticketNumber: record.customerOrderNumber,
+      area: summary.area,
+      customer: summary.customer,
+      dop: summary.dop,
+      orderNumber: summary.orderNumber,
+      requestDate: summary.requestDate,
+      severity: summary.severity,
+      siteName: summary.siteName,
+      ticketNumber: summary.ticketNumber,
+      ticketNumbers: summary.ticketNumbers,
       origin: origin.label,
       originAddress: origin.address,
       originPic: origin.pic,
@@ -331,9 +416,14 @@ export const deliveryOrderStorage = {
       destinationPic: destination.pic,
       awbTransfer: values.awbTransfer,
       materialSerialNumbers: values.materialSerialNumbers,
-      materials: createMaterialsFromSpms(record, values.materialSerialNumbers),
+      materials: createMaterialsFromSpmsRecords(
+        records,
+        values.materialSerialNumbers,
+      ),
       sourceSpmsId: record.id,
+      sourceSpmsIds: summary.sourceSpmsIds,
       sourceSpmsOrderNumber: record.orderNumber,
+      sourceSpmsOrderNumbers: summary.sourceSpmsOrderNumbers,
     }
 
     saveOrders([nextOrder, ...orders])
@@ -343,19 +433,37 @@ export const deliveryOrderStorage = {
     record: SpmsRecord,
     values: SpmsDeliveryOrderInput,
   ): DeliveryOrderRecord {
+    return this.createPickupFromSpmsBatch([record], values)
+  },
+  createPickupFromSpmsBatch(
+    records: SpmsRecord[],
+    values: SpmsDeliveryOrderInput,
+  ): DeliveryOrderRecord {
     const orders = this.getAll()
+    const [record] = records
+
+    if (!record) {
+      throw new Error('SPMS record wajib dipilih')
+    }
+
     const existing = orders.find(
       (order) =>
         order.kind === 'PICKUP' &&
-        (order.sourceSpmsId === record.id ||
-          order.sourceSpmsOrderNumber === record.orderNumber),
+        records.length === 1 &&
+        ((order.sourceSpmsIds?.includes(record.id) ??
+          order.sourceSpmsId === record.id) ||
+          (order.sourceSpmsOrderNumbers?.includes(record.orderNumber) ??
+            order.sourceSpmsOrderNumber === record.orderNumber)),
     )
 
     if (existing) {
       return existing
     }
 
-    const sourceDeliveryOrder = record.deliveryOrderNumber
+    const sourceDeliveryOrders = uniqueText(
+      records.map((item) => item.deliveryOrderNumber),
+    )
+    const sourceDeliveryOrder = sourceDeliveryOrders[0]
     const origin = getLocationInfo(
       values.supportOriginMaterial ||
         record.supportDestinationMaterial ||
@@ -367,6 +475,7 @@ export const deliveryOrderStorage = {
         'JAKARTA',
     )
     const now = new Date().toISOString()
+    const summary = createSpmsSummary(records)
     const pickupOrder: DeliveryOrderRecord = {
       id: `do-${crypto.randomUUID()}`,
       deliveryOrder: createDeliveryOrderNumber(orders, 'MS-AVIAT-PU-26'),
@@ -375,16 +484,17 @@ export const deliveryOrderStorage = {
       expedition: values.expedition,
       dateRequest: formatDatePart(now),
       timeRequest: formatTimePart(now),
-      statusDo: 'PICKUP_GENERATED',
+      statusDo: 'OPEN',
       service: values.service,
-      area: record.area,
-      customer: record.customer,
-      dop: record.dop,
-      orderNumber: record.orderNumber,
-      requestDate: record.requestDate,
-      severity: record.severity,
-      siteName: record.siteName,
-      ticketNumber: record.customerOrderNumber,
+      area: summary.area,
+      customer: summary.customer,
+      dop: summary.dop,
+      orderNumber: summary.orderNumber,
+      requestDate: summary.requestDate,
+      severity: summary.severity,
+      siteName: summary.siteName,
+      ticketNumber: summary.ticketNumber,
+      ticketNumbers: summary.ticketNumbers,
       origin: origin.label,
       originAddress: origin.address,
       originPic: origin.pic,
@@ -393,10 +503,16 @@ export const deliveryOrderStorage = {
       destinationPic: destination.pic,
       awbTransfer: values.awbTransfer,
       materialSerialNumbers: values.materialSerialNumbers,
-      materials: createMaterialsFromSpms(record, values.materialSerialNumbers),
+      materials: createMaterialsFromSpmsRecords(
+        records,
+        values.materialSerialNumbers,
+      ),
       sourceDeliveryOrder,
+      sourceDeliveryOrders,
       sourceSpmsId: record.id,
+      sourceSpmsIds: summary.sourceSpmsIds,
       sourceSpmsOrderNumber: record.orderNumber,
+      sourceSpmsOrderNumbers: summary.sourceSpmsOrderNumbers,
     }
 
     saveOrders([pickupOrder, ...orders])
@@ -427,7 +543,7 @@ export const deliveryOrderStorage = {
       id: `do-preview-${source.id}`,
       deliveryOrder: createDeliveryOrderNumber(orders, 'MS-AVIAT-PU-26'),
       kind: 'PICKUP',
-      statusDo: 'PICKUP_GENERATED',
+      statusDo: 'OPEN',
       service: 'PICKUP RETURN',
       origin: source.destination,
       originAddress: source.destinationAddress,
@@ -483,13 +599,13 @@ export const deliveryOrderStorage = {
       expedition: values.expedition,
       dateRequest: formatDatePart(now),
       timeRequest: formatTimePart(now),
-      statusDo:
-        values.kind === 'PICKUP' ? 'PICKUP_GENERATED' : 'WAITING_UPLOAD_DO',
+      statusDo: 'OPEN',
       service: values.service,
       area: values.area,
       customer: values.customer,
       datePickup: values.datePickup,
       dop: values.dop,
+      onDeliveryDate: values.onDeliveryDate,
       orderNumber: values.orderNumber || 'NON-SPMS',
       packaging: values.packaging,
       qtyBox: values.qtyBox,

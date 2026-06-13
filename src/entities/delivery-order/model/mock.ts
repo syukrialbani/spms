@@ -8,7 +8,7 @@ export const deliveryOrderRecords: DeliveryOrderRecord[] = [
     expedition: 'ESATEL',
     dateRequest: '2026-01-01',
     timeRequest: '10:48',
-    statusDo: 'WAITING_APPROVAL_DO',
+    statusDo: 'NEED_REVIEW_DO',
     service: 'HANDCARRY',
     origin: 'TELKOM, SAMARINDA',
     originAddress: 'JL. DAHLIA NO.65 SAMARINDA - KALTIM',

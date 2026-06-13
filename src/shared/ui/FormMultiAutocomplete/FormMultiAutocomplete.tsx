@@ -1,67 +1,53 @@
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded'
 import Autocomplete from '@mui/material/Autocomplete'
+import Box from '@mui/material/Box'
+import Checkbox from '@mui/material/Checkbox'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { alpha, type SxProps, type Theme } from '@mui/material/styles'
-import { getIn, type FormikProps } from 'formik'
-import type { ReactNode } from 'react'
+import type { Key, ReactNode } from 'react'
 
-type FormAutocompleteProps<FormValues extends object = Record<string, unknown>> = {
+type FormMultiAutocompleteProps<Option> = {
+  getOptionLabel: (option: Option) => string
   label: string
   name: string
-  options: readonly string[]
-  accent?: boolean
+  onChange: (value: Option[]) => void
+  options: readonly Option[]
+  value: readonly Option[]
   disabled?: boolean
   error?: boolean
-  formik?: FormikProps<FormValues>
-  helperText?: ReactNode
-  id?: string
-  onBlur?: () => void
-  onChange?: (value: string) => void
+  getOptionKey?: (option: Option) => Key
+  getOptionSubtitle?: (option: Option) => ReactNode
+  isOptionEqualToValue?: (option: Option, value: Option) => boolean
   placeholder?: string
   required?: boolean
   sx?: SxProps<Theme>
-  value?: string
 }
 
-const getHelperText = (value: unknown): ReactNode =>
-  typeof value === 'string' ? value : undefined
-
-export function FormAutocomplete<FormValues extends object = Record<string, unknown>>({
-  label,
-  name,
-  options,
-  value,
-  accent = false,
+export function FormMultiAutocomplete<Option>({
   disabled = false,
   error = false,
-  formik,
-  helperText,
-  id = name,
-  onBlur,
+  getOptionKey,
+  getOptionLabel,
+  getOptionSubtitle,
+  isOptionEqualToValue,
+  label,
+  name,
   onChange,
+  options,
   placeholder,
   required = false,
   sx,
-}: FormAutocompleteProps<FormValues>) {
-  const fieldTouched = formik ? getIn(formik.touched, name) : undefined
-  const fieldError = formik ? getIn(formik.errors, name) : undefined
-  const formikValue = formik ? getIn(formik.values, name) : undefined
-  const hasFormikError = Boolean(fieldTouched && fieldError)
-  const resolvedError = error || hasFormikError
-  const resolvedValue = value ?? formikValue ?? ''
-  const resolvedHelperText =
-    helperText ?? (hasFormikError ? getHelperText(fieldError) : undefined)
-
+  value,
+}: FormMultiAutocompleteProps<Option>) {
   return (
     <Stack spacing={0.35} sx={sx}>
       <Typography
         component="label"
-        htmlFor={id}
         variant="caption"
         sx={{
-          color: resolvedError ? 'error.main' : 'text.secondary',
+          color: error ? 'error.main' : 'text.secondary',
           fontSize: 11,
           fontWeight: 800,
           lineHeight: 1.2,
@@ -71,30 +57,17 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
         {label}
         {required ? ' *' : ''}
       </Typography>
-      <Autocomplete<string, false, false, false>
-        disabled={disabled || formik?.isSubmitting}
-        getOptionLabel={(option) => option}
-        onBlur={() => {
-          onBlur?.()
-          if (!onBlur && formik) {
-            void formik.setFieldTouched(name, true)
-          }
-        }}
-        onChange={(_, nextValue) => {
-          const nextText = nextValue ?? ''
-
-          if (onChange) {
-            onChange(nextText)
-            return
-          }
-
-          if (formik) {
-            void formik.setFieldValue(name, nextText)
-          }
-        }}
+      <Autocomplete<Option, true, false, false>
+        multiple
+        disableCloseOnSelect
+        disabled={disabled}
+        filterSelectedOptions
+        getOptionLabel={getOptionLabel}
+        isOptionEqualToValue={isOptionEqualToValue}
+        onChange={(_, nextValue) => onChange(nextValue)}
         options={[...options]}
         popupIcon={<KeyboardArrowDownRoundedIcon fontSize="small" />}
-        value={resolvedValue || null}
+        value={[...value]}
         slotProps={{
           paper: {
             sx: (theme) => ({
@@ -123,20 +96,41 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
             fullWidth
             name={name}
             placeholder={placeholder ?? label}
+            required={required}
             size="small"
-            error={resolvedError}
-            helperText={resolvedHelperText}
+            error={error}
             slotProps={{
               ...params.slotProps,
               htmlInput: {
                 ...params.slotProps.htmlInput,
                 'aria-label': label,
-                id,
                 name,
               },
             }}
           />
         )}
+        renderOption={(props, option, { selected }) => {
+          const { key, ...optionProps } = props as typeof props & { key?: Key }
+
+          return (
+            <li
+              key={key ?? getOptionKey?.(option) ?? getOptionLabel(option)}
+              {...optionProps}
+            >
+              <Checkbox checked={selected} size="small" sx={{ mr: 1 }} />
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontWeight: 900 }} variant="body2">
+                  {getOptionLabel(option)}
+                </Typography>
+                {getOptionSubtitle ? (
+                  <Typography color="text.secondary" noWrap variant="caption">
+                    {getOptionSubtitle(option)}
+                  </Typography>
+                ) : null}
+              </Box>
+            </li>
+          )
+        }}
         sx={(theme) => ({
           '& .MuiOutlinedInput-root': {
             bgcolor:
@@ -144,7 +138,7 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
                 ? alpha(theme.palette.common.black, 0.24)
                 : alpha(theme.palette.common.white, 0.82),
             minHeight: 34,
-            pr: accent ? '50px !important' : undefined,
+            py: '2px !important',
             '& fieldset': {
               borderColor:
                 theme.palette.mode === 'dark'
@@ -162,29 +156,13 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
           '& .MuiAutocomplete-input': {
             fontSize: 12.5,
             fontWeight: 700,
-            py: '4.5px !important',
+            py: '4px !important',
           },
-          ...(accent
-            ? {
-                '& .MuiAutocomplete-popupIndicator': {
-                  bgcolor: 'primary.main',
-                  borderRadius: 1,
-                  boxShadow: `0 10px 24px ${alpha(
-                    theme.palette.primary.main,
-                    0.28,
-                  )}`,
-                  color: 'primary.contrastText',
-                  height: 26,
-                  mr: 0.25,
-                  width: 26,
-                  '&:hover': {
-                    bgcolor: 'primary.dark',
-                  },
-                },
-              }
-            : {}),
-          '& .MuiFormHelperText-root': {
-            mx: 0,
+          '& .MuiChip-root': {
+            borderRadius: 1,
+            fontSize: 11,
+            fontWeight: 800,
+            height: 23,
           },
         })}
       />

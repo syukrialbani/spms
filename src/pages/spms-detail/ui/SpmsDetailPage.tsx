@@ -173,6 +173,22 @@ export function SpmsDetailPage() {
   )
   const deliveryEvidence =
     record.deliveryEvidenceFileName || record.evidenceFileName
+  const detailRequestItems = [
+    ['Ticket Number', record.customerOrderNumber],
+    ['Operator', record.customer],
+    ['Req Date', formatDate(record.requestDate)],
+    ['Region', record.regional ?? '-'],
+    ['Area', record.area],
+    ['DOP', record.dop],
+    ['Site Name', record.siteName],
+    ...(record.customer === 'Telkom'
+      ? [
+          ['NE ID', record.neId ?? '-'],
+          ['FE ID', record.feId ?? '-'],
+        ]
+      : []),
+    ['Status Transaction', record.statusTransaction ?? '-'],
+  ].map(([label, value]) => ({ label, value }))
 
   return (
     <>
@@ -261,18 +277,7 @@ export function SpmsDetailPage() {
                 <DetailSection
                   title="Detail Request"
                   columns={1}
-                  items={[
-                    ['Ticket Number', record.customerOrderNumber],
-                    ['Operator', record.customer],
-                    ['Req Date', formatDate(record.requestDate)],
-                    ['Region', record.regional ?? '-'],
-                    ['Area', record.area],
-                    ['DOP', record.dop],
-                    ['Site Name', record.siteName],
-                    ['NE ID', record.neId ?? '-'],
-                    ['FE ID', record.feId ?? '-'],
-                    ['Status Transaction', record.statusTransaction ?? '-'],
-                  ].map(([label, value]) => ({ label, value }))}
+                  items={detailRequestItems}
                 />
                 <DetailSection
                   title="Detail Material"

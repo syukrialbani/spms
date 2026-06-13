@@ -2,6 +2,7 @@ export { SpmsRequestForm } from './SpmsRequestForm'
 export {
   createDefaultMaterialValues,
   createDefaultSpmsRequestValues,
+  customerOptions,
   defaultBaType,
   getSlaHoursForSeverity,
   picKancabContactMap,
@@ -15,5 +16,5 @@ export {
   supportDestinationMaterialOptions,
   supportOriginMaterialOptions,
 } from './model'
-export type { SpmsApprovalRole } from './SpmsRequestForm'
+export type { SpmsApprovalRole } from './types'
 export type { SpmsMaterialFormValues, SpmsRequestFormValues } from './model'

@@ -19,16 +19,18 @@ import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
 import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { useConfirmation } from '@shared/lib/confirmation'
 import { formatDate } from '@shared/lib/format'
 import { AppButton } from '@shared/ui/AppButton'
 import { FormAutocomplete } from '@shared/ui/FormAutocomplete'
+import { FormMultiAutocomplete } from '@shared/ui/FormMultiAutocomplete'
+import { FormTextField } from '@shared/ui/FormTextField'
 import { LiquidPanel } from '@shared/ui/LiquidPanel'
 import { PageHeader } from '@shared/ui/PageHeader'
 import {
+  customerOptions,
   supportDestinationMaterialOptions,
   supportOriginMaterialOptions,
 } from '@shared/ui/SpmsRequestForm'
@@ -36,6 +38,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 type DeliveryOrderSourceMode = 'SPMS' | 'NON_SPMS'
+type SpmsSelectionMode = 'ORDER_NUMBER' | 'TICKET_NUMBER'
 
 type ManualMaterialDraft = {
   description: string
@@ -63,10 +66,13 @@ type DeliveryOrderFormState = {
   qtyBox: string
   service: string
   sourceMode: DeliveryOrderSourceMode
+  spmsRecordIds: string[]
   spmsOrderNumber: string
+  spmsSelectionMode: SpmsSelectionMode
   supportDestinationMaterial: string
   supportOriginMaterial: string
   weight: string
+  isSubmitting?: boolean
 }
 
 const expeditionOptions = [
@@ -118,7 +124,9 @@ const createDefaultFormState = (
   qtyBox: '',
   service: doKind === 'PICKUP' ? 'PICKUP RETURN' : '',
   sourceMode,
+  spmsRecordIds: [],
   spmsOrderNumber: '',
+  spmsSelectionMode: 'ORDER_NUMBER',
   supportDestinationMaterial: '',
   supportOriginMaterial: '',
   weight: '',
@@ -196,18 +204,19 @@ export function DeliveryOrderCreatePage() {
         ),
     [formState.doKind],
   )
-  const selectedRecord = useMemo(
+  const selectedRecords = useMemo(
     () =>
       formState.sourceMode === 'SPMS'
-        ? availableSpms.find(
-            (record) => record.orderNumber === formState.spmsOrderNumber,
-          ) ?? null
-        : null,
-    [availableSpms, formState.sourceMode, formState.spmsOrderNumber],
+        ? formState.spmsRecordIds
+            .map((id) => availableSpms.find((record) => record.id === id))
+            .filter((record): record is SpmsRecord => Boolean(record))
+        : [],
+    [availableSpms, formState.sourceMode, formState.spmsRecordIds],
   )
-  const materialRows = selectedRecord
-    ? getSpmsRecordMaterials(selectedRecord)
-    : []
+  const selectedRecord = selectedRecords[0] ?? null
+  const materialRows = selectedRecords.flatMap((record) =>
+    getSpmsRecordMaterials(record).map((material) => ({ ...material, record })),
+  )
   const hasManualMaterial = formState.manualMaterials.some(
     (material) =>
       material.description || material.partNumber || material.serialNumber,
@@ -221,7 +230,7 @@ export function DeliveryOrderCreatePage() {
   )
   const canSave =
     formState.sourceMode === 'SPMS'
-      ? Boolean(selectedRecord && hasCommonSupport)
+      ? Boolean(selectedRecords.length && hasCommonSupport)
       : Boolean(
           hasCommonSupport &&
             formState.manualCustomer &&
@@ -254,9 +263,9 @@ export function DeliveryOrderCreatePage() {
     )
   }
 
-  const handleSelectSpms = (orderNumber: string) => {
-    const record = availableSpms.find((item) => item.orderNumber === orderNumber)
-    const materials = record ? getSpmsRecordMaterials(record) : []
+  const handleSelectSpms = (records: SpmsRecord[]) => {
+    const record = records[0]
+    const materials = records.flatMap((item) => getSpmsRecordMaterials(item))
     const isPickup = formState.doKind === 'PICKUP'
 
     setFormState({
@@ -264,12 +273,14 @@ export function DeliveryOrderCreatePage() {
       materialSerialNumbers: materials.map(
         (material) => material.serialNumber ?? '',
       ),
-      service: record
+      service: records.length
         ? isPickup
           ? getDefaultPickupService()
           : getDefaultService(record)
         : '',
-      spmsOrderNumber: orderNumber,
+      spmsOrderNumber: records.map((item) => item.orderNumber).join(', '),
+      spmsRecordIds: records.map((item) => item.id),
+      spmsSelectionMode: formState.spmsSelectionMode,
       supportDestinationMaterial:
         record && isPickup
           ? record.supportOriginMaterial
@@ -327,16 +338,19 @@ export function DeliveryOrderCreatePage() {
     }
 
     if (formState.sourceMode === 'SPMS') {
-      if (!selectedRecord) {
+      if (!selectedRecords.length) {
         return
       }
 
+      const selectedOrderText = selectedRecords
+        .map((record) => record.orderNumber)
+        .join(', ')
       const confirmed = await confirm({
         confirmLabel: 'Create DO',
         description:
           formState.doKind === 'DELIVERY'
-            ? `${selectedRecord.orderNumber} akan berubah ke Need Upload Delivery.`
-            : `${selectedRecord.orderNumber} akan berubah ke Need Upload Pickup.`,
+            ? `${selectedOrderText} akan dibuatkan DO dengan status Open.`
+            : `${selectedOrderText} akan dibuatkan DO Pickup dengan status Open.`,
         title:
           formState.doKind === 'DELIVERY'
             ? 'Create DO Delivery?'
@@ -349,7 +363,7 @@ export function DeliveryOrderCreatePage() {
 
       const deliveryOrder =
         formState.doKind === 'DELIVERY'
-          ? deliveryOrderStorage.createFromSpms(selectedRecord, {
+          ? deliveryOrderStorage.createFromSpmsBatch(selectedRecords, {
               awbTransfer: formState.awbTransfer,
               expedition: formState.expedition,
               materialSerialNumbers: formState.materialSerialNumbers,
@@ -357,7 +371,7 @@ export function DeliveryOrderCreatePage() {
               supportDestinationMaterial: formState.supportDestinationMaterial,
               supportOriginMaterial: formState.supportOriginMaterial,
             })
-          : deliveryOrderStorage.createPickupFromSpms(selectedRecord, {
+          : deliveryOrderStorage.createPickupFromSpmsBatch(selectedRecords, {
               awbTransfer: formState.awbTransfer,
               expedition: formState.expedition,
               materialSerialNumbers: formState.materialSerialNumbers,
@@ -367,16 +381,30 @@ export function DeliveryOrderCreatePage() {
             })
 
       if (formState.doKind === 'DELIVERY') {
-        spmsStorage.attachDeliveryOrder(selectedRecord.id, {
-          awbTransfer: formState.awbTransfer,
-          deliveryOrderNumber: deliveryOrder.deliveryOrder,
-          materialSerialNumbers: formState.materialSerialNumbers,
-          supportDestinationMaterial: formState.supportDestinationMaterial,
-          supportOriginMaterial: formState.supportOriginMaterial,
+        let serialIndex = 0
+
+        selectedRecords.forEach((record) => {
+          const recordMaterials = getSpmsRecordMaterials(record)
+          const materialSerialNumbers = formState.materialSerialNumbers.slice(
+            serialIndex,
+            serialIndex + recordMaterials.length,
+          )
+
+          serialIndex += recordMaterials.length
+
+          spmsStorage.attachDeliveryOrder(record.id, {
+            awbTransfer: formState.awbTransfer,
+            deliveryOrderNumber: deliveryOrder.deliveryOrder,
+            materialSerialNumbers,
+            supportDestinationMaterial: formState.supportDestinationMaterial,
+            supportOriginMaterial: formState.supportOriginMaterial,
+          })
         })
       } else {
-        spmsStorage.attachPickupDeliveryOrder(selectedRecord.id, {
-          pickupDeliveryOrderNumber: deliveryOrder.deliveryOrder,
+        selectedRecords.forEach((record) => {
+          spmsStorage.attachPickupDeliveryOrder(record.id, {
+            pickupDeliveryOrderNumber: deliveryOrder.deliveryOrder,
+          })
         })
       }
 
@@ -470,7 +498,7 @@ export function DeliveryOrderCreatePage() {
         onChange={(value) => updateForm('supportDestinationMaterial', value)}
         value={formState.supportDestinationMaterial}
       />
-      <TextField
+      <FormTextField
         label="AWB/SMU"
         name="awbTransfer"
         required
@@ -513,7 +541,7 @@ export function DeliveryOrderCreatePage() {
             sx={{
               display: 'grid',
               gap: 1,
-              gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr 1.2fr' },
+              gridTemplateColumns: { xs: '1fr', lg: '0.9fr 0.9fr 0.9fr 1.5fr' },
             }}
           >
             <FormAutocomplete
@@ -535,19 +563,51 @@ export function DeliveryOrderCreatePage() {
               value={formState.doKind}
             />
             {formState.sourceMode === 'SPMS' ? (
-              <FormAutocomplete
-                accent
-                label={
-                  formState.doKind === 'DELIVERY'
-                    ? 'Need Delivery'
-                    : 'Need Pickup'
-                }
-                name="spmsOrderNumber"
-                options={availableSpms.map((record) => record.orderNumber)}
-                required
-                onChange={handleSelectSpms}
-                value={formState.spmsOrderNumber}
-              />
+              <>
+                <FormAutocomplete
+                  accent
+                  label="Search By"
+                  name="spmsSelectionMode"
+                  options={['ORDER_NUMBER', 'TICKET_NUMBER']}
+                  required
+                  onChange={(value) =>
+                    updateForm(
+                      'spmsSelectionMode',
+                      value === 'TICKET_NUMBER'
+                        ? 'TICKET_NUMBER'
+                        : 'ORDER_NUMBER',
+                    )
+                  }
+                  value={formState.spmsSelectionMode}
+                />
+                <FormMultiAutocomplete
+                  getOptionLabel={(record) =>
+                    formState.spmsSelectionMode === 'TICKET_NUMBER'
+                      ? `${record.customerOrderNumber} - ${record.orderNumber} - ${record.customer}`
+                      : `${record.orderNumber} - ${record.customerOrderNumber} - ${record.customer}`
+                  }
+                  getOptionSubtitle={(record) =>
+                    formState.spmsSelectionMode === 'TICKET_NUMBER'
+                      ? `${record.orderNumber} - ${record.customer}`
+                      : `${record.customerOrderNumber} - ${record.customer}`
+                  }
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  label={
+                    formState.doKind === 'DELIVERY'
+                      ? 'Need Delivery'
+                      : 'Need Pickup'
+                  }
+                  name="spmsRecordIds"
+                  onChange={handleSelectSpms}
+                  options={availableSpms}
+                  placeholder="Order number / ticket number"
+                  required
+                  value={selectedRecords}
+                  sx={{
+                    gridColumn: { lg: 'span 1' },
+                  }}
+                />
+              </>
             ) : (
               <Stack
                 direction="row"
@@ -560,7 +620,7 @@ export function DeliveryOrderCreatePage() {
             )}
           </Box>
 
-          {formState.sourceMode === 'SPMS' && selectedRecord ? (
+          {formState.sourceMode === 'SPMS' && selectedRecords.length ? (
             <>
               <Box
                 sx={{
@@ -573,20 +633,56 @@ export function DeliveryOrderCreatePage() {
                   },
                 }}
               >
-                <ReadOnlyField label="Order Number" value={selectedRecord.orderNumber} />
-                <ReadOnlyField label="Customer" value={selectedRecord.customer} />
+                <ReadOnlyField
+                  label="Selected Order"
+                  value={`${selectedRecords.length} order`}
+                />
+                <ReadOnlyField
+                  label="Order Number"
+                  value={selectedRecords
+                    .map((record) => record.orderNumber)
+                    .join(', ')}
+                />
+                <ReadOnlyField
+                  label="Customer"
+                  value={Array.from(
+                    new Set(selectedRecords.map((record) => record.customer)),
+                  ).join(', ')}
+                />
                 <ReadOnlyField
                   label="Ticket Number"
-                  value={selectedRecord.customerOrderNumber}
+                  value={selectedRecords
+                    .map((record) => record.customerOrderNumber)
+                    .join(', ')}
                 />
                 <ReadOnlyField
                   label="Request Date"
-                  value={formatDate(selectedRecord.requestDate)}
+                  value={selectedRecord ? formatDate(selectedRecord.requestDate) : '-'}
                 />
-                <ReadOnlyField label="Area" value={selectedRecord.area} />
-                <ReadOnlyField label="DOP" value={selectedRecord.dop} />
-                <ReadOnlyField label="Site Name" value={selectedRecord.siteName} />
-                <ReadOnlyField label="Severity" value={selectedRecord.severity} />
+                <ReadOnlyField
+                  label="Area"
+                  value={Array.from(
+                    new Set(selectedRecords.map((record) => record.area)),
+                  ).join(', ')}
+                />
+                <ReadOnlyField
+                  label="DOP"
+                  value={Array.from(
+                    new Set(selectedRecords.map((record) => record.dop)),
+                  ).join(', ')}
+                />
+                <ReadOnlyField
+                  label="Site Name"
+                  value={Array.from(
+                    new Set(selectedRecords.map((record) => record.siteName)),
+                  ).join(', ')}
+                />
+                <ReadOnlyField
+                  label="Severity"
+                  value={Array.from(
+                    new Set(selectedRecords.map((record) => record.severity)),
+                  ).join(', ')}
+                />
               </Box>
 
               <Divider />
@@ -651,18 +747,20 @@ export function DeliveryOrderCreatePage() {
                           {index + 1}
                         </Typography>
                         <Typography
-                          title={material.description}
+                          title={`${material.record.orderNumber} - ${material.description}`}
                           sx={{ fontWeight: 800 }}
                           variant="body2"
                           noWrap
                         >
-                          {material.description}
+                          {selectedRecords.length > 1
+                            ? `${material.record.orderNumber} - ${material.description}`
+                            : material.description}
                         </Typography>
                         <Typography variant="body2" noWrap>
                           {material.partNumber}
                         </Typography>
                         <Typography variant="body2">{material.qty}</Typography>
-                        <TextField
+                        <FormTextField
                           size="small"
                           value={formState.materialSerialNumbers[index] ?? ''}
                           onChange={(event) =>
@@ -691,7 +789,7 @@ export function DeliveryOrderCreatePage() {
                   },
                 }}
               >
-                <TextField
+                <FormTextField
                   label="Order Number"
                   required
                   size="small"
@@ -700,16 +798,16 @@ export function DeliveryOrderCreatePage() {
                     updateForm('manualOrderNumber', event.target.value)
                   }
                 />
-                <TextField
+                <FormAutocomplete
+                  accent
                   label="Customer"
+                  name="manualCustomer"
+                  options={customerOptions}
                   required
-                  size="small"
+                  onChange={(value) => updateForm('manualCustomer', value)}
                   value={formState.manualCustomer}
-                  onChange={(event) =>
-                    updateForm('manualCustomer', event.target.value)
-                  }
                 />
-                <TextField
+                <FormTextField
                   label="Ticket Number"
                   size="small"
                   value={formState.manualTicketNumber}
@@ -717,7 +815,7 @@ export function DeliveryOrderCreatePage() {
                     updateForm('manualTicketNumber', event.target.value)
                   }
                 />
-                <TextField
+                <FormTextField
                   label="Request Date"
                   size="small"
                   type="date"
@@ -727,7 +825,7 @@ export function DeliveryOrderCreatePage() {
                   }
                   slotProps={{ inputLabel: { shrink: true } }}
                 />
-                <TextField
+                <FormTextField
                   label="Area"
                   required
                   size="small"
@@ -736,14 +834,14 @@ export function DeliveryOrderCreatePage() {
                     updateForm('manualArea', event.target.value)
                   }
                 />
-                <TextField
+                <FormTextField
                   label="DOP"
                   required
                   size="small"
                   value={formState.manualDop}
                   onChange={(event) => updateForm('manualDop', event.target.value)}
                 />
-                <TextField
+                <FormTextField
                   label="Site Name"
                   required
                   size="small"
@@ -774,7 +872,7 @@ export function DeliveryOrderCreatePage() {
                   },
                 }}
               >
-                <TextField
+                <FormTextField
                   label="Date Pickup"
                   size="small"
                   type="datetime-local"
@@ -782,19 +880,19 @@ export function DeliveryOrderCreatePage() {
                   onChange={(event) => updateForm('datePickup', event.target.value)}
                   slotProps={{ inputLabel: { shrink: true } }}
                 />
-                <TextField
+                <FormTextField
                   label="Qty Box"
                   size="small"
                   value={formState.qtyBox}
                   onChange={(event) => updateForm('qtyBox', event.target.value)}
                 />
-                <TextField
+                <FormTextField
                   label="Weight"
                   size="small"
                   value={formState.weight}
                   onChange={(event) => updateForm('weight', event.target.value)}
                 />
-                <TextField
+                <FormTextField
                   label="Packaging"
                   size="small"
                   value={formState.packaging}
@@ -881,7 +979,7 @@ export function DeliveryOrderCreatePage() {
                         <Typography sx={{ fontWeight: 900 }} variant="body2">
                           {index + 1}
                         </Typography>
-                        <TextField
+                        <FormTextField
                           placeholder="Material"
                           size="small"
                           value={material.description}
@@ -893,7 +991,7 @@ export function DeliveryOrderCreatePage() {
                             )
                           }
                         />
-                        <TextField
+                        <FormTextField
                           placeholder="Part Number"
                           size="small"
                           value={material.partNumber}
@@ -905,7 +1003,7 @@ export function DeliveryOrderCreatePage() {
                             )
                           }
                         />
-                        <TextField
+                        <FormTextField
                           placeholder="Qty"
                           size="small"
                           type="number"
@@ -918,7 +1016,7 @@ export function DeliveryOrderCreatePage() {
                             )
                           }
                         />
-                        <TextField
+                        <FormTextField
                           placeholder="SN"
                           size="small"
                           value={material.serialNumber}
@@ -947,7 +1045,7 @@ export function DeliveryOrderCreatePage() {
             </>
           ) : null}
 
-          {formState.sourceMode === 'SPMS' && !selectedRecord ? (
+          {formState.sourceMode === 'SPMS' && !selectedRecords.length ? (
             <Box
               sx={{
                 border: '1px dashed',
