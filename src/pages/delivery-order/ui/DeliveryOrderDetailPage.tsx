@@ -1,14 +1,11 @@
 import {
   deliveryOrderStorage,
+  getDeliveryOrderStatusColor,
+  getDeliveryOrderStatusLabel,
   type DeliveryOrderRecord,
   type DeliveryOrderStatus,
 } from '@entities/delivery-order'
-import {
-  getDeliveryUploadStatus,
-  getPickupUploadStatus,
-  spmsStorage,
-  type SpmsRecord,
-} from '@entities/spms'
+import { spmsStorage } from '@entities/spms'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import EditRoundedIcon from '@mui/icons-material/EditRounded'
 import Box from '@mui/material/Box'
@@ -26,68 +23,8 @@ type DetailItem = {
   value: string
 }
 
-const statusLabels: Record<DeliveryOrderStatus, string> = {
-  CLOSED: 'Closed',
-  PICKUP_GENERATED: 'Pickup Generated',
-  WAITING_APPROVAL_DO: 'Waiting Approval DO',
-  WAITING_UPLOAD_DO: 'Waiting Upload DO',
-}
-
-const getStatusColor = (status: DeliveryOrderStatus) => {
-  if (status === 'CLOSED') {
-    return 'success'
-  }
-
-  if (status === 'PICKUP_GENERATED') {
-    return 'warning'
-  }
-
-  if (status === 'WAITING_APPROVAL_DO') {
-    return 'info'
-  }
-
-  return 'secondary'
-}
-
-const getDerivedStatus = (
-  order: DeliveryOrderRecord,
-  sourceSpms?: SpmsRecord,
-): DeliveryOrderStatus => {
-  if (!sourceSpms) {
-    return order.statusDo
-  }
-
-  if (order.kind === 'PICKUP') {
-    const pickupStatus = getPickupUploadStatus(sourceSpms)
-
-    if (pickupStatus === 'Closed' || pickupStatus === 'Closed Pickup') {
-      return 'CLOSED'
-    }
-
-    if (
-      pickupStatus === 'Waiting Approval Pickup' ||
-      pickupStatus === 'Waiting Review Pickup'
-    ) {
-      return 'WAITING_APPROVAL_DO'
-    }
-
-    return 'WAITING_UPLOAD_DO'
-  }
-
-  const deliveryStatus = getDeliveryUploadStatus(sourceSpms)
-
-  if (deliveryStatus === 'Closed Delivery') {
-    return 'CLOSED'
-  }
-
-  if (
-    deliveryStatus === 'Waiting Approval Delivery' ||
-    deliveryStatus === 'Waiting Review Delivery'
-  ) {
-    return 'WAITING_APPROVAL_DO'
-  }
-
-  return 'WAITING_UPLOAD_DO'
+const getDerivedStatus = (order: DeliveryOrderRecord): DeliveryOrderStatus => {
+  return order.statusDo
 }
 
 const displayDate = (value?: string) => {
@@ -230,15 +167,17 @@ export function DeliveryOrderDetailPage() {
     return <Navigate to="/delivery-order" replace />
   }
 
+  const spmsRecords = spmsStorage.getAll()
   const sourceSpms =
-    spmsStorage
-      .getAll()
-      .find(
-        (record) =>
-          record.id === order.sourceSpmsId ||
-          record.orderNumber === order.sourceSpmsOrderNumber,
-      ) ?? undefined
-  const displayStatus = getDerivedStatus(order, sourceSpms)
+    spmsRecords.find((record) => order.sourceSpmsIds?.includes(record.id)) ??
+    spmsRecords.find((record) => record.id === order.sourceSpmsId) ??
+    spmsRecords.find((record) =>
+      order.sourceSpmsOrderNumbers?.includes(record.orderNumber),
+    ) ??
+    spmsRecords.find(
+      (record) => record.orderNumber === order.sourceSpmsOrderNumber,
+    )
+  const displayStatus = getDerivedStatus(order)
   const materials =
     order.materials?.length
       ? order.materials
@@ -249,13 +188,17 @@ export function DeliveryOrderDetailPage() {
           serialNumber,
         }))
   const orderNumber =
-    order.orderNumber || order.sourceSpmsOrderNumber || sourceSpms?.orderNumber || '-'
+    order.orderNumber ||
+    order.sourceSpmsOrderNumbers?.join(', ') ||
+    order.sourceSpmsOrderNumber ||
+    sourceSpms?.orderNumber ||
+    '-'
 
   return (
     <>
       <PageHeader
         title="Delivery Order Detail"
-        subtitle={`${order.deliveryOrder} - ${statusLabels[displayStatus]}`}
+        subtitle={`${order.deliveryOrder} - ${getDeliveryOrderStatusLabel(displayStatus)}`}
         actions={
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
             <Button
@@ -309,8 +252,8 @@ export function DeliveryOrderDetailPage() {
                 {order.origin} - {order.destination}
               </Typography>
               <Chip
-                color={getStatusColor(displayStatus)}
-                label={statusLabels[displayStatus]}
+                color={getDeliveryOrderStatusColor(displayStatus)}
+                label={getDeliveryOrderStatusLabel(displayStatus)}
                 size="small"
                 sx={{ mt: 1 }}
                 variant="outlined"
@@ -407,11 +350,19 @@ export function DeliveryOrderDetailPage() {
                 gap: 0.75,
                 gridTemplateColumns: {
                   xs: '1fr',
-                  md: '1.5fr repeat(3, minmax(0, 1fr))',
+                  md: '1.3fr 1.3fr repeat(3, minmax(0, 1fr))',
                 },
                 p: 1,
               }}
             >
+              <Box>
+                <Typography sx={{ fontWeight: 950 }} variant="subtitle2">
+                  ON DELIVERY DATE
+                </Typography>
+                <Typography variant="body2">
+                  {displayDateTime(order.onDeliveryDate)}
+                </Typography>
+              </Box>
               <Box>
                 <Typography sx={{ fontWeight: 950 }} variant="subtitle2">
                   DATE PICKUP
@@ -494,7 +445,7 @@ export function DeliveryOrderDetailPage() {
                 Status Check
               </Typography>
               <Typography variant="body2">
-                {order.statusCheck || statusLabels[displayStatus]}
+                {order.statusCheck || getDeliveryOrderStatusLabel(displayStatus)}
               </Typography>
             </Box>
 
@@ -512,7 +463,7 @@ export function DeliveryOrderDetailPage() {
               }}
             >
               <Typography sx={{ fontWeight: 950 }} variant="h6">
-                {statusLabels[displayStatus]}
+                {getDeliveryOrderStatusLabel(displayStatus)}
               </Typography>
             </Box>
           </Stack>

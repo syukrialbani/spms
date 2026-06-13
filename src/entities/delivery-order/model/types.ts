@@ -3,10 +3,12 @@ export type DeliveryOrderKind = 'DELIVERY' | 'PICKUP'
 export type DeliveryOrderSourceType = 'SPMS' | 'NON_SPMS'
 
 export type DeliveryOrderStatus =
-  | 'WAITING_UPLOAD_DO'
-  | 'WAITING_APPROVAL_DO'
-  | 'PICKUP_GENERATED'
+  | 'OPEN'
+  | 'ON_PROGRESS'
+  | 'NEED_UPLOAD_DO'
+  | 'NEED_REVIEW_DO'
   | 'CLOSED'
+  | 'REJECTED'
 
 export type DeliveryOrderMaterialItem = {
   description: string
@@ -32,6 +34,7 @@ export type DeliveryOrderRecord = {
   dop?: string
   siteName?: string
   severity?: string
+  onDeliveryDate?: string
   origin: string
   originAddress: string
   originPic: string
@@ -49,9 +52,13 @@ export type DeliveryOrderRecord = {
   requestDate?: string
   reviewTime?: string
   sourceSpmsId?: string
+  sourceSpmsIds?: string[]
   sourceSpmsOrderNumber?: string
+  sourceSpmsOrderNumbers?: string[]
   sourceDeliveryOrder?: string
+  sourceDeliveryOrders?: string[]
   statusCheck?: string
+  ticketNumbers?: string[]
   uploadDoFileName?: string
   weight?: string
 }

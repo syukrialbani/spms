@@ -6,21 +6,23 @@ import Typography from '@mui/material/Typography'
 import { alpha, type SxProps, type Theme } from '@mui/material/styles'
 import dayjs, { type Dayjs } from 'dayjs'
 import 'dayjs/locale/id'
+import { getIn, type FormikProps } from 'formik'
 import type { ReactNode } from 'react'
 
-type FormDateTimeFieldProps = {
+type FormDateTimeFieldProps<FormValues extends object = Record<string, unknown>> = {
   label: string
   name: string
-  value: string
   disabled?: boolean
   error?: boolean
+  formik?: FormikProps<FormValues>
   helperText?: ReactNode
   id?: string
   onBlur?: () => void
-  onChange: (value: string) => void
+  onChange?: (value: string) => void
   placeholder?: string
   required?: boolean
   sx?: SxProps<Theme>
+  value?: string
 }
 
 const parseDateTimeValue = (value: string) => {
@@ -36,27 +38,63 @@ const parseDateTimeValue = (value: string) => {
 const formatFormValue = (value: Dayjs | null) =>
   value?.isValid() ? value.format('YYYY-MM-DDTHH:mm') : ''
 
-export function FormDateTimeField({
-  label,
-  name,
-  value,
+const getHelperText = (value: unknown): ReactNode =>
+  typeof value === 'string' ? value : undefined
+
+export function FormDateTimeField<
+  FormValues extends object = Record<string, unknown>,
+>({
   disabled = false,
   error = false,
+  formik,
   helperText,
-  id = name,
+  id,
+  label,
+  name,
   onBlur,
   onChange,
   required = false,
   sx,
-}: FormDateTimeFieldProps) {
+  value,
+}: FormDateTimeFieldProps<FormValues>) {
+  const inputId = id ?? name
+  const fieldTouched = formik ? getIn(formik.touched, name) : undefined
+  const fieldError = formik ? getIn(formik.errors, name) : undefined
+  const formikValue = formik ? getIn(formik.values, name) : undefined
+  const hasFormikError = Boolean(fieldTouched && fieldError)
+  const isDisabled = disabled || formik?.isSubmitting || false
+  const resolvedError = error || hasFormikError
+  const resolvedHelperText =
+    helperText ?? (hasFormikError ? getHelperText(fieldError) : undefined)
+  const resolvedValue = value ?? formikValue ?? ''
+  const handleChange = (nextValue: Dayjs | null) => {
+    const nextText = formatFormValue(nextValue)
+
+    if (onChange) {
+      onChange(nextText)
+      return
+    }
+
+    if (formik) {
+      void formik.setFieldValue(name, nextText)
+    }
+  }
+  const handleBlur = () => {
+    onBlur?.()
+
+    if (!onBlur && formik) {
+      void formik.setFieldTouched(name, true)
+    }
+  }
+
   return (
     <Stack spacing={0.35} sx={sx}>
       <Typography
         component="label"
-        htmlFor={id}
+        htmlFor={inputId}
         variant="caption"
         sx={{
-          color: error ? 'error.main' : 'text.secondary',
+          color: resolvedError ? 'error.main' : 'text.secondary',
           fontSize: 11,
           fontWeight: 800,
           lineHeight: 1.2,
@@ -79,18 +117,14 @@ export function FormDateTimeField({
         <DateTimePicker
           ampm={false}
           closeOnSelect
-          disabled={disabled}
+          disabled={isDisabled}
           format="YYYY-MM-DD HH:mm"
           minutesStep={5}
-          onAccept={(nextValue) => {
-            onChange(formatFormValue(nextValue))
-          }}
-          onChange={(nextValue) => {
-            onChange(formatFormValue(nextValue))
-          }}
-          onClose={onBlur}
+          onAccept={handleChange}
+          onChange={handleChange}
+          onClose={handleBlur}
           timeSteps={{ hours: 1, minutes: 5 }}
-          value={parseDateTimeValue(value)}
+          value={parseDateTimeValue(String(resolvedValue))}
           slotProps={{
             actionBar: {
               actions: [],
@@ -158,12 +192,12 @@ export function FormDateTimeField({
               }),
             },
             textField: {
-              error,
+              error: resolvedError,
               fullWidth: true,
-              helperText,
-              id,
+              helperText: resolvedHelperText,
+              id: inputId,
               name,
-              onBlur,
+              onBlur: handleBlur,
               required,
               size: 'small',
               sx: (theme) => ({

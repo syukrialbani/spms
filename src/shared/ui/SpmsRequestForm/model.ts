@@ -93,14 +93,9 @@ export type SpmsRequestFormValues = {
 }
 
 export const customerOptions = [
-  'TELKOMSEL',
-  'TELKOM INDONESIA',
-  'INDOSAT OOREDOO HUTCHISON',
-  'XL AXIATA',
-  'SMARTFREN',
-  'BIZNET',
-  'ICON PLUS',
-  'MORATELINDO',
+  'Telkom',
+  'Telkomsel',
+  'IOH',
 ] as const
 
 export const areaOptions = [
@@ -542,8 +537,22 @@ export const spmsRequestValidationSchema = Yup.object({
     .required('Request date wajib diisi'),
   areal: Yup.string().trim().required('Area wajib diisi'),
   dop: Yup.string().trim().required('DOP wajib diisi'),
-  feId: Yup.string().trim().required('FE ID wajib diisi'),
-  neId: Yup.string().trim().required('NE ID wajib diisi'),
+  feId: Yup.string()
+    .trim()
+    .test(
+      'telkom-fe-id',
+      'FE ID wajib diisi untuk customer Telkom',
+      (value, context) =>
+        context.parent.customer !== 'Telkom' || Boolean(value?.trim()),
+    ),
+  neId: Yup.string()
+    .trim()
+    .test(
+      'telkom-ne-id',
+      'NE ID wajib diisi untuk customer Telkom',
+      (value, context) =>
+        context.parent.customer !== 'Telkom' || Boolean(value?.trim()),
+    ),
   regional: Yup.string()
     .oneOf([...regionalOptions], 'Regional tidak valid')
     .required('Regional wajib diisi'),
