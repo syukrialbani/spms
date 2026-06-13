@@ -1,4 +1,7 @@
-import { deliveryOrderStorage } from '@entities/delivery-order'
+import {
+  deliveryOrderStorage,
+  getDeliveryOrderStatusLabel,
+} from '@entities/delivery-order'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import AddTaskRoundedIcon from '@mui/icons-material/AddTaskRounded'
 import Box from '@mui/material/Box'
@@ -63,7 +66,7 @@ export function DeliveryOrderPickupPage() {
     const confirmed = await confirm({
       confirmLabel: 'Create DO Pickup',
       description:
-        'DO pickup akan dibuat dari draft ini dan muncul di list Delivery Order.',
+        'DO pickup akan dibuat dengan status Open dan muncul di list Delivery Order.',
       title: 'Create DO Pickup?',
     })
 
@@ -108,9 +111,9 @@ export function DeliveryOrderPickupPage() {
             spacing={1}
             sx={{ alignItems: { xs: 'flex-start', sm: 'center' } }}
           >
-            <Chip label="Draft DO Pickup" color="warning" variant="outlined" />
+            <Chip label="Open DO Pickup" color="warning" variant="outlined" />
             <Chip label={draft.deliveryOrder} color="primary" />
-            <Chip label={draft.statusDo} variant="outlined" />
+            <Chip label={getDeliveryOrderStatusLabel(draft.statusDo)} variant="outlined" />
           </Stack>
 
           <Box

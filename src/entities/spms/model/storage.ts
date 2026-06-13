@@ -152,6 +152,31 @@ const toTitleCase = (value: string) =>
     .toLowerCase()
     .replace(/\b\w/g, (letter) => letter.toUpperCase())
 
+const normalizeCustomer = (value: string) =>
+  value.trim().toUpperCase() === 'IOH' ? 'IOH' : toTitleCase(value)
+
+const normalizeAllowedCustomer = (value: string) => {
+  const normalizedCustomer = normalizeCustomer(value)
+
+  if (
+    normalizedCustomer === 'Telkom' ||
+    normalizedCustomer === 'Telkomsel' ||
+    normalizedCustomer === 'IOH'
+  ) {
+    return normalizedCustomer
+  }
+
+  if (value.toUpperCase().includes('INDOSAT')) {
+    return 'IOH'
+  }
+
+  if (value.toUpperCase().includes('TELKOM')) {
+    return value.toUpperCase().includes('SEL') ? 'Telkomsel' : 'Telkom'
+  }
+
+  return 'Telkomsel'
+}
+
 const toDatePart = (value: string) => {
   if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
     return value.slice(0, 10)
@@ -280,6 +305,11 @@ const shouldGenerateOrderNumber = (value: string) =>
 
 const withWorkflowStatuses = (record: SpmsRecord): SpmsRecord => ({
   ...record,
+  customer: normalizeAllowedCustomer(record.customer),
+  feId:
+    normalizeAllowedCustomer(record.customer) === 'Telkom' ? record.feId : '',
+  neId:
+    normalizeAllowedCustomer(record.customer) === 'Telkom' ? record.neId : '',
   statusReturn: getPickupWorkflowStatus(record),
   statusSpms: getTicketWorkflowStatus(record),
 })
@@ -302,16 +332,18 @@ const buildRecordFromForm = (
         : values.deliveryStatus || 'OPEN'
   const baStatusReturn = getAutoPickupStatus(values, deliveryStatus)
 
+  const customer = normalizeAllowedCustomer(values.customer)
+  const isTelkomCustomer = customer === 'Telkom'
   const nextRecord: SpmsRecord = {
     id: existing?.id ?? `spms-${crypto.randomUUID()}`,
     orderNumber,
-    customer: toTitleCase(values.customer),
+    customer,
     customerOrderNumber: values.customerOrderNumber,
     requestDate: toDatePart(values.requestDate),
     area: toTitleCase(values.areal),
     dop: values.dop,
-    feId: values.feId,
-    neId: values.neId,
+    feId: isTelkomCustomer ? values.feId : '',
+    neId: isTelkomCustomer ? values.neId : '',
     regional: values.regional,
     siteName: values.siteName,
     categoryMaterial: firstMaterial.categoryMaterial,
