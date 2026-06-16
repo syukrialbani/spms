@@ -146,6 +146,25 @@ const saveRecords = (records: SpmsRecord[]) => {
   getStorage()?.setItem(storageKey, JSON.stringify(records))
 }
 
+const isLegacyDummyRecord = (record: SpmsRecord) =>
+  record.customerOrderNumber === 'TELKOM-PO-9081' ||
+  (record.orderNumber === 'AVIAT-2026-0001' &&
+    record.partNumber === 'MNT-POLE-2M')
+
+const migrateLegacyDummyRecords = (records: SpmsRecord[]) => {
+  if (!records.some(isLegacyDummyRecord)) {
+    return records
+  }
+
+  const userRecords = records.filter((record) => !isLegacyDummyRecord(record))
+  const missingSeedRecords = spmsRecords.filter(
+    (seedRecord) =>
+      !userRecords.some((record) => record.orderNumber === seedRecord.orderNumber),
+  )
+
+  return [...missingSeedRecords, ...userRecords]
+}
+
 const toTitleCase = (value: string) =>
   value
     .trim()
@@ -222,8 +241,8 @@ const normalizeMaterials = (
   const materials = sourceMaterials
     .filter(hasMaterialValue)
     .map((material) => ({
-      categoryMaterial: toTitleCase(material.categoryMaterial),
-      typeMaterial: toTitleCase(material.typeMaterial),
+      categoryMaterial: material.categoryMaterial,
+      typeMaterial: material.typeMaterial,
       description: material.description,
       partNumber: material.partNumber,
       qty: 1,
@@ -238,8 +257,8 @@ const normalizeMaterials = (
 
   return [
     {
-      categoryMaterial: toTitleCase(values.categoryMaterial),
-      typeMaterial: toTitleCase(values.typeMaterial),
+      categoryMaterial: values.categoryMaterial,
+      typeMaterial: values.typeMaterial,
       description: values.description,
       partNumber: values.partNumber,
       qty: 1,
@@ -340,7 +359,7 @@ const buildRecordFromForm = (
     customer,
     customerOrderNumber: values.customerOrderNumber,
     requestDate: toDatePart(values.requestDate),
-    area: toTitleCase(values.areal),
+    area: values.areal,
     dop: values.dop,
     feId: isTelkomCustomer ? values.feId : '',
     neId: isTelkomCustomer ? values.neId : '',
@@ -432,7 +451,8 @@ export const spmsStorage = {
     const persistedRecords = readPersistedRecords()
 
     if (persistedRecords) {
-      const normalizedRecords = persistedRecords.map(withWorkflowStatuses)
+      const normalizedRecords =
+        migrateLegacyDummyRecords(persistedRecords).map(withWorkflowStatuses)
 
       saveRecords(normalizedRecords)
       return normalizedRecords
