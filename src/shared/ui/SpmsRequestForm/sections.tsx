@@ -24,16 +24,17 @@ import type { FormikProps } from 'formik'
 import type { ChangeEvent, ReactNode } from 'react'
 
 import {
-  areaOptions,
   categoryMaterialOptions,
   customerOptions,
   defaultBaType,
   descriptionOptions,
-  dopOptions,
+  getAreaOptionsForCustomer,
+  getDopOptionsForCustomer,
+  getDopReference,
+  getRegionalOptionsForCustomer,
   partNumberOptions,
   picKancabOptions,
   pickupStatusOptions,
-  regionalOptions,
   requestorOptions,
   severityOptions,
   slaHourOptions,
@@ -118,6 +119,22 @@ export function DetailRequestFields({
   isTelkomCustomer,
   materialRows,
 }: DetailRequestFieldsProps) {
+  const areaOptionsForCustomer = getAreaOptionsForCustomer(formik.values.customer)
+  const dopOptionsForCustomer = getDopOptionsForCustomer(formik.values.customer)
+  const regionalOptionsForCustomer = getRegionalOptionsForCustomer(
+    formik.values.customer,
+  )
+  const handleDopChange = (value: string) => {
+    const dopReference = getDopReference(formik.values.customer, value)
+
+    void formik.setFieldValue('dop', value)
+
+    if (dopReference) {
+      void formik.setFieldValue('areal', dopReference.area)
+      void formik.setFieldValue('regional', dopReference.regional)
+    }
+  }
+
   return (
     <Stack spacing={1.25}>
       <FormSection
@@ -126,28 +143,6 @@ export function DetailRequestFields({
         title={isCreateMode ? 'Create SPMS Request' : 'Detail Request'}
       >
         <FieldGrid columns={3}>
-          <FormTextField
-            label="Order Number"
-            name="orderNumber"
-            readOnly
-            formik={formik}
-          />
-          <FormAutocomplete
-            accent
-            label="Area"
-            name="areal"
-            options={areaOptions}
-            required
-            formik={formik}
-          />
-          {isTelkomCustomer ? (
-            <FormTextField
-              label="NE ID"
-              name="neId"
-              required
-              formik={formik}
-            />
-          ) : null}
           <FormAutocomplete
             accent
             label="Customer"
@@ -157,6 +152,9 @@ export function DetailRequestFields({
             formik={formik}
             onChange={(value) => {
               void formik.setFieldValue('customer', value)
+              void formik.setFieldValue('areal', '')
+              void formik.setFieldValue('dop', '')
+              void formik.setFieldValue('regional', '')
 
               if (value !== 'Telkom') {
                 void formik.setFieldValue('feId', '')
@@ -169,21 +167,16 @@ export function DetailRequestFields({
             accent
             label="DOP"
             name="dop"
-            options={dopOptions}
+            options={dopOptionsForCustomer}
             required
             formik={formik}
+            onChange={handleDopChange}
           />
-          {isTelkomCustomer ? (
-            <FormTextField
-              label="FE ID"
-              name="feId"
-              required
-              formik={formik}
-            />
-          ) : null}
-          <FormTextField
-            label="Ticket Customer"
-            name="customerOrderNumber"
+          <FormAutocomplete
+            accent
+            label="Area"
+            name="areal"
+            options={areaOptionsForCustomer}
             required
             formik={formik}
           />
@@ -191,14 +184,19 @@ export function DetailRequestFields({
             accent
             label="Regional"
             name="regional"
-            options={regionalOptions}
+            options={regionalOptionsForCustomer}
             required
             formik={formik}
           />
           <FormTextField
-            label="Create By"
-            name="createdBy"
-            readOnly
+            label="Site Name"
+            name="siteName"
+            required
+            formik={formik}
+          />
+          <FormTextField
+            label="Ticket Customer"
+            name="customerOrderNumber"
             required
             formik={formik}
           />
@@ -209,11 +207,34 @@ export function DetailRequestFields({
             formik={formik}
           />
           <FormTextField
-            label="Site Name"
-            name="siteName"
+            label="Create By"
+            name="createdBy"
+            readOnly
             required
             formik={formik}
           />
+          <FormTextField
+            label="Order Number"
+            name="orderNumber"
+            readOnly
+            formik={formik}
+          />
+          {isTelkomCustomer ? (
+            <>
+              <FormTextField
+                label="NE ID"
+                name="neId"
+                required
+                formik={formik}
+              />
+              <FormTextField
+                label="FE ID"
+                name="feId"
+                required
+                formik={formik}
+              />
+            </>
+          ) : null}
           {!isCreateMode ? (
             <FormTextField
               label="Delivery Order"
