@@ -12,7 +12,7 @@ import { useConfirmation } from '@shared/lib/confirmation'
 import { AppButton } from '@shared/ui/AppButton'
 import { LiquidPanel } from '@shared/ui/LiquidPanel'
 import { useFormik } from 'formik'
-import { useState, type ChangeEvent } from 'react'
+import { useEffect, useState, type ChangeEvent } from 'react'
 import {
   createDefaultMaterialValues,
   createDefaultSpmsRequestValues,
@@ -77,6 +77,27 @@ export function SpmsRequestForm({
       }
     },
   })
+
+  useEffect(() => {
+    const contact = picKancabContactMap[formik.values.picKancabName]
+
+    if (!contact) {
+      return
+    }
+
+    if (!formik.values.picKancabEmail && contact.email) {
+      void formik.setFieldValue('picKancabEmail', contact.email, false)
+    }
+
+    if (!formik.values.picKancabPhone && contact.phone) {
+      void formik.setFieldValue('picKancabPhone', contact.phone, false)
+    }
+  }, [
+    formik,
+    formik.values.picKancabEmail,
+    formik.values.picKancabName,
+    formik.values.picKancabPhone,
+  ])
 
   const getHelperText = (name: FieldName) =>
     formik.touched[name] ? formik.errors[name] : undefined
