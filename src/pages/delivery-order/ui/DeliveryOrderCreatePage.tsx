@@ -3,13 +3,11 @@ import {
   useCreateStandaloneDoMutation,
   type DeliveryOrderMaterialItem,
 } from '@entities/delivery-order'
+import { useMasterDataQuery } from '@entities/master-data'
 import {
-  customerOptions,
   getDeliveryUploadStatus,
   getSpmsRecordMaterials,
   getTicketStatus,
-  supportDestinationMaterialOptions,
-  supportOriginMaterialOptions,
   useSpmsListQuery,
   type SpmsRecord,
 } from '@entities/spms'
@@ -73,24 +71,6 @@ type DeliveryOrderFormState = {
   weight: string
   isSubmitting?: boolean
 }
-
-const expeditionOptions = [
-  'ESATEL',
-  'FIN LOGISTICS',
-  'INDAH CARGO',
-  'DHL',
-  'JNE',
-  'DLL',
-] as const
-
-const serviceOptions = [
-  'LAUT',
-  'UDARA',
-  'HANDCARRY',
-  'DARAT',
-  'PORT TO PORT',
-  'PICKUP RETURN',
-] as const
 
 const severityOptions = ['Low', 'Medium', 'High', 'Critical'] as const
 
@@ -187,8 +167,35 @@ export function DeliveryOrderCreatePage() {
   const navigate = useNavigate()
   const confirm = useConfirmation()
   const { data: spmsResponse } = useSpmsListQuery()
+  const { data: masterData } = useMasterDataQuery()
   const { mutateAsync: createDoFromSpms } = useCreateDoFromSpmsMutation()
   const { mutateAsync: createStandaloneDo } = useCreateStandaloneDoMutation()
+  const customerOptions = useMemo(
+    () => (masterData?.customers ?? []).map((c) => c.name),
+    [masterData],
+  )
+  const expeditionOptions = useMemo(
+    () => (masterData?.expeditions ?? []).map((e) => e.name),
+    [masterData],
+  )
+  const serviceOptions = useMemo(
+    () => (masterData?.services ?? []).map((s) => s.name),
+    [masterData],
+  )
+  const supportOriginMaterialOptions = useMemo(
+    () => (masterData?.locations ?? []).map((l) => l.name),
+    [masterData],
+  )
+  const supportDestinationMaterialOptions = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          ...(masterData?.dops ?? []).map((d) => d.dop),
+          ...(masterData?.locations ?? []).map((l) => l.name),
+        ]),
+      ).sort((a, b) => a.localeCompare(b)),
+    [masterData],
+  )
   const [formState, setFormState] = useState<DeliveryOrderFormState>(
     createDefaultFormState,
   )

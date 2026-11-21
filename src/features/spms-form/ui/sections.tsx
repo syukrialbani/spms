@@ -23,24 +23,8 @@ import { FormTextField } from '@shared/ui/FormTextField'
 import type { FormikProps } from 'formik'
 import type { ChangeEvent, ReactNode } from 'react'
 
-import {
-  categoryMaterialOptions,
-  customerOptions,
-  defaultBaType,
-  descriptionOptions,
-  getAreaOptionsForCustomer,
-  getDopOptionsForCustomer,
-  getDopReference,
-  getRegionalOptionsForCustomer,
-  partNumberOptions,
-  picKancabOptions,
-  pickupStatusOptions,
-  requestorOptions,
-  severityOptions,
-  slaHourOptions,
-  statusTransactionOptions,
-  typeMaterialOptions,
-} from '@entities/spms'
+import type { MasterDataResponse } from '@entities/master-data'
+import { defaultBaType, pickupStatusOptions } from '@entities/spms'
 import type {
   SpmsMaterialFormValues,
   SpmsRequestFormValues,
@@ -68,6 +52,7 @@ type DetailRequestFieldsProps = {
   handleSeverityChange: (value: string) => void
   isCreateMode: boolean
   isTelkomCustomer: boolean
+  masterData?: MasterDataResponse
   materialRows: SpmsMaterialFormValues[]
 }
 
@@ -100,6 +85,7 @@ type DeliveryEvidenceStepProps = {
   handleFileChange: (
     field: EvidenceFieldName,
   ) => (event: ChangeEvent<HTMLInputElement>) => void
+  masterData?: MasterDataResponse
   materialRows: SpmsMaterialFormValues[]
 }
 
@@ -123,21 +109,94 @@ export function DetailRequestFields({
   handleSeverityChange,
   isCreateMode,
   isTelkomCustomer,
+  masterData,
   materialRows,
 }: DetailRequestFieldsProps) {
-  const areaOptionsForCustomer = getAreaOptionsForCustomer(formik.values.customer)
-  const dopOptionsForCustomer = getDopOptionsForCustomer(formik.values.customer)
-  const regionalOptionsForCustomer = getRegionalOptionsForCustomer(
-    formik.values.customer,
+  const uniqueSorted = (values: string[]) =>
+    Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b))
+
+  const customerOptions = (masterData?.customers ?? []).map((c) => c.name)
+  const customerDops = formik.values.customer
+    ? (masterData?.dops ?? []).filter(
+        (d) => d.customerName === formik.values.customer,
+      )
+    : (masterData?.dops ?? [])
+  const dopOptionsForCustomer = uniqueSorted(customerDops.map((d) => d.dop))
+  const areaOptionsForCustomer = uniqueSorted(customerDops.map((d) => d.area))
+  const regionalOptionsForCustomer = uniqueSorted(
+    customerDops.map((d) => d.regional),
   )
+
+  const requestorOptions = (masterData?.requestors ?? []).map((r) => r.name)
+  const picKancabOptions = (masterData?.picKancabs ?? []).map((p) => p.name)
+  const statusTransactionOptions = (masterData?.transactionStatuses ?? []).map(
+    (t) => t.code,
+  )
+  const descriptionOptions = uniqueSorted(
+    (masterData?.materials ?? []).map((m) => m.description),
+  )
+  const partNumberOptions = uniqueSorted(
+    (masterData?.materials ?? []).map((m) => m.partNumber),
+  )
+  const categoryMaterialOptions = uniqueSorted(
+    (masterData?.materials ?? []).map((m) => m.categoryMaterial),
+  )
+  const typeMaterialOptions = uniqueSorted(
+    (masterData?.materials ?? []).map((m) => m.typeMaterial),
+  )
+  const severityOptions = (masterData?.severitySlas ?? []).map(
+    (s) => s.severity,
+  )
+  const slaHourOptions = uniqueSorted(
+    (masterData?.severitySlas ?? []).map((s) => s.slaHours),
+  )
+
   const handleDopChange = (value: string) => {
-    const dopReference = getDopReference(formik.values.customer, value)
+    const dopReference = customerDops.find((d) => d.dop === value)
 
     void formik.setFieldValue('dop', value)
 
     if (dopReference) {
       void formik.setFieldValue('areal', dopReference.area)
       void formik.setFieldValue('regional', dopReference.regional)
+    }
+  }
+
+  const handleMaterialDescriptionChange = (index: number, value: string) => {
+    void formik.setFieldValue(getMaterialPath(index, 'description'), value)
+    const matched = masterData?.materials.find((m) => m.description === value)
+    if (matched) {
+      void formik.setFieldValue(
+        getMaterialPath(index, 'partNumber'),
+        matched.partNumber,
+      )
+      void formik.setFieldValue(
+        getMaterialPath(index, 'categoryMaterial'),
+        matched.categoryMaterial,
+      )
+      void formik.setFieldValue(
+        getMaterialPath(index, 'typeMaterial'),
+        matched.typeMaterial,
+      )
+    }
+  }
+
+  const handleMaterialPartNumberChange = (index: number, value: string) => {
+    void formik.setFieldValue(getMaterialPath(index, 'partNumber'), value)
+    const matched = masterData?.materials.find((m) => m.partNumber === value)
+    if (matched) {
+      void formik.setFieldValue(
+        getMaterialPath(index, 'description'),
+        matched.description,
+      )
+      void formik.setFieldValue(
+        getMaterialPath(index, 'categoryMaterial'),
+        matched.categoryMaterial,
+      )
+      void formik.setFieldValue(
+        getMaterialPath(index, 'typeMaterial'),
+        matched.typeMaterial,
+      )
     }
   }
 
@@ -411,6 +470,9 @@ export function DetailRequestFields({
                     options={descriptionOptions}
                     required
                     formik={formik}
+                    onChange={(value) =>
+                      handleMaterialDescriptionChange(index, value)
+                    }
                   />
                   <FormAutocomplete
                     accent
@@ -452,6 +514,9 @@ export function DetailRequestFields({
                     options={partNumberOptions}
                     required
                     formik={formik}
+                    onChange={(value) =>
+                      handleMaterialPartNumberChange(index, value)
+                    }
                   />
                   <FormAutocomplete
                     accent
@@ -753,8 +818,13 @@ export function DeliveryEvidenceStep({
   deliveryEvidenceName,
   formik,
   handleFileChange,
+  masterData,
   materialRows,
 }: DeliveryEvidenceStepProps) {
+  const descriptionOptions = Array.from(
+    new Set((masterData?.materials ?? []).map((m) => m.description).filter(Boolean)),
+  ).sort((a, b) => a.localeCompare(b))
+
   return (
     <Box
       sx={{

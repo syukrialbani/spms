@@ -1,10 +1,9 @@
 import { useDeliveryOrderDetailQuery } from '@entities/delivery-order'
+import { useMasterDataQuery } from '@entities/master-data'
 import {
   defaultBaType,
   getAutoPickupStatus,
   getSlaHoursForSeverity,
-  picKancabContactMap,
-  requestorContactMap,
 } from '@entities/spms'
 import { filesApi } from '@shared/api'
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded'
@@ -64,6 +63,7 @@ export function SpmsRequestForm({
 }: SpmsRequestFormProps) {
   const [activeStep, setActiveStep] = useState(0)
   const [isUploadingFile, setIsUploadingFile] = useState(false)
+  const { data: masterData } = useMasterDataQuery()
   const confirm = useConfirmation()
   const isCreateMode = mode === 'create'
   const isSuperAdmin = currentRole === 'SUPER_ADMIN'
@@ -85,7 +85,9 @@ export function SpmsRequestForm({
   })
 
   useEffect(() => {
-    const contact = picKancabContactMap[formik.values.picKancabName]
+    const contact = masterData?.picKancabs.find(
+      (p) => p.name === formik.values.picKancabName,
+    )
 
     if (!contact) {
       return
@@ -103,6 +105,7 @@ export function SpmsRequestForm({
     formik.values.picKancabEmail,
     formik.values.picKancabName,
     formik.values.picKancabPhone,
+    masterData,
   ])
 
   const getHelperText = (name: FieldName) =>
@@ -372,15 +375,16 @@ export function SpmsRequestForm({
   }
 
   const handleSeverityChange = (value: string) => {
+    const matched = masterData?.severitySlas.find((s) => s.severity === value)
     void formik.setFieldValue('severity', value)
     void formik.setFieldValue(
       'slaHours',
-      formik.values.slaHours || getSlaHoursForSeverity(value),
+      matched?.slaHours || getSlaHoursForSeverity(value),
     )
   }
 
   const handleRequestorChange = (value: string) => {
-    const contact = requestorContactMap[value]
+    const contact = masterData?.requestors.find((r) => r.name === value)
 
     void formik.setFieldValue('customerRequestor', value)
 
@@ -391,7 +395,7 @@ export function SpmsRequestForm({
   }
 
   const handlePicKancabChange = (value: string) => {
-    const contact = picKancabContactMap[value]
+    const contact = masterData?.picKancabs.find((p) => p.name === value)
 
     void formik.setFieldValue('picKancabName', value)
 
@@ -416,8 +420,16 @@ export function SpmsRequestForm({
     linkedDeliveryOrder.statusDo === 'CLOSED'
   const canOpenDeliveryBaTab = hasDeliveryOrder && isDeliveryOrderOnDelivery
   const hasPickupDeliveryOrder = Boolean(formik.values.pickupDeliveryOrderNumber)
-  const isTelkomCustomer = formik.values.customer === 'Telkom'
-  const isArfTransaction = formik.values.statusTransaction === 'ARF'
+  const selectedCustomerObj = masterData?.customers.find(
+    (c) => c.name === formik.values.customer,
+  )
+  const isTelkomCustomer =
+    selectedCustomerObj?.requiresNeFe ?? formik.values.customer === 'Telkom'
+  const selectedTxObj = masterData?.transactionStatuses.find(
+    (t) => t.code === formik.values.statusTransaction,
+  )
+  const isArfTransaction =
+    selectedTxObj?.skipPickup ?? formik.values.statusTransaction === 'ARF'
   const isDeliveryDelivered =
     Boolean(deliveryEvidenceName) || formik.values.deliveryStatus === 'DELIVERED'
   const isDeliveryApproval1Approved = formik.values.approval1Status === 'APPROVED'
@@ -825,6 +837,7 @@ export function SpmsRequestForm({
               handleSeverityChange={handleSeverityChange}
               isCreateMode={isCreateMode}
               isTelkomCustomer={isTelkomCustomer}
+              masterData={masterData}
               materialRows={materialRows}
             />
           ) : null}
@@ -834,6 +847,7 @@ export function SpmsRequestForm({
               deliveryEvidenceName={deliveryEvidenceName}
               formik={formik}
               handleFileChange={handleFileChange}
+              masterData={masterData}
               materialRows={materialRows}
             />
           ) : null}

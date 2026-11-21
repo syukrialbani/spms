@@ -59,6 +59,16 @@ const SpmsListPage = lazy(() =>
     default: module.SpmsListPage,
   })),
 )
+const MasterDataPage = lazy(() =>
+  import('@pages/master-data').then((module) => ({
+    default: module.MasterDataPage,
+  })),
+)
+const UsersPage = lazy(() =>
+  import('@pages/users').then((module) => ({
+    default: module.UsersPage,
+  })),
+)
 
 export function AppRouter() {
   return (
@@ -91,6 +101,8 @@ export function AppRouter() {
                 element={<DeliveryOrderDetailPage />}
               />
               <Route path="/delivery-order" element={<DeliveryOrderPage />} />
+              <Route path="/master-data" element={<MasterDataPage />} />
+              <Route path="/users" element={<UsersPage />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

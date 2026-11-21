@@ -24,6 +24,8 @@ const pageTitles: Record<string, string> = {
   '/spms/add': 'Add SPMS',
   '/delivery-order': 'Delivery Order',
   '/delivery-order/create': 'Create Delivery Order',
+  '/master-data': 'Master Data',
+  '/users': 'User Management',
 }
 
 const roleLabels: Record<string, string> = {
@@ -31,6 +33,7 @@ const roleLabels: Record<string, string> = {
   ADMIN_1: 'Admin 1',
   ADMIN_2: 'Admin 2',
   ADMIN_3: 'Admin 3',
+  DRIVER: 'Driver / PIC Kancab',
   REQUESTOR: 'Requestor',
 }
 
@@ -168,7 +171,11 @@ export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
             textAlign: 'left',
           }}
         >
-          <Avatar src={session?.image} alt={displayName} sx={{ height: 36, width: 36 }}>
+          <Avatar
+            src={session?.image ?? undefined}
+            alt={displayName}
+            sx={{ height: 36, width: 36 }}
+          >
             {getInitials(session?.firstName, session?.lastName)}
           </Avatar>
           <Box sx={{ display: { xs: 'none', sm: 'block' }, minWidth: 0 }}>

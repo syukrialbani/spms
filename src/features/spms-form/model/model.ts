@@ -4,12 +4,8 @@ import {
   closedStatusOptions,
   defaultBaType,
   deliveryStatusOptions,
-  regionalOptions,
   reservationStatusOptions,
   returnStatusOptions,
-  severityOptions,
-  slaHourOptions,
-  statusTransactionOptions,
   stockStatusOptions,
   systemLabelOptions,
 } from '@entities/spms'
@@ -254,9 +250,7 @@ export const spmsRequestValidationSchema = Yup.object({
       (value, context) =>
         context.parent.customer !== 'Telkom' || Boolean(value?.trim()),
     ),
-  regional: Yup.string()
-    .oneOf([...regionalOptions], 'Regional tidak valid')
-    .required('Regional wajib diisi'),
+  regional: Yup.string().trim().required('Regional wajib diisi'),
   siteName: Yup.string().trim().required('Site name wajib diisi'),
   categoryMaterial: Yup.string()
     .trim()
@@ -287,12 +281,8 @@ export const spmsRequestValidationSchema = Yup.object({
   reservationStatus: Yup.string()
     .oneOf([...reservationStatusOptions], 'Reservation status tidak valid')
     .required('Reservation status wajib diisi'),
-  severity: Yup.string()
-    .oneOf([...severityOptions], 'Severity tidak valid')
-    .required('Severity wajib diisi'),
-  slaHours: Yup.string()
-    .oneOf([...slaHourOptions], 'SLA tidak valid')
-    .required('SLA wajib diisi'),
+  severity: Yup.string().trim().required('Severity wajib diisi'),
+  slaHours: Yup.string().trim().required('SLA wajib diisi'),
   awbTransfer: Yup.string().trim(),
   pmArea: Yup.string().trim().required('PM area wajib diisi'),
   baNumber: Yup.string().trim().required('BA number wajib diisi'),
@@ -385,6 +375,6 @@ export const spmsRequestValidationSchema = Yup.object({
     .required('Email requestor wajib diisi'),
   requestorPhone: Yup.string().trim().required('No HP requestor wajib diisi'),
   statusTransaction: Yup.string()
-    .oneOf([...statusTransactionOptions], 'Status transaction tidak valid')
+    .trim()
     .required('Status transaction wajib diisi'),
 })

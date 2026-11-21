@@ -1,6 +1,9 @@
+import { useAuth } from '@features/auth'
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded'
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded'
+import GroupRoundedIcon from '@mui/icons-material/GroupRounded'
 import LocalShippingRoundedIcon from '@mui/icons-material/LocalShippingRounded'
+import StorageRoundedIcon from '@mui/icons-material/StorageRounded'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import List from '@mui/material/List'
@@ -15,27 +18,49 @@ type MainNavigationProps = {
   onNavigate?: () => void
 }
 
+const adminRoles = new Set(['SUPER_ADMIN', 'ADMIN_1', 'ADMIN_2', 'ADMIN_3'])
+
 const navigationItems = [
   {
     label: 'Dashboard',
     path: '/dashboard',
     icon: <DashboardRoundedIcon />,
+    adminOnly: false,
   },
   {
     label: 'SPMS List',
     path: '/spms',
     icon: <AssignmentRoundedIcon />,
+    adminOnly: false,
   },
   {
     label: 'Delivery Order',
     path: '/delivery-order',
     icon: <LocalShippingRoundedIcon />,
+    adminOnly: false,
+  },
+  {
+    label: 'Master Data',
+    path: '/master-data',
+    icon: <StorageRoundedIcon />,
+    adminOnly: true,
+  },
+  {
+    label: 'User Management',
+    path: '/users',
+    icon: <GroupRoundedIcon />,
+    adminOnly: true,
   },
 ]
 
 export function MainNavigation({ onNavigate }: MainNavigationProps) {
   const location = useLocation()
   const navigate = useNavigate()
+  const { session } = useAuth()
+  const isAdmin = Boolean(session?.role && adminRoles.has(session.role))
+  const visibleItems = navigationItems.filter(
+    (item) => !item.adminOnly || isAdmin,
+  )
 
   return (
     <Box
@@ -71,7 +96,7 @@ export function MainNavigation({ onNavigate }: MainNavigationProps) {
         <AviatBrand />
       </Box>
       <List sx={{ flexGrow: 1, px: { xs: 1.25, md: 1.5 }, py: 2 }}>
-        {navigationItems.map((item) => {
+        {visibleItems.map((item) => {
           const selected = location.pathname.startsWith(item.path)
 
           return (
