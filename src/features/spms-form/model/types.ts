@@ -2,7 +2,12 @@ import type { ReactNode } from 'react'
 
 import type { SpmsMaterialFormValues, SpmsRequestFormValues } from './model'
 
-export type SpmsApprovalRole = 'ADMIN_1' | 'ADMIN_2' | 'ADMIN_3' | 'REQUESTOR'
+export type SpmsApprovalRole =
+  | 'SUPER_ADMIN'
+  | 'ADMIN_1'
+  | 'ADMIN_2'
+  | 'ADMIN_3'
+  | 'REQUESTOR'
 
 export type SpmsRequestFormProps = {
   currentRole?: SpmsApprovalRole

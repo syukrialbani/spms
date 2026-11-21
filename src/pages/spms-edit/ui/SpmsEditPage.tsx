@@ -23,7 +23,6 @@ import Alert from '@mui/material/Alert'
 import Snackbar from '@mui/material/Snackbar'
 import { AppButton } from '@shared/ui/AppButton'
 import { FullPageLoader } from '@shared/ui/FullPageLoader'
-import { useDevRole } from '@shared/lib/dev-role'
 import { PageHeader } from '@shared/ui/PageHeader'
 import { useCallback, useMemo, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
@@ -120,8 +119,22 @@ const getCurrentRole = (
   role: string | undefined,
   username: string | undefined,
 ): SpmsApprovalRole => {
+  if (
+    role === 'SUPER_ADMIN' ||
+    role === 'ADMIN_1' ||
+    role === 'ADMIN_2' ||
+    role === 'ADMIN_3' ||
+    role === 'REQUESTOR'
+  ) {
+    return role
+  }
+
   const identity = `${role ?? ''} ${username ?? ''}`.toLowerCase()
   const compactIdentity = identity.replace(/[\s_-]/g, '')
+
+  if (compactIdentity.includes('superadmin')) {
+    return 'SUPER_ADMIN'
+  }
 
   if (
     compactIdentity.includes('admin3') ||
@@ -137,7 +150,11 @@ const getCurrentRole = (
     return 'ADMIN_2'
   }
 
-  if (identity.includes('field') || identity.includes('user')) {
+  if (
+    identity.includes('requestor') ||
+    identity.includes('field') ||
+    identity.includes('user')
+  ) {
     return 'REQUESTOR'
   }
 
@@ -258,12 +275,10 @@ const getInitialValues = (
 export function SpmsEditPage() {
   const navigate = useNavigate()
   const { session } = useAuth()
-  const { role: roleOverride } = useDevRole()
   const { id } = useParams()
   const { data: record, isLoading } = useSpmsDetailQuery(id)
   const { mutateAsync: updateSpms } = useUpdateSpmsMutation(id)
-  const currentRole =
-    roleOverride ?? getCurrentRole(session?.role, session?.username)
+  const currentRole = getCurrentRole(session?.role, session?.username)
   const currentUserName =
     session?.username?.toUpperCase() ||
     `${session?.firstName ?? ''} ${session?.lastName ?? ''}`.trim() ||

@@ -1,4 +1,3 @@
-import { spmsStorage } from './storage'
 import {
   getDeliveryWorkflowStatus,
   getPickupWorkflowStatus,
@@ -15,9 +14,6 @@ import type {
 export type DeliveryUploadStatus = DeliveryWorkflowStatus
 export type PickupUploadStatus = ReturnStatus
 export type TicketStatus = SpmsStatus
-
-export const getSpmsRecordById = (id: string | undefined) =>
-  spmsStorage.getById(id)
 
 export const getSpmsRecordMaterials = (
   record: SpmsRecord,

@@ -17,13 +17,11 @@ export type {
   DeliveryOrderListResponse,
   ProcessDoPayload,
 } from './api/deliveryOrderApi'
-export { deliveryOrderRecords } from './model/mock'
 export {
   deliveryOrderStatuses,
   getDeliveryOrderStatusColor,
   getDeliveryOrderStatusLabel,
 } from './model/status'
-export { deliveryOrderStorage } from './model/storage'
 export type {
   DeliveryOrderKind,
   DeliveryOrderMaterialItem,

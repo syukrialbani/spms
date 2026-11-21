@@ -66,9 +66,10 @@ export function SpmsRequestForm({
   const [isUploadingFile, setIsUploadingFile] = useState(false)
   const confirm = useConfirmation()
   const isCreateMode = mode === 'create'
-  const canApprove1 = currentRole === 'ADMIN_1'
-  const canApprove2 = currentRole === 'ADMIN_2'
-  const canCloseCustomer = currentRole === 'ADMIN_3'
+  const isSuperAdmin = currentRole === 'SUPER_ADMIN'
+  const canApprove1 = isSuperAdmin || currentRole === 'ADMIN_1'
+  const canApprove2 = isSuperAdmin || currentRole === 'ADMIN_2'
+  const canCloseCustomer = isSuperAdmin || currentRole === 'ADMIN_3'
 
   const formik = useFormik<SpmsRequestFormValues>({
     initialValues,

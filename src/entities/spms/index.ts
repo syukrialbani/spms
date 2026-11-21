@@ -7,8 +7,6 @@ export {
   useUpdateSpmsMutation,
 } from './api/useSpmsQueries'
 export type { SpmsListParams, SpmsListResponse } from './api/spmsApi'
-export { spmsRecords } from './model/mock'
-export { spmsStorage } from './model/storage'
 export { getMonthlySpmsAnalytics } from './model/analytics'
 export { getAutoPickupStatus, getSlaHoursForSeverity } from './model/workflow'
 export {
@@ -51,7 +49,6 @@ export type { CustomerOption, DopReference } from './model/options'
 export {
   getDeliveryUploadStatus,
   getPickupUploadStatus,
-  getSpmsRecordById,
   getSpmsRecordMaterials,
   getTicketStatus,
   isDeliveryApprovalComplete,

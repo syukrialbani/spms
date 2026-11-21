@@ -1,27 +1,16 @@
 import { LogoutButton, useAuth } from '@features/auth'
-import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded'
-import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
 import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded'
-import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded'
 import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded'
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
 import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded'
 import AppBar from '@mui/material/AppBar'
 import Avatar from '@mui/material/Avatar'
 import Box from '@mui/material/Box'
-import ButtonBase from '@mui/material/ButtonBase'
-import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
-import ListItemIcon from '@mui/material/ListItemIcon'
-import ListItemText from '@mui/material/ListItemText'
-import Menu from '@mui/material/Menu'
-import MenuItem from '@mui/material/MenuItem'
 import Toolbar from '@mui/material/Toolbar'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { useColorMode } from '@shared/lib/color-mode'
-import { devRoleLabels, devRoleOptions, useDevRole } from '@shared/lib/dev-role'
-import { useState, type MouseEvent } from 'react'
 import { useLocation } from 'react-router-dom'
 
 type MainAppBarProps = {
@@ -35,6 +24,14 @@ const pageTitles: Record<string, string> = {
   '/spms/add': 'Add SPMS',
   '/delivery-order': 'Delivery Order',
   '/delivery-order/create': 'Create Delivery Order',
+}
+
+const roleLabels: Record<string, string> = {
+  SUPER_ADMIN: 'Super Admin',
+  ADMIN_1: 'Admin 1',
+  ADMIN_2: 'Admin 2',
+  ADMIN_3: 'Admin 3',
+  REQUESTOR: 'Requestor',
 }
 
 const getInitials = (firstName?: string, lastName?: string) =>
@@ -66,22 +63,13 @@ export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
   const location = useLocation()
   const { session } = useAuth()
   const { mode, toggleMode } = useColorMode()
-  const { clearRole, role: devRole, setRole } = useDevRole()
-  const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null)
   const title = getPageTitle(location.pathname)
   const displayName = session
     ? `${session.firstName} ${session.lastName}`
     : 'SPMS User'
-  const activeRoleLabel = devRole ? devRoleLabels[devRole] : 'Backend role'
-  const profileMenuOpen = Boolean(profileAnchor)
-
-  const openProfileMenu = (event: MouseEvent<HTMLElement>) => {
-    setProfileAnchor(event.currentTarget)
-  }
-
-  const closeProfileMenu = () => {
-    setProfileAnchor(null)
-  }
+  const activeRoleLabel = session?.role
+    ? (roleLabels[session.role] ?? session.role)
+    : 'User'
 
   return (
     <AppBar
@@ -169,26 +157,15 @@ export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
             {mode === 'light' ? <DarkModeRoundedIcon /> : <LightModeRoundedIcon />}
           </IconButton>
         </Tooltip>
-        <ButtonBase
-          aria-controls={profileMenuOpen ? 'profile-role-menu' : undefined}
-          aria-expanded={profileMenuOpen ? 'true' : undefined}
-          aria-haspopup="menu"
-          onClick={openProfileMenu}
+        <Box
           sx={{
             alignItems: 'center',
-            borderRadius: 1,
             display: 'flex',
             gap: 1,
             maxWidth: { xs: 46, sm: 220 },
             minWidth: 0,
             p: { xs: 0.25, sm: 0.75 },
             textAlign: 'left',
-            '&:hover': {
-              bgcolor: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? 'rgba(128, 205, 255, 0.08)'
-                  : 'rgba(29, 112, 183, 0.07)',
-            },
           }}
         >
           <Avatar src={session?.image} alt={displayName} sx={{ height: 36, width: 36 }}>
@@ -202,77 +179,7 @@ export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
               {activeRoleLabel}
             </Typography>
           </Box>
-          <ExpandMoreRoundedIcon
-            fontSize="small"
-            sx={{ display: { xs: 'none', sm: 'block' }, flexShrink: 0 }}
-          />
-        </ButtonBase>
-        <Menu
-          id="profile-role-menu"
-          anchorEl={profileAnchor}
-          open={profileMenuOpen}
-          onClose={closeProfileMenu}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          slotProps={{
-            paper: {
-              sx: {
-                border: '1px solid',
-                borderColor: (theme) =>
-                  theme.palette.mode === 'dark'
-                    ? 'rgba(128, 205, 255, 0.18)'
-                    : 'rgba(18, 73, 126, 0.12)',
-                borderRadius: 1,
-                minWidth: 260,
-                mt: 1,
-              },
-            },
-          }}
-        >
-          <Box sx={{ px: 2, py: 1.25 }}>
-            <Typography sx={{ fontWeight: 900 }} variant="body2">
-              Role Testing
-            </Typography>
-            <Typography color="text.secondary" variant="caption">
-              Sementara sampai role dari backend tersedia.
-            </Typography>
-          </Box>
-          <Divider />
-          <MenuItem
-            selected={!devRole}
-            onClick={() => {
-              clearRole()
-              closeProfileMenu()
-            }}
-          >
-            <ListItemIcon>
-              {!devRole ? <CheckRoundedIcon fontSize="small" /> : null}
-            </ListItemIcon>
-            <ListItemText primary="Backend role" secondary="Ikuti role session" />
-          </MenuItem>
-          {devRoleOptions.map((option) => (
-            <MenuItem
-              key={option.value}
-              selected={devRole === option.value}
-              onClick={() => {
-                setRole(option.value)
-                closeProfileMenu()
-              }}
-            >
-              <ListItemIcon>
-                {devRole === option.value ? (
-                  <CheckRoundedIcon fontSize="small" />
-                ) : (
-                  <AdminPanelSettingsRoundedIcon fontSize="small" />
-                )}
-              </ListItemIcon>
-              <ListItemText
-                primary={option.label}
-                secondary={option.description}
-              />
-            </MenuItem>
-          ))}
-        </Menu>
+        </Box>
         <LogoutButton />
       </Toolbar>
     </AppBar>
