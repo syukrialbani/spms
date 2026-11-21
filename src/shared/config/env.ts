@@ -1,4 +1,4 @@
-const fallbackApiBaseUrl = 'https://dummyjson.com'
+const fallbackApiBaseUrl = 'http://localhost:3001/api'
 
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '')
 

@@ -5,7 +5,7 @@ import {
   getSpmsRecordMaterials,
   getTicketStatus,
   spmsStatuses,
-  spmsStorage,
+  useSpmsListQuery,
   type SpmsStatus,
 } from '@entities/spms'
 
@@ -14,7 +14,8 @@ export type SpmsStatusFilter = 'All' | SpmsStatus
 export function useSpmsList() {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<SpmsStatusFilter>('All')
-  const [records] = useState(() => spmsStorage.getAll())
+  const { data, isLoading } = useSpmsListQuery()
+  const records = useMemo(() => data?.data ?? [], [data])
   const statusCounts = useMemo(
     () =>
       (['All', ...spmsStatuses] as SpmsStatusFilter[]).reduce(
@@ -68,6 +69,7 @@ export function useSpmsList() {
   }, [records, search, status])
 
   return {
+    isLoading,
     rows,
     search,
     setSearch,

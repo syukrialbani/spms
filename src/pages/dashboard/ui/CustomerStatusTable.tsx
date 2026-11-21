@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   getSpmsStatusColor,
   spmsStatuses,
-  spmsStorage,
+  useSpmsListQuery,
   type SpmsRecord,
   type SpmsStatus,
 } from '@entities/spms'
@@ -47,7 +47,8 @@ export function CustomerStatusTable() {
   const navigate = useNavigate()
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [activePopover, setActivePopover] = useState<ActivePopover | null>(null)
-  const records = useMemo(() => spmsStorage.getAll(), [])
+  const { data } = useSpmsListQuery()
+  const records = useMemo(() => data?.data ?? [], [data])
 
   const summaries = useMemo(() => {
     const customerMap = new Map<string, CustomerStatusSummary>()

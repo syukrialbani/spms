@@ -1,7 +1,8 @@
 import {
-  deliveryOrderStorage,
   getDeliveryOrderStatusColor,
   getDeliveryOrderStatusLabel,
+  useDeliveryOrderDetailQuery,
+  useUpdateDoMutation,
   type DeliveryOrderMaterialItem,
   type DeliveryOrderRecord,
   type DeliveryOrderStatus,
@@ -22,8 +23,10 @@ import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
+import { filesApi } from '@shared/api'
 import { AppButton } from '@shared/ui/AppButton'
 import { FormTextField } from '@shared/ui/FormTextField'
+import { FullPageLoader } from '@shared/ui/FullPageLoader'
 import { LiquidPanel } from '@shared/ui/LiquidPanel'
 import { PageHeader } from '@shared/ui/PageHeader'
 import { useState, type ReactNode } from 'react'
@@ -51,6 +54,7 @@ type EditFormState = {
   statusCheck: string
   statusDo: DeliveryOrderStatus
   ticketNumber: string
+  uploadDoFileId: string
   uploadDoFileName: string
   weight: string
 }
@@ -93,6 +97,7 @@ const createFormState = (order: DeliveryOrderRecord): EditFormState => ({
   statusCheck: order.statusCheck ?? '',
   statusDo: order.statusDo,
   ticketNumber: order.ticketNumber ?? '',
+  uploadDoFileId: order.uploadDoFileId ?? '',
   uploadDoFileName: order.uploadDoFileName ?? '',
   weight: order.weight ?? '',
 })
@@ -155,13 +160,16 @@ const canUploadDo = (status: DeliveryOrderStatus) =>
 export function DeliveryOrderEditPage() {
   const navigate = useNavigate()
   const { deliveryOrder } = useParams()
-  const order = deliveryOrder
-    ? deliveryOrderStorage.getByDeliveryOrder(deliveryOrder)
-    : null
+  const { data: order, isLoading } = useDeliveryOrderDetailQuery(deliveryOrder)
+  const { mutateAsync: updateDo, isPending: isSaving } = useUpdateDoMutation()
   const [activeTab, setActiveTab] = useState(0)
-  const [formState, setFormState] = useState<EditFormState | null>(() =>
-    order ? createFormState(order) : null,
-  )
+  const [isUploadingFile, setIsUploadingFile] = useState(false)
+  const [draftState, setDraftState] = useState<EditFormState | null>(null)
+  const formState = draftState ?? (order ? createFormState(order) : null)
+
+  if (isLoading) {
+    return <FullPageLoader />
+  }
 
   if (!order || !formState) {
     return <Navigate to="/delivery-order" replace />
@@ -171,9 +179,10 @@ export function DeliveryOrderEditPage() {
     key: Key,
     value: EditFormState[Key],
   ) => {
-    setFormState((current) =>
-      current ? { ...current, [key]: value } : current,
-    )
+    setDraftState((current) => ({
+      ...(current ?? createFormState(order)),
+      [key]: value,
+    }))
   }
 
   const updateMaterial = (
@@ -181,43 +190,43 @@ export function DeliveryOrderEditPage() {
     key: keyof DeliveryOrderMaterialItem,
     value: string,
   ) => {
-    setFormState((current) =>
-      current
-        ? {
-            ...current,
-            materials: current.materials.map((material, itemIndex) =>
-              itemIndex === index
-                ? {
-                    ...material,
-                    [key]: key === 'qty' ? Number(value) || 1 : value,
-                  }
-                : material,
-            ),
-          }
-        : current,
-    )
+    setDraftState((current) => {
+      const base = current ?? createFormState(order)
+
+      return {
+        ...base,
+        materials: base.materials.map((material, itemIndex) =>
+          itemIndex === index
+            ? {
+                ...material,
+                [key]: key === 'qty' ? Number(value) || 1 : value,
+              }
+            : material,
+        ),
+      }
+    })
   }
 
   const addMaterial = () => {
-    setFormState((current) =>
-      current
-        ? { ...current, materials: [...current.materials, createEmptyMaterial()] }
-        : current,
-    )
+    setDraftState((current) => {
+      const base = current ?? createFormState(order)
+
+      return { ...base, materials: [...base.materials, createEmptyMaterial()] }
+    })
   }
 
   const removeMaterial = (index: number) => {
-    setFormState((current) =>
-      current
-        ? {
-            ...current,
-            materials:
-              current.materials.length === 1
-                ? [createEmptyMaterial()]
-                : current.materials.filter((_, itemIndex) => itemIndex !== index),
-          }
-        : current,
-    )
+    setDraftState((current) => {
+      const base = current ?? createFormState(order)
+
+      return {
+        ...base,
+        materials:
+          base.materials.length === 1
+            ? [createEmptyMaterial()]
+            : base.materials.filter((_, itemIndex) => itemIndex !== index),
+      }
+    })
   }
 
   const getNextStatus = (): DeliveryOrderStatus => {
@@ -249,36 +258,40 @@ export function DeliveryOrderEditPage() {
     return formState.statusDo
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const nextStatus = getNextStatus()
 
-    deliveryOrderStorage.update(order.deliveryOrder, {
-      area: formState.area,
-      awbTransfer: formState.awbTransfer,
-      batch: formState.batch,
-      customer: formState.customer,
-      datePickup: formState.datePickup,
-      dop: formState.dop,
-      expedition: formState.expedition,
-      materialSerialNumbers: formState.materials.map(
-        (material) => material.serialNumber ?? '',
-      ),
-      materials: formState.materials,
-      onDeliveryDate: formState.onDeliveryDate,
-      orderNumber: formState.orderNumber,
-      packaging: formState.packaging,
-      qtyBox: formState.qtyBox,
-      receiveDate: formState.receiveDate,
-      requestDate: formState.requestDate,
-      reviewTime: formState.reviewTime,
-      service: formState.service,
-      severity: formState.severity,
-      siteName: formState.siteName,
-      statusCheck: formState.statusCheck,
-      statusDo: nextStatus,
-      ticketNumber: formState.ticketNumber,
-      uploadDoFileName: formState.uploadDoFileName,
-      weight: formState.weight,
+    await updateDo({
+      deliveryOrder: order.deliveryOrder,
+      payload: {
+        area: formState.area,
+        awbTransfer: formState.awbTransfer,
+        batch: formState.batch,
+        customer: formState.customer,
+        datePickup: formState.datePickup,
+        dop: formState.dop,
+        expedition: formState.expedition,
+        materialSerialNumbers: formState.materials.map(
+          (material) => material.serialNumber ?? '',
+        ),
+        materials: formState.materials,
+        onDeliveryDate: formState.onDeliveryDate,
+        orderNumber: formState.orderNumber,
+        packaging: formState.packaging,
+        qtyBox: formState.qtyBox,
+        receiveDate: formState.receiveDate,
+        requestDate: formState.requestDate,
+        reviewTime: formState.reviewTime,
+        service: formState.service,
+        severity: formState.severity,
+        siteName: formState.siteName,
+        statusCheck: formState.statusCheck,
+        statusDo: nextStatus,
+        ticketNumber: formState.ticketNumber,
+        uploadDoFileId: formState.uploadDoFileId || undefined,
+        uploadDoFileName: formState.uploadDoFileName,
+        weight: formState.weight,
+      },
     })
 
     navigate(`/delivery-order/${order.deliveryOrder}`)
@@ -680,12 +693,12 @@ export function DeliveryOrderEditPage() {
                     />
                     <Button
                       component="label"
-                      disabled={uploadDisabled}
+                      disabled={uploadDisabled || isUploadingFile}
                       startIcon={<CloudUploadRoundedIcon />}
                       type="button"
                       variant="contained"
                     >
-                      Select File
+                      {isUploadingFile ? 'Uploading...' : 'Select File'}
                       <input
                         hidden
                         accept="image/*,.pdf"
@@ -693,9 +706,24 @@ export function DeliveryOrderEditPage() {
                         onChange={(event) => {
                           const file = event.target.files?.[0]
 
-                          if (file) {
-                            updateForm('uploadDoFileName', file.name)
+                          if (!file) {
+                            return
                           }
+
+                          void (async () => {
+                            setIsUploadingFile(true)
+                            try {
+                              const uploaded = await filesApi.upload({
+                                file,
+                                category: 'DO_DOCUMENT',
+                                deliveryOrderId: order.id,
+                              })
+                              updateForm('uploadDoFileId', uploaded.id)
+                              updateForm('uploadDoFileName', uploaded.originalName)
+                            } finally {
+                              setIsUploadingFile(false)
+                            }
+                          })()
                         }}
                       />
                     </Button>
@@ -772,12 +800,16 @@ export function DeliveryOrderEditPage() {
               Cancel
             </Button>
             <AppButton
-              disabled={activeTab === 1 && uploadDisabled}
-              onClick={handleSave}
+              disabled={
+                isSaving || isUploadingFile || (activeTab === 1 && uploadDisabled)
+              }
+              onClick={() => {
+                void handleSave()
+              }}
               startIcon={<SaveRoundedIcon />}
               type="button"
             >
-              Save {tabLabel}
+              {isSaving ? 'Saving...' : `Save ${tabLabel}`}
             </AppButton>
           </Stack>
         </Stack>

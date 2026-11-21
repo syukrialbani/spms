@@ -1,15 +1,14 @@
 import {
-  deliveryOrderStorage,
   deliveryOrderStatuses,
   getDeliveryOrderStatusColor,
   getDeliveryOrderStatusLabel,
+  useDeliveryOrdersQuery,
+  useProcessDoMutation,
+  useRejectDoMutation,
   type DeliveryOrderRecord,
   type DeliveryOrderStatus,
 } from '@entities/delivery-order'
-import {
-  spmsStorage,
-  type SpmsRecord,
-} from '@entities/spms'
+import { useSpmsListQuery, type SpmsRecord } from '@entities/spms'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import BlockRoundedIcon from '@mui/icons-material/BlockRounded'
 import EditRoundedIcon from '@mui/icons-material/EditRounded'
@@ -110,9 +109,11 @@ const multilineCell = (value: string) => (
 export function DeliveryOrderPage() {
   const navigate = useNavigate()
   const confirm = useConfirmation()
-  const [orders, setOrders] = useState<DeliveryOrderRecord[]>(() =>
-    deliveryOrderStorage.getAll(),
-  )
+  const { data: ordersResponse } = useDeliveryOrdersQuery()
+  const { data: spmsResponse } = useSpmsListQuery()
+  const { mutateAsync: processDo } = useProcessDoMutation()
+  const { mutateAsync: rejectDo } = useRejectDoMutation()
+  const orders = useMemo(() => ordersResponse?.data ?? [], [ordersResponse])
   const [processTarget, setProcessTarget] =
     useState<DeliveryOrderRecord | null>(null)
   const [processForm, setProcessForm] = useState<ProcessFormState>(() =>
@@ -121,7 +122,7 @@ export function DeliveryOrderPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] =
     useState<DeliveryOrderStatusFilter>('All')
-  const spmsRecords = useMemo(() => spmsStorage.getAll(), [])
+  const spmsRecords = useMemo(() => spmsResponse?.data ?? [], [spmsResponse])
   const spmsById = useMemo(
     () => new Map(spmsRecords.map((record) => [record.id, record])),
     [spmsRecords],
@@ -208,59 +209,42 @@ export function DeliveryOrderPage() {
     setProcessForm(createProcessForm())
   }
 
-  const handleSubmitProcess = () => {
+  const handleSubmitProcess = async () => {
     if (!processTarget) {
       return
     }
 
-    const nextOrder = deliveryOrderStorage.update(processTarget.deliveryOrder, {
-      datePickup: processForm.datePickup,
-      onDeliveryDate: processForm.onDeliveryDate,
-      packaging: processForm.packaging,
-      qtyBox: processForm.qtyBox,
-      statusDo: 'ON_PROGRESS',
-      weight: processForm.weight,
+    await processDo({
+      deliveryOrder: processTarget.deliveryOrder,
+      payload: {
+        datePickup: processForm.datePickup,
+        onDeliveryDate: processForm.onDeliveryDate,
+        packaging: processForm.packaging,
+        qtyBox: processForm.qtyBox,
+        weight: processForm.weight,
+      },
     })
-
-    if (nextOrder) {
-      setOrders((current) =>
-        current.map((order) =>
-          order.deliveryOrder === nextOrder.deliveryOrder ? nextOrder : order,
-        ),
-      )
-    }
 
     closeProcessDialog()
   }
 
-  const handleReject = useCallback(async (record: DeliveryOrderRecord) => {
-    const confirmed = await confirm({
-      confirmLabel: 'Reject',
-      description: `${record.deliveryOrder} akan ditandai Rejected tanpa masuk ke halaman detail.`,
-      title: 'Reject Delivery Order?',
-      tone: 'danger',
-    })
+  const handleReject = useCallback(
+    async (record: DeliveryOrderRecord) => {
+      const confirmed = await confirm({
+        confirmLabel: 'Reject',
+        description: `${record.deliveryOrder} akan ditandai Rejected tanpa masuk ke halaman detail.`,
+        title: 'Reject Delivery Order?',
+        tone: 'danger',
+      })
 
-    if (!confirmed) {
-      return
-    }
+      if (!confirmed) {
+        return
+      }
 
-    const rejectedOrder = deliveryOrderStorage.update(record.deliveryOrder, {
-      reviewTime: new Date().toISOString().slice(0, 16),
-      statusCheck: 'Rejected',
-      statusDo: 'REJECTED',
-    })
-
-    if (rejectedOrder) {
-      setOrders((current) =>
-        current.map((order) =>
-          order.deliveryOrder === rejectedOrder.deliveryOrder
-            ? rejectedOrder
-            : order,
-        ),
-      )
-    }
-  }, [confirm])
+      await rejectDo(record.deliveryOrder)
+    },
+    [confirm, rejectDo],
+  )
 
   const columns = useMemo<DataTableColumn<DeliveryOrderListRow>[]>(
     () => [
@@ -396,7 +380,7 @@ export function DeliveryOrderPage() {
             <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'center' }}>
               <Tooltip title="View">
                 <IconButton
-                  aria-label={`View ${record.orderNumber}`}
+                  aria-label={`View ${record.deliveryOrder}`}
                   onClick={() => navigate(`/delivery-order/${record.deliveryOrder}`)}
                   size="small"
                 >
@@ -410,7 +394,7 @@ export function DeliveryOrderPage() {
               >
                 <span>
                   <IconButton
-                    aria-label={`Process ${record.orderNumber}`}
+                    aria-label={`Process ${record.deliveryOrder}`}
                     disabled={processDisabled}
                     onClick={() => openProcessDialog(record)}
                     size="small"
@@ -421,7 +405,7 @@ export function DeliveryOrderPage() {
               </Tooltip>
               <Tooltip title="Edit">
                 <IconButton
-                  aria-label={`Edit ${record.orderNumber}`}
+                  aria-label={`Edit ${record.deliveryOrder}`}
                   onClick={() =>
                     navigate(`/delivery-order/${record.deliveryOrder}/edit`)
                   }
@@ -435,7 +419,7 @@ export function DeliveryOrderPage() {
               >
                 <span>
                   <IconButton
-                    aria-label={`Reject ${record.orderNumber}`}
+                    aria-label={`Reject ${record.deliveryOrder}`}
                     color="error"
                     disabled={rejectDisabled}
                     onClick={() => {
@@ -592,6 +576,8 @@ export function DeliveryOrderPage() {
         columns={columns}
         getRowId={(record) => record.id}
         emptyLabel="Delivery order belum tersedia"
+        pagination
+        initialRowsPerPage={10}
         minWidth={2860}
       />
       <Dialog
@@ -671,7 +657,12 @@ export function DeliveryOrderPage() {
           >
             Cancel
           </Button>
-          <AppButton onClick={handleSubmitProcess} type="button">
+          <AppButton
+            onClick={() => {
+              void handleSubmitProcess()
+            }}
+            type="button"
+          >
             Submit
           </AppButton>
         </DialogActions>

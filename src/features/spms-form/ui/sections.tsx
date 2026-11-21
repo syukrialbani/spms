@@ -40,16 +40,22 @@ import {
   slaHourOptions,
   statusTransactionOptions,
   typeMaterialOptions,
-  type SpmsMaterialFormValues,
-  type SpmsRequestFormValues,
-} from './model'
+} from '@entities/spms'
+import type {
+  SpmsMaterialFormValues,
+  SpmsRequestFormValues,
+} from '../model/model'
+import type {
+  EvidenceFieldName,
+  FieldName,
+  MaterialFieldName,
+} from '../model/types'
 import {
   ApprovalRadioGroup,
   EvidenceUpload,
   FieldGrid,
   FormSection,
 } from './parts'
-import type { EvidenceFieldName, FieldName, MaterialFieldName } from './types'
 
 type DetailRequestFieldsProps = {
   formik: FormikProps<SpmsRequestFormValues>

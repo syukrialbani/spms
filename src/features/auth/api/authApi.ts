@@ -17,3 +17,12 @@ export const loginRequest = (credentials: LoginCredentials) =>
       skipGlobalError: true,
     },
   )
+
+export const logoutRequest = (refreshToken?: string | null) =>
+  apiClient.post<{ message: string }, { refreshToken?: string }>(
+    '/auth/logout',
+    refreshToken ? { refreshToken } : {},
+    {
+      skipGlobalError: true,
+    },
+  )

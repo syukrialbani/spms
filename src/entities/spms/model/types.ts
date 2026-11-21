@@ -103,7 +103,9 @@ export type SpmsRecord = {
   pickupDate?: string
   evidenceFileName?: string
   deliveryEvidenceFileName?: string
+  deliveryEvidenceFileId?: string
   pickupEvidenceFileName?: string
+  pickupEvidenceFileId?: string
   evidenceNotes?: string
   approval1By?: string
   approval1Status?: WorkflowApprovalStatus

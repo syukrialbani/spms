@@ -1,20 +1,24 @@
 import {
   getReturnStatusColor,
   getSeverityColor,
-  getSpmsRecordById,
   getSpmsRecordMaterials,
   getSpmsStatusColor,
+  useSpmsDetailQuery,
 } from '@entities/spms'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import EditRoundedIcon from '@mui/icons-material/EditRounded'
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import { filesApi } from '@shared/api'
 import { formatDate } from '@shared/lib/format'
+import { FullPageLoader } from '@shared/ui/FullPageLoader'
 import { LiquidPanel } from '@shared/ui/LiquidPanel'
 import { PageHeader } from '@shared/ui/PageHeader'
+import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 
 type DetailItem = {
@@ -99,12 +103,30 @@ function DetailSection({
 }
 
 function EvidencePanel({
+  fileId,
   fileName,
   title,
 }: {
+  fileId?: string
   fileName?: string
   title: string
 }) {
+  const [isOpening, setIsOpening] = useState(false)
+
+  const handleOpenPreview = async () => {
+    if (!fileId) {
+      return
+    }
+
+    setIsOpening(true)
+    try {
+      const { url } = await filesApi.getPresignedUrl(fileId)
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } finally {
+      setIsOpening(false)
+    }
+  }
+
   return (
     <Box
       sx={{
@@ -151,6 +173,20 @@ function EvidencePanel({
           variant="outlined"
           sx={{ maxWidth: '100%' }}
         />
+        {fileId ? (
+          <Button
+            disabled={isOpening}
+            onClick={() => {
+              void handleOpenPreview()
+            }}
+            size="small"
+            startIcon={<OpenInNewRoundedIcon fontSize="small" />}
+            variant="outlined"
+            sx={{ background: 'transparent', boxShadow: 'none' }}
+          >
+            {isOpening ? 'Opening...' : 'Preview / Download'}
+          </Button>
+        ) : null}
       </Stack>
     </Box>
   )
@@ -159,7 +195,11 @@ function EvidencePanel({
 export function SpmsDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams()
-  const record = getSpmsRecordById(id)
+  const { data: record, isLoading } = useSpmsDetailQuery(id)
+
+  if (isLoading) {
+    return <FullPageLoader />
+  }
 
   if (!record) {
     return <Navigate to="/spms" replace />
@@ -371,10 +411,12 @@ export function SpmsDetailPage() {
             >
               <EvidencePanel
                 title="Berita Acara Delivery"
+                fileId={record.deliveryEvidenceFileId}
                 fileName={deliveryEvidence}
               />
               <EvidencePanel
                 title="Berita Acara Pickup"
+                fileId={record.pickupEvidenceFileId}
                 fileName={record.pickupEvidenceFileName}
               />
             </Stack>

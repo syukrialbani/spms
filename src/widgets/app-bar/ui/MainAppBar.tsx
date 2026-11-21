@@ -33,21 +33,33 @@ const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/spms': 'SPMS List',
   '/spms/add': 'Add SPMS',
+  '/delivery-order': 'Delivery Order',
+  '/delivery-order/create': 'Create Delivery Order',
 }
 
 const getInitials = (firstName?: string, lastName?: string) =>
   `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}` || 'SP'
 
 const getPageTitle = (pathname: string) => {
-  if (pathname.endsWith('/edit')) {
-    return 'Edit SPMS'
+  if (pageTitles[pathname]) {
+    return pageTitles[pathname]
   }
 
-  if (pathname.startsWith('/spms/') && pathname !== '/spms/add') {
-    return 'SPMS Detail'
+  if (pathname.startsWith('/delivery-order/generate-pickup/')) {
+    return 'Generate DO Pickup'
   }
 
-  return pageTitles[pathname] ?? 'SPMS'
+  if (pathname.startsWith('/delivery-order/')) {
+    return pathname.endsWith('/edit')
+      ? 'Edit Delivery Order'
+      : 'Delivery Order Detail'
+  }
+
+  if (pathname.startsWith('/spms/')) {
+    return pathname.endsWith('/edit') ? 'Edit SPMS' : 'SPMS Detail'
+  }
+
+  return 'SPMS'
 }
 
 export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {

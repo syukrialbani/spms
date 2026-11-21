@@ -1,12 +1,16 @@
 import {
-  deliveryOrderStorage,
+  useCreateDoFromSpmsMutation,
+  useCreateStandaloneDoMutation,
   type DeliveryOrderMaterialItem,
 } from '@entities/delivery-order'
 import {
+  customerOptions,
   getDeliveryUploadStatus,
   getSpmsRecordMaterials,
   getTicketStatus,
-  spmsStorage,
+  supportDestinationMaterialOptions,
+  supportOriginMaterialOptions,
+  useSpmsListQuery,
   type SpmsRecord,
 } from '@entities/spms'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
@@ -29,11 +33,6 @@ import { FormMultiAutocomplete } from '@shared/ui/FormMultiAutocomplete'
 import { FormTextField } from '@shared/ui/FormTextField'
 import { LiquidPanel } from '@shared/ui/LiquidPanel'
 import { PageHeader } from '@shared/ui/PageHeader'
-import {
-  customerOptions,
-  supportDestinationMaterialOptions,
-  supportOriginMaterialOptions,
-} from '@shared/ui/SpmsRequestForm'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -187,22 +186,23 @@ const toDeliveryOrderMaterials = (
 export function DeliveryOrderCreatePage() {
   const navigate = useNavigate()
   const confirm = useConfirmation()
+  const { data: spmsResponse } = useSpmsListQuery()
+  const { mutateAsync: createDoFromSpms } = useCreateDoFromSpmsMutation()
+  const { mutateAsync: createStandaloneDo } = useCreateStandaloneDoMutation()
   const [formState, setFormState] = useState<DeliveryOrderFormState>(
     createDefaultFormState,
   )
   const availableSpms = useMemo(
     () =>
-      spmsStorage
-        .getAll()
-        .filter((record) =>
-          formState.doKind === 'DELIVERY'
-            ? getTicketStatus(record) === 'New'
-            : getDeliveryUploadStatus(record) === 'Closed Delivery' &&
-              record.closedStatus === 'CLOSED' &&
-              record.statusTransaction !== 'ARF' &&
-              !record.pickupDeliveryOrderNumber,
-        ),
-    [formState.doKind],
+      (spmsResponse?.data ?? []).filter((record) =>
+        formState.doKind === 'DELIVERY'
+          ? getTicketStatus(record) === 'New'
+          : getDeliveryUploadStatus(record) === 'Closed Delivery' &&
+            record.closedStatus === 'CLOSED' &&
+            record.statusTransaction !== 'ARF' &&
+            !record.pickupDeliveryOrderNumber,
+      ),
+    [formState.doKind, spmsResponse],
   )
   const selectedRecords = useMemo(
     () =>
@@ -361,52 +361,16 @@ export function DeliveryOrderCreatePage() {
         return
       }
 
-      const deliveryOrder =
-        formState.doKind === 'DELIVERY'
-          ? deliveryOrderStorage.createFromSpmsBatch(selectedRecords, {
-              awbTransfer: formState.awbTransfer,
-              expedition: formState.expedition,
-              materialSerialNumbers: formState.materialSerialNumbers,
-              service: formState.service,
-              supportDestinationMaterial: formState.supportDestinationMaterial,
-              supportOriginMaterial: formState.supportOriginMaterial,
-            })
-          : deliveryOrderStorage.createPickupFromSpmsBatch(selectedRecords, {
-              awbTransfer: formState.awbTransfer,
-              expedition: formState.expedition,
-              materialSerialNumbers: formState.materialSerialNumbers,
-              service: formState.service,
-              supportDestinationMaterial: formState.supportDestinationMaterial,
-              supportOriginMaterial: formState.supportOriginMaterial,
-            })
-
-      if (formState.doKind === 'DELIVERY') {
-        let serialIndex = 0
-
-        selectedRecords.forEach((record) => {
-          const recordMaterials = getSpmsRecordMaterials(record)
-          const materialSerialNumbers = formState.materialSerialNumbers.slice(
-            serialIndex,
-            serialIndex + recordMaterials.length,
-          )
-
-          serialIndex += recordMaterials.length
-
-          spmsStorage.attachDeliveryOrder(record.id, {
-            awbTransfer: formState.awbTransfer,
-            deliveryOrderNumber: deliveryOrder.deliveryOrder,
-            materialSerialNumbers,
-            supportDestinationMaterial: formState.supportDestinationMaterial,
-            supportOriginMaterial: formState.supportOriginMaterial,
-          })
-        })
-      } else {
-        selectedRecords.forEach((record) => {
-          spmsStorage.attachPickupDeliveryOrder(record.id, {
-            pickupDeliveryOrderNumber: deliveryOrder.deliveryOrder,
-          })
-        })
-      }
+      await createDoFromSpms({
+        kind: formState.doKind,
+        spmsRecordIds: selectedRecords.map((record) => record.id),
+        awbTransfer: formState.awbTransfer,
+        expedition: formState.expedition,
+        materialSerialNumbers: formState.materialSerialNumbers,
+        service: formState.service,
+        supportDestinationMaterial: formState.supportDestinationMaterial,
+        supportOriginMaterial: formState.supportOriginMaterial,
+      })
 
       navigate('/delivery-order')
       return
@@ -422,7 +386,7 @@ export function DeliveryOrderCreatePage() {
       return
     }
 
-    deliveryOrderStorage.createStandalone({
+    await createStandaloneDo({
       area: formState.manualArea,
       awbTransfer: formState.awbTransfer,
       customer: formState.manualCustomer,
@@ -430,9 +394,6 @@ export function DeliveryOrderCreatePage() {
       dop: formState.manualDop,
       expedition: formState.expedition,
       kind: formState.doKind,
-      materialSerialNumbers: formState.manualMaterials.map(
-        (material) => material.serialNumber,
-      ),
       materials: toDeliveryOrderMaterials(formState.manualMaterials),
       orderNumber: formState.manualOrderNumber,
       packaging: formState.packaging,

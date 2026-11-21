@@ -1,6 +1,7 @@
 import {
-  deliveryOrderStorage,
   getDeliveryOrderStatusLabel,
+  useDeliveryOrderDetailQuery,
+  useGeneratePickupDoMutation,
 } from '@entities/delivery-order'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import AddTaskRoundedIcon from '@mui/icons-material/AddTaskRounded'
@@ -11,6 +12,7 @@ import Typography from '@mui/material/Typography'
 import { useConfirmation } from '@shared/lib/confirmation'
 import { formatDate } from '@shared/lib/format'
 import { AppButton } from '@shared/ui/AppButton'
+import { FullPageLoader } from '@shared/ui/FullPageLoader'
 import { LiquidPanel } from '@shared/ui/LiquidPanel'
 import { PageHeader } from '@shared/ui/PageHeader'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
@@ -56,10 +58,30 @@ export function DeliveryOrderPickupPage() {
   const sourceDeliveryOrder = deliveryOrder
     ? decodeURIComponent(deliveryOrder)
     : ''
-  const draft = deliveryOrderStorage.createPickupDraft(sourceDeliveryOrder)
+  const { data: source, isLoading } = useDeliveryOrderDetailQuery(
+    sourceDeliveryOrder || undefined,
+  )
+  const { mutateAsync: generatePickup } = useGeneratePickupDoMutation()
 
-  if (!draft) {
+  if (isLoading) {
+    return <FullPageLoader />
+  }
+
+  if (!source || source.kind === 'PICKUP') {
     return <Navigate to="/delivery-order" replace />
+  }
+
+  const draft = {
+    ...source,
+    deliveryOrder: 'Will Generate by System',
+    statusDo: 'OPEN' as const,
+    service: 'PICKUP RETURN',
+    origin: source.destination,
+    originAddress: source.destinationAddress,
+    originPic: source.destinationPic,
+    destination: source.origin,
+    destinationAddress: source.originAddress,
+    destinationPic: source.originPic,
   }
 
   const handleCreatePickup = async () => {
@@ -74,7 +96,7 @@ export function DeliveryOrderPickupPage() {
       return
     }
 
-    deliveryOrderStorage.generatePickup(sourceDeliveryOrder)
+    await generatePickup(sourceDeliveryOrder)
     navigate('/delivery-order')
   }
 

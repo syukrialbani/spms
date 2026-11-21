@@ -7,7 +7,7 @@ import {
 } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { API_UNAUTHORIZED_EVENT } from '@shared/api/events'
-import { loginRequest } from '../api/authApi'
+import { loginRequest, logoutRequest } from '../api/authApi'
 import { AuthContext, type AuthContextValue } from './AuthContext'
 import { authSessionStorage } from './authSessionStorage'
 import type { AuthSession, LoginCredentials, LoginOptions } from './types'
@@ -35,6 +35,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [requestLogin])
 
   const logout = useCallback(() => {
+    const refreshToken = authSessionStorage.get()?.refreshToken
+
+    if (refreshToken) {
+      void logoutRequest(refreshToken).catch(() => undefined)
+    }
+
     authSessionStorage.clear()
     setSession(null)
     queryClient.clear()

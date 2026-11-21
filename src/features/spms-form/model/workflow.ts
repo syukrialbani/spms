@@ -115,25 +115,3 @@ export const normalizeFormMaterials = (values: SpmsRequestFormValues) => {
     quantity: '1',
   }))
 }
-
-export const getAutoPickupStatus = (
-  values: SpmsRequestFormValues,
-  deliveryStatus = values.deliveryStatus,
-) => {
-  const selectedPickupStatus =
-    values.statusReturn === 'FAULTY' || values.statusReturn === 'Faulty'
-      ? 'FAULTY'
-      : values.statusReturn === 'ROK'
-        ? 'ROK'
-        : ''
-
-  if (values.pickupEvidenceFileName) {
-    return selectedPickupStatus || 'UNRETURN'
-  }
-
-  if (deliveryStatus === 'DELIVERED') {
-    return 'UNRETURN'
-  }
-
-  return 'OPEN'
-}

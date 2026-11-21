@@ -11,6 +11,7 @@ export type SpmsRequestFormProps = {
   mode?: 'create' | 'edit'
   onCancel?: () => void
   onSave: (values: SpmsRequestFormValues) => void | Promise<void>
+  recordId?: string
 }
 
 export type FieldName = Exclude<keyof SpmsRequestFormValues, 'materials'>

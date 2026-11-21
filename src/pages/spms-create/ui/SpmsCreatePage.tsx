@@ -1,27 +1,44 @@
-import { spmsStorage } from '@entities/spms'
+import { useCreateSpmsMutation } from '@entities/spms'
+import { useAuth } from '@features/auth'
+import {
+  createDefaultSpmsRequestValues,
+  SpmsRequestForm,
+  type SpmsRequestFormValues,
+} from '@features/spms-form'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import { AppButton } from '@shared/ui/AppButton'
 import { PageHeader } from '@shared/ui/PageHeader'
-import {
-  SpmsRequestForm,
-  type SpmsRequestFormValues,
-} from '@shared/ui/SpmsRequestForm'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 export function SpmsCreatePage() {
   const navigate = useNavigate()
+  const { session } = useAuth()
+  const currentUserName =
+    session?.username?.toUpperCase() ||
+    `${session?.firstName ?? ''} ${session?.lastName ?? ''}`.trim() ||
+    'SPMS_USER'
+
+  const initialValues = useMemo(
+    () => createDefaultSpmsRequestValues(currentUserName),
+    [currentUserName],
+  )
 
   const goBackToList = useCallback(() => {
     navigate('/spms')
   }, [navigate])
 
+  const { mutateAsync: createSpms } = useCreateSpmsMutation()
+
   const handleSaveSpms = useCallback(
-    (values: SpmsRequestFormValues) => {
-      spmsStorage.createFromForm(values)
+    async (values: SpmsRequestFormValues) => {
+      await createSpms({
+        ...values,
+        area: values.areal,
+      })
       navigate('/spms')
     },
-    [navigate],
+    [createSpms, navigate],
   )
 
   return (
@@ -50,6 +67,8 @@ export function SpmsCreatePage() {
         }
       />
       <SpmsRequestForm
+        currentUserName={currentUserName}
+        initialValues={initialValues}
         mode="create"
         onCancel={goBackToList}
         onSave={handleSaveSpms}

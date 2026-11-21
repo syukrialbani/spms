@@ -1,4 +1,12 @@
-import { deliveryOrderStorage } from '@entities/delivery-order'
+import { useDeliveryOrderDetailQuery } from '@entities/delivery-order'
+import {
+  defaultBaType,
+  getAutoPickupStatus,
+  getSlaHoursForSeverity,
+  picKancabContactMap,
+  requestorContactMap,
+} from '@entities/spms'
+import { filesApi } from '@shared/api'
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -16,20 +24,9 @@ import { useEffect, useState, type ChangeEvent } from 'react'
 import {
   createDefaultMaterialValues,
   createDefaultSpmsRequestValues,
-  defaultBaType,
-  getSlaHoursForSeverity,
-  picKancabContactMap,
-  requestorContactMap,
   spmsRequestValidationSchema,
   type SpmsRequestFormValues,
-} from './model'
-import { ApprovalChain, ProcessTimeline } from './parts'
-import {
-  ApprovalCards,
-  DeliveryEvidenceStep,
-  DetailRequestFields,
-  PickupEvidenceStep,
-} from './sections'
+} from '../model/model'
 import type {
   ApprovalChainItem,
   DetailFieldName,
@@ -39,16 +36,22 @@ import type {
   SpmsRequestFormProps,
   TimelineItem,
   TimelineState,
-} from './types'
+} from '../model/types'
 import {
   detailRequestFields,
   formSteps,
   formatTimelineDate,
-  getAutoPickupStatus,
   materialFieldNames,
   normalizeFormMaterials,
   stepFields,
-} from './workflow'
+} from '../model/workflow'
+import { ApprovalChain, ProcessTimeline } from './parts'
+import {
+  ApprovalCards,
+  DeliveryEvidenceStep,
+  DetailRequestFields,
+  PickupEvidenceStep,
+} from './sections'
 
 export function SpmsRequestForm({
   currentRole = 'ADMIN_1',
@@ -57,8 +60,10 @@ export function SpmsRequestForm({
   mode = 'edit',
   onCancel,
   onSave,
+  recordId,
 }: SpmsRequestFormProps) {
   const [activeStep, setActiveStep] = useState(0)
+  const [isUploadingFile, setIsUploadingFile] = useState(false)
   const confirm = useConfirmation()
   const isCreateMode = mode === 'create'
   const canApprove1 = currentRole === 'ADMIN_1'
@@ -305,20 +310,36 @@ export function SpmsRequestForm({
   }
 
   const handleFileChange =
-    (field: EvidenceFieldName) => (event: ChangeEvent<HTMLInputElement>) => {
+    (field: EvidenceFieldName) =>
+    async (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0]
 
-      if (file) {
-        void formik.setFieldValue(field, file.name)
+      if (!file) {
+        return
+      }
+
+      setIsUploadingFile(true)
+
+      try {
+        const uploaded = await filesApi.upload({
+          file,
+          category:
+            field === 'deliveryEvidenceFileName' ? 'BA_DELIVERY' : 'BA_PICKUP',
+          spmsRecordId: recordId,
+        })
+
+        void formik.setFieldValue(field, uploaded.originalName)
 
         if (field === 'deliveryEvidenceFileName') {
-          void formik.setFieldValue('evidenceFileName', file.name)
+          void formik.setFieldValue('evidenceFileName', uploaded.originalName)
+          void formik.setFieldValue('deliveryEvidenceFileId', uploaded.id)
           void formik.setFieldValue('deliveryStatus', 'DELIVERED')
         }
 
         if (field === 'pickupEvidenceFileName') {
           const currentPickupStatus = formik.values.statusReturn
 
+          void formik.setFieldValue('pickupEvidenceFileId', uploaded.id)
           void formik.setFieldValue(
             'statusReturn',
             currentPickupStatus === 'ROK' || currentPickupStatus === 'FAULTY'
@@ -326,6 +347,8 @@ export function SpmsRequestForm({
               : '',
           )
         }
+      } finally {
+        setIsUploadingFile(false)
       }
     }
 
@@ -381,9 +404,9 @@ export function SpmsRequestForm({
     formik.values.deliveryEvidenceFileName || formik.values.evidenceFileName
 
   const hasDeliveryOrder = Boolean(formik.values.deliveryOrderNumber)
-  const linkedDeliveryOrder = formik.values.deliveryOrderNumber
-    ? deliveryOrderStorage.getByDeliveryOrder(formik.values.deliveryOrderNumber)
-    : null
+  const { data: linkedDeliveryOrder } = useDeliveryOrderDetailQuery(
+    formik.values.deliveryOrderNumber || undefined,
+  )
   const isDeliveryOrderOnDelivery =
     !linkedDeliveryOrder ||
     linkedDeliveryOrder.statusDo === 'ON_PROGRESS' ||
@@ -893,7 +916,7 @@ export function SpmsRequestForm({
           </Button>
         ) : null}
         <AppButton
-          disabled={formik.isSubmitting}
+          disabled={formik.isSubmitting || isUploadingFile}
           onClick={() => {
             void handleSave()
           }}
@@ -904,7 +927,11 @@ export function SpmsRequestForm({
             width: { xs: '100%', sm: 'auto' },
           }}
         >
-          {isCreateMode ? 'Add SPMS' : `Save ${formSteps[activeStep].title}`}
+          {isUploadingFile
+            ? 'Uploading...'
+            : isCreateMode
+              ? 'Add SPMS'
+              : `Save ${formSteps[activeStep].title}`}
         </AppButton>
       </Stack>
     </Box>

@@ -60,5 +60,6 @@ export type DeliveryOrderRecord = {
   statusCheck?: string
   ticketNumbers?: string[]
   uploadDoFileName?: string
+  uploadDoFileId?: string
   weight?: string
 }

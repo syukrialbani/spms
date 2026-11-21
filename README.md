@@ -1,75 +1,35 @@
-# React + TypeScript + Vite
+# Aviat SPMS (Spare Part Management System) — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplikasi web frontend untuk operasional **SPMS (Spare Part Management System)** Aviat yang mengelola siklus permintaan spare part, **Delivery Order (Delivery & Pickup)**, upload **Berita Acara (BA)**, dan **multi-stage approval**.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19** + **TypeScript 6** + **Vite 8** (dengan React Compiler)
+- **MUI v9** (`@mui/material`, `@mui/icons-material`, `@mui/x-date-pickers`)
+- **React Router DOM v7**
+- **TanStack React Query v5** + **Axios**
+- **Formik** + **Yup**
+- **Recharts** & **Day.js**
 
-## React Compiler
+## Struktur Folder (Feature-Sliced Design)
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+src/
+├── app/        # Providers, Router, ProtectedRoute, Theme MUI
+├── pages/      # Halaman (login, dashboard, spms-*, delivery-order)
+├── widgets/    # AppShell, MainAppBar, MainNavigation
+├── features/   # auth, spms-list, spms-form
+├── entities/   # spms, delivery-order, user (types, status, options, storage)
+├── shared/     # api client, lib helpers, reusable UI primitives
+└── assets/     # Logo & brand assets
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Scripts
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev      # Jalankan dev server Vite
+npm run lint     # Jalankan ESLint
+npm run build    # Type-check (tsc -b) + production build
+npm run preview  # Preview hasil build
 ```

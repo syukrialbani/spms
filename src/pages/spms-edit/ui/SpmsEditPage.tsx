@@ -1,26 +1,43 @@
 import {
-  getSpmsRecordById,
+  categoryMaterialOptions,
+  customerOptions,
+  defaultBaType,
+  getSlaHoursForSeverity,
   getSpmsRecordMaterials,
-  spmsStorage,
+  typeMaterialOptions,
+  useSpmsDetailQuery,
+  useUpdateSpmsMutation,
   type SpmsRecord,
 } from '@entities/spms'
 import { useAuth } from '@features/auth'
-import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
-import { AppButton } from '@shared/ui/AppButton'
-import { useDevRole } from '@shared/lib/dev-role'
-import { PageHeader } from '@shared/ui/PageHeader'
 import {
   createDefaultMaterialValues,
   createDefaultSpmsRequestValues,
-  defaultBaType,
-  getSlaHoursForSeverity,
   SpmsRequestForm,
   type SpmsApprovalRole,
   type SpmsMaterialFormValues,
   type SpmsRequestFormValues,
-} from '@shared/ui/SpmsRequestForm'
-import { useCallback, useMemo } from 'react'
+} from '@features/spms-form'
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
+import Alert from '@mui/material/Alert'
+import Snackbar from '@mui/material/Snackbar'
+import { AppButton } from '@shared/ui/AppButton'
+import { FullPageLoader } from '@shared/ui/FullPageLoader'
+import { useDevRole } from '@shared/lib/dev-role'
+import { PageHeader } from '@shared/ui/PageHeader'
+import { useCallback, useMemo, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
+
+const matchCanonicalOption = (
+  value: string,
+  options: readonly string[],
+): string => {
+  const normalized = value.trim().toLowerCase()
+
+  return (
+    options.find((option) => option.toLowerCase() === normalized) ?? value.trim()
+  )
+}
 
 const toDateTimeLocalValue = (value: string) => {
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -79,8 +96,14 @@ const getMaterialInitialValues = (
 
   return materials.map((material) => ({
     ...createDefaultMaterialValues(),
-    categoryMaterial: material.categoryMaterial.toUpperCase(),
-    typeMaterial: material.typeMaterial.toUpperCase(),
+    categoryMaterial: matchCanonicalOption(
+      material.categoryMaterial,
+      categoryMaterialOptions,
+    ),
+    typeMaterial: matchCanonicalOption(
+      material.typeMaterial,
+      typeMaterialOptions,
+    ),
     description: material.description,
     partNumber: material.partNumber,
     quantity: '1',
@@ -121,13 +144,16 @@ const getCurrentRole = (
   return 'ADMIN_1'
 }
 
-const getInitialValues = (record: SpmsRecord): SpmsRequestFormValues => ({
-  ...createDefaultSpmsRequestValues(),
+const getInitialValues = (
+  record: SpmsRecord,
+  fallbackCreatedBy: string,
+): SpmsRequestFormValues => ({
+  ...createDefaultSpmsRequestValues(fallbackCreatedBy),
   materials: getMaterialInitialValues(record),
   orderNumber: record.orderNumber,
-  customer: record.customer.toUpperCase(),
+  customer: matchCanonicalOption(record.customer, customerOptions),
   customerOrderNumber: record.customerOrderNumber,
-  createdBy: record.createdBy ?? 'FACHRIZAL_ALDAMARA',
+  createdBy: record.createdBy || fallbackCreatedBy,
   customerRequestor: record.customerRequestor ?? '',
   requestorEmail: record.requestorEmail ?? '',
   requestorPhone: record.requestorPhone ?? '',
@@ -138,8 +164,11 @@ const getInitialValues = (record: SpmsRecord): SpmsRequestFormValues => ({
   neId: record.neId ?? '',
   regional: record.regional ?? '',
   siteName: record.siteName,
-  categoryMaterial: record.categoryMaterial.toUpperCase(),
-  typeMaterial: record.typeMaterial.toUpperCase(),
+  categoryMaterial: matchCanonicalOption(
+    record.categoryMaterial,
+    categoryMaterialOptions,
+  ),
+  typeMaterial: matchCanonicalOption(record.typeMaterial, typeMaterialOptions),
   description: record.description,
   partNumber: record.partNumber,
   quantity: '1',
@@ -218,7 +247,9 @@ const getInitialValues = (record: SpmsRecord): SpmsRequestFormValues => ({
   pickupDate: record.pickupDate ?? '',
   evidenceFileName: record.evidenceFileName ?? '',
   deliveryEvidenceFileName: record.deliveryEvidenceFileName ?? '',
+  deliveryEvidenceFileId: record.deliveryEvidenceFileId ?? '',
   pickupEvidenceFileName: record.pickupEvidenceFileName ?? '',
+  pickupEvidenceFileId: record.pickupEvidenceFileId ?? '',
   evidenceNotes: record.evidenceNotes ?? '',
   deliveryOrderNumber: record.deliveryOrderNumber ?? '',
   pickupDeliveryOrderNumber: record.pickupDeliveryOrderNumber ?? '',
@@ -229,7 +260,8 @@ export function SpmsEditPage() {
   const { session } = useAuth()
   const { role: roleOverride } = useDevRole()
   const { id } = useParams()
-  const record = getSpmsRecordById(id)
+  const { data: record, isLoading } = useSpmsDetailQuery(id)
+  const { mutateAsync: updateSpms } = useUpdateSpmsMutation(id)
   const currentRole =
     roleOverride ?? getCurrentRole(session?.role, session?.username)
   const currentUserName =
@@ -237,23 +269,36 @@ export function SpmsEditPage() {
     `${session?.firstName ?? ''} ${session?.lastName ?? ''}`.trim() ||
     'SPMS USER'
 
+  const [saveMessage, setSaveMessage] = useState('')
+
   const goBackToList = useCallback(() => {
     navigate('/spms')
   }, [navigate])
 
   const initialValues = useMemo(
-    () => (record ? getInitialValues(record) : createDefaultSpmsRequestValues()),
-    [record],
+    () =>
+      record
+        ? getInitialValues(record, currentUserName)
+        : createDefaultSpmsRequestValues(currentUserName),
+    [currentUserName, record],
   )
 
   const handleSaveSpms = useCallback(
-    (values: SpmsRequestFormValues) => {
+    async (values: SpmsRequestFormValues) => {
       if (id) {
-        spmsStorage.updateFromForm(id, values)
+        await updateSpms({
+          ...values,
+          area: values.areal,
+        })
+        setSaveMessage(`Perubahan ${values.orderNumber} berhasil disimpan.`)
       }
     },
-    [id],
+    [id, updateSpms],
   )
+
+  if (isLoading) {
+    return <FullPageLoader />
+  }
 
   if (!record) {
     return <Navigate to="/spms" replace />
@@ -292,7 +337,23 @@ export function SpmsEditPage() {
         initialValues={initialValues}
         onCancel={goBackToList}
         onSave={handleSaveSpms}
+        recordId={record.id}
       />
+      <Snackbar
+        open={Boolean(saveMessage)}
+        autoHideDuration={3200}
+        onClose={() => setSaveMessage('')}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          severity="success"
+          variant="filled"
+          onClose={() => setSaveMessage('')}
+          sx={{ width: '100%' }}
+        >
+          {saveMessage}
+        </Alert>
+      </Snackbar>
     </>
   )
 }

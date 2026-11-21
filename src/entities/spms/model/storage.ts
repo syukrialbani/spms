@@ -1,5 +1,6 @@
 import { spmsRecords } from './mock'
 import { getPickupWorkflowStatus, getTicketWorkflowStatus } from './status'
+import { getAutoPickupStatus, getSlaHoursForSeverity } from './workflow'
 import type {
   Severity,
   SpmsMaterialItem,
@@ -207,9 +208,6 @@ const toDatePart = (value: string) => {
 const toSeverity = (value: string): Severity =>
   value === 'CRITICAL' ? 'Critical' : 'Medium'
 
-const getSlaHoursForSeverity = (value: string) =>
-  value === 'CRITICAL' ? '04:00:00' : '24:00:00'
-
 const hasMaterialValue = (material: SpmsMaterialFormInput) =>
   Boolean(
     material.categoryMaterial ||
@@ -284,28 +282,6 @@ const normalizeApprovalStatus = (value: string): WorkflowApprovalStatus => {
 
 const normalizeClosedStatus = (value: string): WorkflowClosedStatus =>
   value === 'CLOSED' ? 'CLOSED' : 'PENDING CUSTOMER'
-
-const getAutoPickupStatus = (
-  values: SpmsFormInput,
-  deliveryStatus = values.deliveryStatus,
-) => {
-  const selectedPickupStatus =
-    values.statusReturn === 'FAULTY' || values.statusReturn === 'Faulty'
-      ? 'FAULTY'
-      : values.statusReturn === 'ROK'
-        ? 'ROK'
-        : ''
-
-  if (values.pickupEvidenceFileName) {
-    return selectedPickupStatus || 'UNRETURN'
-  }
-
-  if (deliveryStatus === 'DELIVERED') {
-    return 'UNRETURN'
-  }
-
-  return 'OPEN'
-}
 
 const getNextSequence = (records: SpmsRecord[]) => {
   const numbers = records

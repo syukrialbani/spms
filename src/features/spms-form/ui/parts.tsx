@@ -13,14 +13,14 @@ import { alpha, type SxProps, type Theme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import type { ChangeEvent, ReactNode } from 'react'
 
-import { approvalStatusOptions, closedStatusOptions } from './model'
+import { approvalStatusOptions, closedStatusOptions } from '@entities/spms'
 import type {
   ApprovalChainItem,
   FieldName,
   TimelineItem,
   TimelineState,
-} from './types'
-import { approvalStatusLabels, formatTimelineDate } from './workflow'
+} from '../model/types'
+import { approvalStatusLabels, formatTimelineDate } from '../model/workflow'
 
 type ApprovalRadioGroupProps = {
   disabled?: boolean

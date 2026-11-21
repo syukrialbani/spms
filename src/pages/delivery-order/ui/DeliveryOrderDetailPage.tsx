@@ -1,21 +1,25 @@
 import {
-  deliveryOrderStorage,
   getDeliveryOrderStatusColor,
   getDeliveryOrderStatusLabel,
+  useDeliveryOrderDetailQuery,
   type DeliveryOrderRecord,
   type DeliveryOrderStatus,
 } from '@entities/delivery-order'
-import { spmsStorage } from '@entities/spms'
+import { useSpmsListQuery } from '@entities/spms'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import EditRoundedIcon from '@mui/icons-material/EditRounded'
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import { filesApi } from '@shared/api'
 import { formatDate } from '@shared/lib/format'
+import { FullPageLoader } from '@shared/ui/FullPageLoader'
 import { LiquidPanel } from '@shared/ui/LiquidPanel'
 import { PageHeader } from '@shared/ui/PageHeader'
+import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 
 type DetailItem = {
@@ -111,7 +115,29 @@ function DetailSection({
   )
 }
 
-function UploadPreview({ fileName }: { fileName?: string }) {
+function UploadPreview({
+  fileId,
+  fileName,
+}: {
+  fileId?: string
+  fileName?: string
+}) {
+  const [isOpening, setIsOpening] = useState(false)
+
+  const handleOpenPreview = async () => {
+    if (!fileId) {
+      return
+    }
+
+    setIsOpening(true)
+    try {
+      const { url } = await filesApi.getPresignedUrl(fileId)
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } finally {
+      setIsOpening(false)
+    }
+  }
+
   return (
     <Box
       sx={{
@@ -129,6 +155,20 @@ function UploadPreview({ fileName }: { fileName?: string }) {
         <Typography color="text.secondary" sx={{ textAlign: 'center' }} variant="caption">
           {fileName || 'Belum upload file DO'}
         </Typography>
+        {fileId ? (
+          <Button
+            disabled={isOpening}
+            onClick={() => {
+              void handleOpenPreview()
+            }}
+            size="small"
+            startIcon={<OpenInNewRoundedIcon fontSize="small" />}
+            variant="outlined"
+            sx={{ alignSelf: 'center', background: 'transparent', boxShadow: 'none' }}
+          >
+            {isOpening ? 'Opening...' : 'Preview / Download DO'}
+          </Button>
+        ) : null}
         <Box
           sx={{
             border: '1px solid',
@@ -159,15 +199,18 @@ function UploadPreview({ fileName }: { fileName?: string }) {
 export function DeliveryOrderDetailPage() {
   const navigate = useNavigate()
   const { deliveryOrder } = useParams()
-  const order = deliveryOrder
-    ? deliveryOrderStorage.getByDeliveryOrder(deliveryOrder)
-    : null
+  const { data: order, isLoading } = useDeliveryOrderDetailQuery(deliveryOrder)
+  const { data: spmsResponse } = useSpmsListQuery()
+
+  if (isLoading) {
+    return <FullPageLoader />
+  }
 
   if (!order) {
     return <Navigate to="/delivery-order" replace />
   }
 
-  const spmsRecords = spmsStorage.getAll()
+  const spmsRecords = spmsResponse?.data ?? []
   const sourceSpms =
     spmsRecords.find((record) => order.sourceSpmsIds?.includes(record.id)) ??
     spmsRecords.find((record) => record.id === order.sourceSpmsId) ??
@@ -418,7 +461,10 @@ export function DeliveryOrderDetailPage() {
                   Upload DO
                 </Typography>
               </Box>
-              <UploadPreview fileName={order.uploadDoFileName} />
+              <UploadPreview
+                fileId={order.uploadDoFileId}
+                fileName={order.uploadDoFileName}
+              />
             </Box>
 
             <Box

@@ -1,8 +1,11 @@
 import {
+  deliveryWorkflowStatuses,
+  getDeliveryWorkflowStatus,
   getSeverityColor,
   getSpmsStatusColor,
   spmsStatuses,
-  spmsStorage,
+  useSpmsListQuery,
+  type DeliveryWorkflowStatus,
   type SpmsStatus,
 } from '@entities/spms'
 import AssignmentTurnedInRoundedIcon from '@mui/icons-material/AssignmentTurnedInRounded'
@@ -25,7 +28,8 @@ import { CustomerStatusTable } from './CustomerStatusTable'
 
 export function DashboardPage() {
   const navigate = useNavigate()
-  const records = useMemo(() => spmsStorage.getAll(), [])
+  const { data } = useSpmsListQuery()
+  const records = useMemo(() => data?.data ?? [], [data])
   const recentRecords = records.slice(0, 4)
   const totalQty = records.reduce((total, record) => total + record.qty, 0)
   const closedCount = records.filter(
@@ -43,6 +47,9 @@ export function DashboardPage() {
   ).length
   const statusCount = (status: SpmsStatus) =>
     records.filter((record) => record.statusSpms === status).length
+  const deliveryStatusCount = (status: DeliveryWorkflowStatus) =>
+    records.filter((record) => getDeliveryWorkflowStatus(record) === status)
+      .length
   // const analyticsData = getMonthlySpmsAnalytics(records)
 
   return (
@@ -180,8 +187,8 @@ export function DashboardPage() {
                 SPMS movement by delivery stage.
               </Typography>
             </Box>
-            {spmsStatuses.map((status) => {
-              const count = statusCount(status)
+            {deliveryWorkflowStatuses.map((status) => {
+              const count = deliveryStatusCount(status)
               const percentage = records.length
                 ? Math.round((count / records.length) * 100)
                 : 0
