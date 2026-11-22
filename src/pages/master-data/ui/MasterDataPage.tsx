@@ -1,6 +1,13 @@
 import {
+  useMasterCustomersQuery,
   useMasterDataMutations,
-  useMasterDataQuery,
+  useMasterDopsQuery,
+  useMasterExpeditionsQuery,
+  useMasterLocationsQuery,
+  useMasterMaterialsQuery,
+  useMasterServicesQuery,
+  useMasterSeveritySlasQuery,
+  useMasterTransactionStatusesQuery,
   type MasterDop,
   type MasterLocation,
   type MasterMaterial,
@@ -33,10 +40,45 @@ import { useState } from 'react'
 
 export function MasterDataPage() {
   const confirm = useConfirmation()
-  const { data, isLoading } = useMasterDataQuery()
+  const { data: customers = [], isLoading: loadingCustomers } =
+    useMasterCustomersQuery()
+  const { data: dops = [], isLoading: loadingDops } = useMasterDopsQuery()
+  const { data: materials = [], isLoading: loadingMaterials } =
+    useMasterMaterialsQuery()
+  const { data: severitySlas = [], isLoading: loadingSeverity } =
+    useMasterSeveritySlasQuery()
+  const { data: transactionStatuses = [], isLoading: loadingTx } =
+    useMasterTransactionStatusesQuery()
+  const { data: locations = [], isLoading: loadingLocations } =
+    useMasterLocationsQuery()
+  const { data: expeditions = [], isLoading: loadingExpeditions } =
+    useMasterExpeditionsQuery()
+  const { data: services = [], isLoading: loadingServices } =
+    useMasterServicesQuery()
   const mutations = useMasterDataMutations()
   const [tab, setTab] = useState(0)
   const [toast, setToast] = useState('')
+
+  const isLoading =
+    loadingCustomers ||
+    loadingDops ||
+    loadingMaterials ||
+    loadingSeverity ||
+    loadingTx ||
+    loadingLocations ||
+    loadingExpeditions ||
+    loadingServices
+
+  const data = {
+    customers,
+    dops,
+    materials,
+    severitySlas,
+    transactionStatuses,
+    locations,
+    expeditions,
+    services,
+  }
 
   // Customer form
   const [customerName, setCustomerName] = useState('')
@@ -72,7 +114,7 @@ export function MasterDataPage() {
   const [expName, setExpName] = useState('')
   const [svcName, setSvcName] = useState('')
 
-  if (isLoading || !data) {
+  if (isLoading) {
     return <FullPageLoader />
   }
 

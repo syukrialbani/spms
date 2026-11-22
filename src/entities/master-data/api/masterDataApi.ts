@@ -1,7 +1,6 @@
 import { apiClient } from '@shared/api'
 import type {
   MasterCustomer,
-  MasterDataResponse,
   MasterDop,
   MasterLocation,
   MasterMaterial,
@@ -11,8 +10,9 @@ import type {
 } from '../model/types'
 
 export const masterDataApi = {
-  getAll(): Promise<MasterDataResponse> {
-    return apiClient.get<MasterDataResponse>('/master-data')
+  // ---- CUSTOMERS ----
+  getCustomers(): Promise<{ data: MasterCustomer[] }> {
+    return apiClient.get<{ data: MasterCustomer[] }>('/master-data/customers')
   },
 
   createCustomer(payload: {
@@ -24,6 +24,14 @@ export const masterDataApi = {
 
   deleteCustomer(id: string) {
     return apiClient.delete(`/master-data/customers/${id}`)
+  },
+
+  // ---- DOPS (Customer -> DOP -> Area -> Regional) ----
+  getDops(params?: {
+    customerId?: string
+    customerName?: string
+  }): Promise<{ data: MasterDop[] }> {
+    return apiClient.get<{ data: MasterDop[] }>('/master-data/dops', { params })
   },
 
   createDop(payload: {
@@ -41,6 +49,17 @@ export const masterDataApi = {
     return apiClient.delete(`/master-data/dops/${id}`)
   },
 
+  // ---- MATERIALS / PRODUCTS ----
+  getMaterials(params?: {
+    category?: string
+    type?: string
+    search?: string
+  }): Promise<{ data: MasterMaterial[] }> {
+    return apiClient.get<{ data: MasterMaterial[] }>('/master-data/materials', {
+      params,
+    })
+  },
+
   createMaterial(payload: {
     description: string
     partNumber: string
@@ -52,6 +71,13 @@ export const masterDataApi = {
 
   deleteMaterial(id: string) {
     return apiClient.delete(`/master-data/materials/${id}`)
+  },
+
+  // ---- SEVERITY & SLA ----
+  getSeveritySlas(): Promise<{ data: MasterSeveritySla[] }> {
+    return apiClient.get<{ data: MasterSeveritySla[] }>(
+      '/master-data/severity-slas',
+    )
   },
 
   createSeveritySla(payload: {
@@ -69,6 +95,13 @@ export const masterDataApi = {
     return apiClient.delete(`/master-data/severity-slas/${id}`)
   },
 
+  // ---- TRANSACTION STATUSES ----
+  getTransactionStatuses(): Promise<{ data: MasterTransactionStatus[] }> {
+    return apiClient.get<{ data: MasterTransactionStatus[] }>(
+      '/master-data/transaction-statuses',
+    )
+  },
+
   createTransactionStatus(payload: {
     code: string
     name: string
@@ -84,6 +117,15 @@ export const masterDataApi = {
     return apiClient.delete(`/master-data/transaction-statuses/${id}`)
   },
 
+  // ---- LOCATIONS / LSP ----
+  getLocations(type?: 'ORIGIN' | 'DESTINATION' | 'BOTH'): Promise<{
+    data: MasterLocation[]
+  }> {
+    return apiClient.get<{ data: MasterLocation[] }>('/master-data/locations', {
+      params: type ? { type } : undefined,
+    })
+  },
+
   createLocation(payload: {
     name: string
     type?: 'ORIGIN' | 'DESTINATION' | 'BOTH'
@@ -97,12 +139,24 @@ export const masterDataApi = {
     return apiClient.delete(`/master-data/locations/${id}`)
   },
 
+  // ---- EXPEDITIONS ----
+  getExpeditions(): Promise<{ data: MasterSimpleItem[] }> {
+    return apiClient.get<{ data: MasterSimpleItem[] }>(
+      '/master-data/expeditions',
+    )
+  },
+
   createExpedition(payload: { name: string }): Promise<MasterSimpleItem> {
     return apiClient.post<MasterSimpleItem>('/master-data/expeditions', payload)
   },
 
   deleteExpedition(id: string) {
     return apiClient.delete(`/master-data/expeditions/${id}`)
+  },
+
+  // ---- SERVICES ----
+  getServices(): Promise<{ data: MasterSimpleItem[] }> {
+    return apiClient.get<{ data: MasterSimpleItem[] }>('/master-data/services')
   },
 
   createService(payload: { name: string }): Promise<MasterSimpleItem> {

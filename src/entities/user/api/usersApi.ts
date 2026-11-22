@@ -6,6 +6,19 @@ export type UsersListResponse = {
   total: number
 }
 
+export type UserPicOption = {
+  id: number
+  username: string
+  name: string
+  email: string
+  phone: string
+  role: UserRole
+}
+
+export type UserPicOptionsResponse = {
+  data: UserPicOption[]
+}
+
 export type CreateUserPayload = {
   username: string
   email: string
@@ -22,6 +35,12 @@ export type UpdateUserPayload = Partial<CreateUserPayload>
 export const usersApi = {
   list(params?: { search?: string; role?: string }): Promise<UsersListResponse> {
     return apiClient.get<UsersListResponse>('/users', { params })
+  },
+
+  listOptions(role?: UserRole): Promise<UserPicOptionsResponse> {
+    return apiClient.get<UserPicOptionsResponse>('/users/options', {
+      params: role ? { role } : undefined,
+    })
   },
 
   create(payload: CreateUserPayload): Promise<User> {

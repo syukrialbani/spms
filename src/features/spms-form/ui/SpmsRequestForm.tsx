@@ -1,10 +1,17 @@
 import { useDeliveryOrderDetailQuery } from '@entities/delivery-order'
-import { useMasterDataQuery } from '@entities/master-data'
+import {
+  useMasterCustomersQuery,
+  useMasterDopsQuery,
+  useMasterMaterialsQuery,
+  useMasterSeveritySlasQuery,
+  useMasterTransactionStatusesQuery,
+} from '@entities/master-data'
 import {
   defaultBaType,
   getAutoPickupStatus,
   getSlaHoursForSeverity,
 } from '@entities/spms'
+import { useUserPicOptionsQuery } from '@entities/user'
 import { filesApi } from '@shared/api'
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded'
 import Box from '@mui/material/Box'
@@ -63,7 +70,12 @@ export function SpmsRequestForm({
 }: SpmsRequestFormProps) {
   const [activeStep, setActiveStep] = useState(0)
   const [isUploadingFile, setIsUploadingFile] = useState(false)
-  const { data: masterData } = useMasterDataQuery()
+  const { data: customers = [] } = useMasterCustomersQuery()
+  const { data: materials = [] } = useMasterMaterialsQuery()
+  const { data: severitySlas = [] } = useMasterSeveritySlasQuery()
+  const { data: transactionStatuses = [] } = useMasterTransactionStatusesQuery()
+  const { data: picKancabs = [] } = useUserPicOptionsQuery('DRIVER')
+  const { data: requestors = [] } = useUserPicOptionsQuery('REQUESTOR')
   const confirm = useConfirmation()
   const isCreateMode = mode === 'create'
   const isSuperAdmin = currentRole === 'SUPER_ADMIN'
@@ -84,8 +96,12 @@ export function SpmsRequestForm({
     },
   })
 
+  const { data: dops = [] } = useMasterDopsQuery(
+    formik.values.customer ? { customerName: formik.values.customer } : undefined,
+  )
+
   useEffect(() => {
-    const contact = masterData?.picKancabs.find(
+    const contact = picKancabs.find(
       (p) => p.name === formik.values.picKancabName,
     )
 
@@ -105,7 +121,7 @@ export function SpmsRequestForm({
     formik.values.picKancabEmail,
     formik.values.picKancabName,
     formik.values.picKancabPhone,
-    masterData,
+    picKancabs,
   ])
 
   const getHelperText = (name: FieldName) =>
@@ -375,7 +391,7 @@ export function SpmsRequestForm({
   }
 
   const handleSeverityChange = (value: string) => {
-    const matched = masterData?.severitySlas.find((s) => s.severity === value)
+    const matched = severitySlas.find((s) => s.severity === value)
     void formik.setFieldValue('severity', value)
     void formik.setFieldValue(
       'slaHours',
@@ -384,7 +400,7 @@ export function SpmsRequestForm({
   }
 
   const handleRequestorChange = (value: string) => {
-    const contact = masterData?.requestors.find((r) => r.name === value)
+    const contact = requestors.find((r) => r.name === value)
 
     void formik.setFieldValue('customerRequestor', value)
 
@@ -395,7 +411,7 @@ export function SpmsRequestForm({
   }
 
   const handlePicKancabChange = (value: string) => {
-    const contact = masterData?.picKancabs.find((p) => p.name === value)
+    const contact = picKancabs.find((p) => p.name === value)
 
     void formik.setFieldValue('picKancabName', value)
 
@@ -420,12 +436,12 @@ export function SpmsRequestForm({
     linkedDeliveryOrder.statusDo === 'CLOSED'
   const canOpenDeliveryBaTab = hasDeliveryOrder && isDeliveryOrderOnDelivery
   const hasPickupDeliveryOrder = Boolean(formik.values.pickupDeliveryOrderNumber)
-  const selectedCustomerObj = masterData?.customers.find(
+  const selectedCustomerObj = customers.find(
     (c) => c.name === formik.values.customer,
   )
   const isTelkomCustomer =
     selectedCustomerObj?.requiresNeFe ?? formik.values.customer === 'Telkom'
-  const selectedTxObj = masterData?.transactionStatuses.find(
+  const selectedTxObj = transactionStatuses.find(
     (t) => t.code === formik.values.statusTransaction,
   )
   const isArfTransaction =
@@ -827,6 +843,8 @@ export function SpmsRequestForm({
 
           {isCreateMode || activeStep === 0 ? (
             <DetailRequestFields
+              customers={customers}
+              dops={dops}
               formik={formik}
               getMaterialPath={getMaterialPath}
               getMaterialsError={getMaterialsError}
@@ -837,8 +855,12 @@ export function SpmsRequestForm({
               handleSeverityChange={handleSeverityChange}
               isCreateMode={isCreateMode}
               isTelkomCustomer={isTelkomCustomer}
-              masterData={masterData}
               materialRows={materialRows}
+              materials={materials}
+              picKancabs={picKancabs}
+              requestors={requestors}
+              severitySlas={severitySlas}
+              transactionStatuses={transactionStatuses}
             />
           ) : null}
 
@@ -847,8 +869,8 @@ export function SpmsRequestForm({
               deliveryEvidenceName={deliveryEvidenceName}
               formik={formik}
               handleFileChange={handleFileChange}
-              masterData={masterData}
               materialRows={materialRows}
+              materials={materials}
             />
           ) : null}
 

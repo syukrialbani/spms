@@ -3,7 +3,13 @@ import {
   useCreateStandaloneDoMutation,
   type DeliveryOrderMaterialItem,
 } from '@entities/delivery-order'
-import { useMasterDataQuery } from '@entities/master-data'
+import {
+  useMasterCustomersQuery,
+  useMasterDopsQuery,
+  useMasterExpeditionsQuery,
+  useMasterLocationsQuery,
+  useMasterServicesQuery,
+} from '@entities/master-data'
 import {
   getDeliveryUploadStatus,
   getSpmsRecordMaterials,
@@ -167,34 +173,38 @@ export function DeliveryOrderCreatePage() {
   const navigate = useNavigate()
   const confirm = useConfirmation()
   const { data: spmsResponse } = useSpmsListQuery()
-  const { data: masterData } = useMasterDataQuery()
+  const { data: customers = [] } = useMasterCustomersQuery()
+  const { data: dops = [] } = useMasterDopsQuery()
+  const { data: expeditions = [] } = useMasterExpeditionsQuery()
+  const { data: services = [] } = useMasterServicesQuery()
+  const { data: locations = [] } = useMasterLocationsQuery()
   const { mutateAsync: createDoFromSpms } = useCreateDoFromSpmsMutation()
   const { mutateAsync: createStandaloneDo } = useCreateStandaloneDoMutation()
   const customerOptions = useMemo(
-    () => (masterData?.customers ?? []).map((c) => c.name),
-    [masterData],
+    () => customers.map((c) => c.name),
+    [customers],
   )
   const expeditionOptions = useMemo(
-    () => (masterData?.expeditions ?? []).map((e) => e.name),
-    [masterData],
+    () => expeditions.map((e) => e.name),
+    [expeditions],
   )
   const serviceOptions = useMemo(
-    () => (masterData?.services ?? []).map((s) => s.name),
-    [masterData],
+    () => services.map((s) => s.name),
+    [services],
   )
   const supportOriginMaterialOptions = useMemo(
-    () => (masterData?.locations ?? []).map((l) => l.name),
-    [masterData],
+    () => locations.map((l) => l.name),
+    [locations],
   )
   const supportDestinationMaterialOptions = useMemo(
     () =>
       Array.from(
         new Set([
-          ...(masterData?.dops ?? []).map((d) => d.dop),
-          ...(masterData?.locations ?? []).map((l) => l.name),
+          ...dops.map((d) => d.dop),
+          ...locations.map((l) => l.name),
         ]),
       ).sort((a, b) => a.localeCompare(b)),
-    [masterData],
+    [dops, locations],
   )
   const [formState, setFormState] = useState<DeliveryOrderFormState>(
     createDefaultFormState,

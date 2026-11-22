@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { UserRole } from '../model/types'
 import {
   usersApi,
   type CreateUserPayload,
@@ -9,12 +10,19 @@ export const usersQueryKeys = {
   all: ['users'] as const,
   list: (params?: { search?: string; role?: string }) =>
     ['users', 'list', params ?? {}] as const,
+  options: (role?: UserRole) => ['users', 'options', role ?? 'ALL'] as const,
 }
 
 export const useUsersQuery = (params?: { search?: string; role?: string }) =>
   useQuery({
     queryKey: usersQueryKeys.list(params),
     queryFn: () => usersApi.list(params),
+  })
+
+export const useUserPicOptionsQuery = (role?: UserRole) =>
+  useQuery({
+    queryKey: usersQueryKeys.options(role),
+    queryFn: () => usersApi.listOptions(role).then((res) => res.data),
   })
 
 export const useCreateUserMutation = () => {
@@ -24,7 +32,6 @@ export const useCreateUserMutation = () => {
     mutationFn: (payload: CreateUserPayload) => usersApi.create(payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: usersQueryKeys.all })
-      void queryClient.invalidateQueries({ queryKey: ['master-data'] })
     },
   })
 }
@@ -37,7 +44,6 @@ export const useUpdateUserMutation = () => {
       usersApi.update(id, payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: usersQueryKeys.all })
-      void queryClient.invalidateQueries({ queryKey: ['master-data'] })
     },
   })
 }
@@ -49,7 +55,6 @@ export const useDeleteUserMutation = () => {
     mutationFn: (id: number) => usersApi.remove(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: usersQueryKeys.all })
-      void queryClient.invalidateQueries({ queryKey: ['master-data'] })
     },
   })
 }

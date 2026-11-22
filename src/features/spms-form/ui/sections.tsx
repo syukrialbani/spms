@@ -23,8 +23,15 @@ import { FormTextField } from '@shared/ui/FormTextField'
 import type { FormikProps } from 'formik'
 import type { ChangeEvent, ReactNode } from 'react'
 
-import type { MasterDataResponse } from '@entities/master-data'
+import type {
+  MasterCustomer,
+  MasterDop,
+  MasterMaterial,
+  MasterSeveritySla,
+  MasterTransactionStatus,
+} from '@entities/master-data'
 import { defaultBaType, pickupStatusOptions } from '@entities/spms'
+import type { UserPicOption } from '@entities/user'
 import type {
   SpmsMaterialFormValues,
   SpmsRequestFormValues,
@@ -42,6 +49,8 @@ import {
 } from './parts'
 
 type DetailRequestFieldsProps = {
+  customers: MasterCustomer[]
+  dops: MasterDop[]
   formik: FormikProps<SpmsRequestFormValues>
   getMaterialPath: (index: number, name: MaterialFieldName) => string
   getMaterialsError: () => ReactNode
@@ -52,8 +61,12 @@ type DetailRequestFieldsProps = {
   handleSeverityChange: (value: string) => void
   isCreateMode: boolean
   isTelkomCustomer: boolean
-  masterData?: MasterDataResponse
   materialRows: SpmsMaterialFormValues[]
+  materials: MasterMaterial[]
+  picKancabs: UserPicOption[]
+  requestors: UserPicOption[]
+  severitySlas: MasterSeveritySla[]
+  transactionStatuses: MasterTransactionStatus[]
 }
 
 type WorkflowActionFields = {
@@ -85,8 +98,8 @@ type DeliveryEvidenceStepProps = {
   handleFileChange: (
     field: EvidenceFieldName,
   ) => (event: ChangeEvent<HTMLInputElement>) => void
-  masterData?: MasterDataResponse
   materialRows: SpmsMaterialFormValues[]
+  materials: MasterMaterial[]
 }
 
 type PickupEvidenceStepProps = {
@@ -99,6 +112,8 @@ type PickupEvidenceStepProps = {
 }
 
 export function DetailRequestFields({
+  customers,
+  dops,
   formik,
   getMaterialPath,
   getMaterialsError,
@@ -109,47 +124,35 @@ export function DetailRequestFields({
   handleSeverityChange,
   isCreateMode,
   isTelkomCustomer,
-  masterData,
   materialRows,
+  materials,
+  picKancabs,
+  requestors,
+  severitySlas,
+  transactionStatuses,
 }: DetailRequestFieldsProps) {
   const uniqueSorted = (values: string[]) =>
     Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b))
 
-  const customerOptions = (masterData?.customers ?? []).map((c) => c.name)
-  const customerDops = formik.values.customer
-    ? (masterData?.dops ?? []).filter(
-        (d) => d.customerName === formik.values.customer,
-      )
-    : (masterData?.dops ?? [])
+  const customerOptions = customers.map((c) => c.name)
+  const customerDops = dops
   const dopOptionsForCustomer = uniqueSorted(customerDops.map((d) => d.dop))
   const areaOptionsForCustomer = uniqueSorted(customerDops.map((d) => d.area))
   const regionalOptionsForCustomer = uniqueSorted(
     customerDops.map((d) => d.regional),
   )
 
-  const requestorOptions = (masterData?.requestors ?? []).map((r) => r.name)
-  const picKancabOptions = (masterData?.picKancabs ?? []).map((p) => p.name)
-  const statusTransactionOptions = (masterData?.transactionStatuses ?? []).map(
-    (t) => t.code,
-  )
-  const descriptionOptions = uniqueSorted(
-    (masterData?.materials ?? []).map((m) => m.description),
-  )
-  const partNumberOptions = uniqueSorted(
-    (masterData?.materials ?? []).map((m) => m.partNumber),
-  )
+  const requestorOptions = requestors.map((r) => r.name)
+  const picKancabOptions = picKancabs.map((p) => p.name)
+  const statusTransactionOptions = transactionStatuses.map((t) => t.code)
+  const descriptionOptions = uniqueSorted(materials.map((m) => m.description))
+  const partNumberOptions = uniqueSorted(materials.map((m) => m.partNumber))
   const categoryMaterialOptions = uniqueSorted(
-    (masterData?.materials ?? []).map((m) => m.categoryMaterial),
+    materials.map((m) => m.categoryMaterial),
   )
-  const typeMaterialOptions = uniqueSorted(
-    (masterData?.materials ?? []).map((m) => m.typeMaterial),
-  )
-  const severityOptions = (masterData?.severitySlas ?? []).map(
-    (s) => s.severity,
-  )
-  const slaHourOptions = uniqueSorted(
-    (masterData?.severitySlas ?? []).map((s) => s.slaHours),
-  )
+  const typeMaterialOptions = uniqueSorted(materials.map((m) => m.typeMaterial))
+  const severityOptions = severitySlas.map((s) => s.severity)
+  const slaHourOptions = uniqueSorted(severitySlas.map((s) => s.slaHours))
 
   const handleDopChange = (value: string) => {
     const dopReference = customerDops.find((d) => d.dop === value)
@@ -164,7 +167,7 @@ export function DetailRequestFields({
 
   const handleMaterialDescriptionChange = (index: number, value: string) => {
     void formik.setFieldValue(getMaterialPath(index, 'description'), value)
-    const matched = masterData?.materials.find((m) => m.description === value)
+    const matched = materials.find((m) => m.description === value)
     if (matched) {
       void formik.setFieldValue(
         getMaterialPath(index, 'partNumber'),
@@ -183,7 +186,7 @@ export function DetailRequestFields({
 
   const handleMaterialPartNumberChange = (index: number, value: string) => {
     void formik.setFieldValue(getMaterialPath(index, 'partNumber'), value)
-    const matched = masterData?.materials.find((m) => m.partNumber === value)
+    const matched = materials.find((m) => m.partNumber === value)
     if (matched) {
       void formik.setFieldValue(
         getMaterialPath(index, 'description'),
@@ -818,11 +821,11 @@ export function DeliveryEvidenceStep({
   deliveryEvidenceName,
   formik,
   handleFileChange,
-  masterData,
   materialRows,
+  materials,
 }: DeliveryEvidenceStepProps) {
   const descriptionOptions = Array.from(
-    new Set((masterData?.materials ?? []).map((m) => m.description).filter(Boolean)),
+    new Set(materials.map((m) => m.description).filter(Boolean)),
   ).sort((a, b) => a.localeCompare(b))
 
   return (

@@ -56,26 +56,3 @@ export type MasterSimpleItem = {
   name: string
   isActive: boolean
 }
-
-export type MasterUserPic = {
-  id: number
-  username: string
-  name: string
-  email: string
-  phone: string
-  role: string
-}
-
-export type MasterDataResponse = {
-  customers: MasterCustomer[]
-  dops: MasterDop[]
-  materials: MasterMaterial[]
-  severitySlas: MasterSeveritySla[]
-  transactionStatuses: MasterTransactionStatus[]
-  locations: MasterLocation[]
-  expeditions: MasterSimpleItem[]
-  services: MasterSimpleItem[]
-  picKancabs: MasterUserPic[]
-  requestors: MasterUserPic[]
-  pickupStatuses: string[]
-}
