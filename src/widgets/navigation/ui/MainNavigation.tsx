@@ -2,6 +2,7 @@ import { useAuth } from '@features/auth'
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded'
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded'
 import GroupRoundedIcon from '@mui/icons-material/GroupRounded'
+import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded'
 import LocalShippingRoundedIcon from '@mui/icons-material/LocalShippingRounded'
 import StorageRoundedIcon from '@mui/icons-material/StorageRounded'
 import Box from '@mui/material/Box'
@@ -37,6 +38,12 @@ const navigationItems = [
     label: 'Delivery Order',
     path: '/delivery-order',
     icon: <LocalShippingRoundedIcon />,
+    adminOnly: false,
+  },
+  {
+    label: 'Stock MS',
+    path: '/stock',
+    icon: <Inventory2RoundedIcon />,
     adminOnly: false,
   },
   {

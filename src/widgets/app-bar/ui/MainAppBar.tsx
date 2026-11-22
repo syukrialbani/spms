@@ -24,6 +24,7 @@ const pageTitles: Record<string, string> = {
   '/spms/add': 'Add SPMS',
   '/delivery-order': 'Delivery Order',
   '/delivery-order/create': 'Create Delivery Order',
+  '/stock': 'Stock MS Inventory',
   '/master-data': 'Master Data',
   '/users': 'User Management',
 }

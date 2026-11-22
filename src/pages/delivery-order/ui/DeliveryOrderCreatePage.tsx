@@ -10,6 +10,7 @@ import {
   useMasterLocationsQuery,
   useMasterServicesQuery,
 } from '@entities/master-data'
+import { useStockOptionsQuery } from '@entities/stock'
 import {
   getDeliveryUploadStatus,
   getSpmsRecordMaterials,
@@ -21,12 +22,14 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded'
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded'
+import Autocomplete from '@mui/material/Autocomplete'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
 import Stack from '@mui/material/Stack'
+import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { useConfirmation } from '@shared/lib/confirmation'
@@ -208,6 +211,14 @@ export function DeliveryOrderCreatePage() {
   )
   const [formState, setFormState] = useState<DeliveryOrderFormState>(
     createDefaultFormState,
+  )
+  const { data: availableStockOptions = [] } = useStockOptionsQuery(
+    {
+      lsp: formState.supportOriginMaterial || undefined,
+      stockStatus: 'AVAILABLE',
+      limit: 100,
+    },
+    formState.doKind === 'DELIVERY',
   )
   const availableSpms = useMemo(
     () =>
@@ -738,13 +749,34 @@ export function DeliveryOrderCreatePage() {
                           {material.partNumber}
                         </Typography>
                         <Typography variant="body2">{material.qty}</Typography>
-                        <FormTextField
+                        <Autocomplete
+                          freeSolo
                           size="small"
-                          value={formState.materialSerialNumbers[index] ?? ''}
-                          onChange={(event) =>
-                            handleSerialNumberChange(index, event.target.value)
+                          options={availableStockOptions}
+                          getOptionLabel={(opt) =>
+                            typeof opt === 'string'
+                              ? opt
+                              : `${opt.serialNumber} — ${opt.description} (${opt.lsp})`
                           }
-                          placeholder="SN"
+                          inputValue={formState.materialSerialNumbers[index] ?? ''}
+                          onInputChange={(_, value) => {
+                            const sn = value.split(' — ')[0]?.trim() ?? ''
+                            handleSerialNumberChange(index, sn)
+                          }}
+                          onChange={(_, value) => {
+                            if (typeof value === 'string') {
+                              handleSerialNumberChange(index, value)
+                            } else if (value) {
+                              handleSerialNumberChange(index, value.serialNumber)
+                            }
+                          }}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              size="small"
+                              placeholder="Pilih / ketik SN Stock MS"
+                            />
+                          )}
                         />
                       </Box>
                     ))}
