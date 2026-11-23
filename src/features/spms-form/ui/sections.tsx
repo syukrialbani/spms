@@ -208,13 +208,13 @@ export function DetailRequestFields({
   }
 
   return (
-    <Stack spacing={1.25}>
+    <Stack spacing={1}>
       <FormSection
-        icon={<AssignmentRoundedIcon fontSize="small" />}
-        subtitle="Order, site, dan identitas network"
-        title={isCreateMode ? 'Create SPMS Request' : 'Detail Request'}
+        icon={<AssignmentRoundedIcon sx={{ fontSize: 16 }} />}
+        subtitle="Order, site, status transaksi, dan identitas network"
+        title={isCreateMode ? 'Create SPMS Request' : 'Order & Network'}
       >
-        <FieldGrid columns={3}>
+        <FieldGrid columns={4}>
           <FormAutocomplete
             accent
             label="Customer"
@@ -278,19 +278,37 @@ export function DetailRequestFields({
             required
             formik={formik}
           />
-          <FormTextField
-            label="Create By"
-            name="createdBy"
-            readOnly
+          <FormAutocomplete
+            accent
+            label="Status Transaction"
+            name="statusTransaction"
+            options={statusTransactionOptions}
             required
             formik={formik}
           />
           <FormTextField
-            label="Order Number"
-            name="orderNumber"
-            readOnly
+            label="PM Area"
+            name="pmArea"
+            required
             formik={formik}
           />
+          {isCreateMode ? (
+            <>
+              <FormTextField
+                label="Create By"
+                name="createdBy"
+                readOnly
+                required
+                formik={formik}
+              />
+              <FormTextField
+                label="Order Number"
+                name="orderNumber"
+                readOnly
+                formik={formik}
+              />
+            </>
+          ) : null}
           {isTelkomCustomer ? (
             <>
               <FormTextField
@@ -307,112 +325,82 @@ export function DetailRequestFields({
               />
             </>
           ) : null}
-          {!isCreateMode ? (
+        </FieldGrid>
+      </FormSection>
+
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 1,
+          gridTemplateColumns: { xs: '1fr', lg: '1.15fr 0.85fr' },
+        }}
+      >
+        <FormSection
+          icon={<FactCheckRoundedIcon sx={{ fontSize: 16 }} />}
+          subtitle="Pilih histori atau ketik PIC Customer baru"
+          title="PIC Requestor"
+        >
+          <FieldGrid columns={2}>
+            <FormAutocomplete
+              accent
+              freeSolo
+              label="Requestor Name"
+              name="customerRequestor"
+              options={requestorOptions}
+              placeholder="Pilih atau ketik PIC Customer baru..."
+              required
+              formik={formik}
+              onChange={handleRequestorChange}
+            />
             <FormTextField
-              label="Delivery Order"
-              name="deliveryOrderNumber"
-              readOnly
+              label="No.Hp"
+              name="requestorPhone"
+              required
               formik={formik}
             />
-          ) : null}
-        </FieldGrid>
-      </FormSection>
-
-      <FormSection
-        icon={<FactCheckRoundedIcon fontSize="small" />}
-        subtitle="Requestor customer (pilih atau ketik nama PIC Customer baru)"
-        title="PIC Requestor"
-      >
-        <FieldGrid columns={2}>
-          <FormAutocomplete
-            accent
-            freeSolo
-            label="Requestor Name"
-            name="customerRequestor"
-            options={requestorOptions}
-            placeholder="Pilih atau ketik PIC Customer baru..."
-            required
-            formik={formik}
-            onChange={handleRequestorChange}
-          />
-          <FormTextField
-            label="Email"
-            name="requestorEmail"
-            formik={formik}
-          />
-          <FormTextField
-            label="No.Hp"
-            name="requestorPhone"
-            required
-            formik={formik}
-          />
-          <FormTextField
-            label="Alamat"
-            name="requestorAddress"
-            placeholder="Alamat / lokasi PIC Customer"
-            formik={formik}
-          />
-        </FieldGrid>
-      </FormSection>
-
-      <FormSection
-        icon={<LocalShippingRoundedIcon fontSize="small" />}
-        subtitle="PIC kancab / LSP"
-        title="PIC Kancab"
-      >
-        <FieldGrid columns={3}>
-          <FormAutocomplete
-            accent
-            label="PIC/LSP Name"
-            name="picKancabName"
-            options={picKancabOptions}
-            required
-            formik={formik}
-            onChange={handlePicKancabChange}
-          />
-          <FormTextField
-            label="Email"
-            name="picKancabEmail"
-            formik={formik}
-          />
-          <FormTextField
-            label="No.Hp"
-            name="picKancabPhone"
-            formik={formik}
-          />
-        </FieldGrid>
-      </FormSection>
-
-      <FormSection
-        icon={<FactCheckRoundedIcon fontSize="small" />}
-        subtitle="Status transaksi dan PIC area"
-        title="Detail"
-      >
-        <FieldGrid columns={3}>
-          <FormAutocomplete
-            accent
-            label="Status Transaction"
-            name="statusTransaction"
-            options={statusTransactionOptions}
-            required
-            formik={formik}
-          />
-          <FormTextField
-            label="PM Area"
-            name="pmArea"
-            required
-            formik={formik}
-          />
-          {!isCreateMode ? (
             <FormTextField
-              label="DO Pickup"
-              name="pickupDeliveryOrderNumber"
-              readOnly
+              label="Email"
+              name="requestorEmail"
               formik={formik}
             />
-          ) : null}
-        </FieldGrid>
-      </FormSection>
+            <FormTextField
+              label="Alamat"
+              name="requestorAddress"
+              placeholder="Alamat / lokasi PIC Customer"
+              formik={formik}
+            />
+          </FieldGrid>
+        </FormSection>
+
+        <FormSection
+          icon={<LocalShippingRoundedIcon sx={{ fontSize: 16 }} />}
+          subtitle="PIC kancab / LSP"
+          title="PIC Kancab"
+        >
+          <FieldGrid columns={2}>
+            <FormAutocomplete
+              accent
+              label="PIC/LSP Name"
+              name="picKancabName"
+              options={picKancabOptions}
+              required
+              formik={formik}
+              onChange={handlePicKancabChange}
+            />
+            <FormTextField
+              label="No.Hp"
+              name="picKancabPhone"
+              formik={formik}
+            />
+            <FormTextField
+              label="Email"
+              name="picKancabEmail"
+              formik={formik}
+              sx={{ gridColumn: { sm: '1 / -1' } }}
+            />
+          </FieldGrid>
+        </FormSection>
+      </Box>
 
       <FormSection
         icon={<AssignmentTurnedInRoundedIcon fontSize="small" />}

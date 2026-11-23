@@ -19,7 +19,6 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
-import { alpha } from '@mui/material/styles'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
@@ -728,63 +727,83 @@ export function SpmsRequestForm({
       autoComplete="off"
       onSubmit={(event) => event.preventDefault()}
     >
-      <LiquidPanel sx={{ p: { xs: 1.25, md: 1.5 } }}>
-        <Stack spacing={1.25}>
+      <LiquidPanel sx={{ p: 0 }}>
+        <Stack spacing={1.25} sx={{ p: { xs: 1.25, md: 1.5 } }}>
           {!isCreateMode ? (
             <>
-              <Box
-                sx={{
-                  bgcolor: (theme) =>
-                    theme.palette.mode === 'dark'
-                      ? alpha(theme.palette.common.white, 0.035)
-                      : alpha(theme.palette.common.white, 0.48),
-                  border: '1px solid',
-                  borderColor: (theme) =>
-                    theme.palette.mode === 'dark'
-                      ? alpha(theme.palette.primary.light, 0.16)
-                      : alpha(theme.palette.primary.main, 0.1),
-                  borderRadius: 1,
-                  p: { xs: 1.25, md: 1.5 },
-                }}
-              >
-                <Stack spacing={0.75}>
+              <Stack spacing={0.75}>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={0.75}
+                  sx={{
+                    alignItems: { sm: 'center' },
+                    bgcolor: '#ffffff',
+                    border: '1px solid #c5cdd6',
+                    justifyContent: 'space-between',
+                    px: 1.25,
+                    py: 0.7,
+                  }}
+                >
                   <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    spacing={0.5}
-                    sx={{
-                      alignItems: { sm: 'center' },
-                      justifyContent: 'space-between',
-                    }}
+                    direction="row"
+                    spacing={1.5}
+                    sx={{ alignItems: 'center', flexWrap: 'wrap', rowGap: 0.5 }}
                   >
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography
-                        sx={{ fontSize: 16, fontWeight: 900, lineHeight: 1.2 }}
+                    <Typography
+                      sx={{
+                        fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+                        fontSize: '0.76rem',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {formik.values.orderNumber}
+                    </Typography>
+                    <Typography color="text.secondary" sx={{ fontSize: '0.72rem' }}>
+                      By: <strong>{formik.values.createdBy || '-'}</strong>
+                    </Typography>
+                    <Typography color="text.secondary" sx={{ fontSize: '0.72rem' }}>
+                      DO:{' '}
+                      <strong
+                        style={{
+                          fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+                        }}
                       >
-                        Transaction Track
-                      </Typography>
+                        {formik.values.deliveryOrderNumber || '-'}
+                      </strong>
+                    </Typography>
+                    {formik.values.pickupDeliveryOrderNumber ? (
                       <Typography
                         color="text.secondary"
-                        sx={{ fontSize: 12, lineHeight: 1.3 }}
+                        sx={{ fontSize: '0.72rem' }}
                       >
-                        Posisi transaksi SPMS dari open sampai closed.
+                        DO Pickup:{' '}
+                        <strong
+                          style={{
+                            fontFamily:
+                              '"IBM Plex Mono", ui-monospace, monospace',
+                          }}
+                        >
+                          {formik.values.pickupDeliveryOrderNumber}
+                        </strong>
                       </Typography>
-                    </Box>
-                    <Chip
-                      color={isTransactionClosed ? 'success' : 'warning'}
-                      label={
-                        isTransactionClosed
-                          ? 'Closed'
-                          : transactionTimelineItems.find(
-                              (item) => item.state === 'active',
-                            )?.label ?? 'In Progress'
-                      }
-                      size="small"
-                      variant="outlined"
-                    />
+                    ) : null}
                   </Stack>
-                  <ProcessTimeline items={transactionTimelineItems} />
+                  <Chip
+                    color={isTransactionClosed ? 'success' : 'warning'}
+                    label={
+                      isTransactionClosed
+                        ? 'Closed'
+                        : transactionTimelineItems.find(
+                            (item) => item.state === 'active',
+                          )?.label ?? 'In Progress'
+                    }
+                    size="small"
+                    variant="outlined"
+                  />
                 </Stack>
-              </Box>
+
+                <ProcessTimeline items={transactionTimelineItems} />
+              </Stack>
 
               <Tabs
                 value={activeStep}
@@ -805,22 +824,18 @@ export function SpmsRequestForm({
                 variant="scrollable"
                 allowScrollButtonsMobile
                 sx={{
-                  borderBottom: '1px solid',
-                  borderColor: (theme) =>
-                    theme.palette.mode === 'dark'
-                      ? 'rgba(128, 205, 255, 0.14)'
-                      : 'rgba(18, 73, 126, 0.12)',
-                  minHeight: 68,
+                  borderBottom: '1px solid #c5cdd6',
+                  minHeight: 34,
                   '& .MuiTabs-indicator': {
-                    height: 3,
+                    height: 2,
                   },
                   '& .MuiTab-root': {
-                    alignItems: 'flex-start',
-                    borderRadius: 1,
-                    minHeight: 64,
-                    minWidth: { xs: 178, sm: 210 },
+                    fontSize: '0.76rem',
+                    fontWeight: 600,
+                    minHeight: 34,
+                    minWidth: 'auto',
                     px: 1.5,
-                    textAlign: 'left',
+                    py: 0.5,
                   },
                 }}
               >
@@ -834,20 +849,10 @@ export function SpmsRequestForm({
                     }
                     type="button"
                     value={index}
-                    label={
-                      <Stack spacing={0.25}>
-                        <Typography sx={{ fontWeight: 900 }} variant="body2">
-                          {step.title}
-                        </Typography>
-                        <Typography color="text.secondary" variant="caption">
-                          {step.subtitle}
-                        </Typography>
-                      </Stack>
-                    }
+                    label={step.title}
                   />
                 ))}
               </Tabs>
-
             </>
           ) : null}
 
@@ -921,66 +926,52 @@ export function SpmsRequestForm({
             />
           ) : null}
         </Stack>
-      </LiquidPanel>
 
-      <Stack
-        direction={{ xs: 'column-reverse', sm: 'row' }}
-        spacing={1}
-        sx={{
-          justifyContent: 'flex-end',
-          mt: 2,
-          position: { md: 'sticky' },
-          bottom: { md: 16 },
-          zIndex: 1,
-        }}
-      >
-        {onCancel ? (
-          <Button
-            disabled={formik.isSubmitting}
-            onClick={onCancel}
-            type="button"
-            variant="outlined"
-            sx={{
-              background: 'transparent',
-              borderColor: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? 'rgba(128, 205, 255, 0.2)'
-                  : 'rgba(18, 73, 126, 0.18)',
-              boxShadow: 'none',
-              color: 'text.secondary',
-              minWidth: 104,
-              width: { xs: '100%', sm: 'auto' },
-              '&:hover': {
-                backgroundColor: (theme) =>
-                  theme.palette.mode === 'dark'
-                    ? 'rgba(128, 205, 255, 0.08)'
-                    : 'rgba(29, 112, 183, 0.06)',
-                boxShadow: 'none',
-              },
-            }}
-          >
-            Cancel
-          </Button>
-        ) : null}
-        <AppButton
-          disabled={formik.isSubmitting || isUploadingFile}
-          onClick={() => {
-            void handleSave()
-          }}
-          startIcon={<SaveRoundedIcon />}
-          type="button"
+        <Stack
+          direction={{ xs: 'column-reverse', sm: 'row' }}
+          spacing={1}
           sx={{
-            minWidth: 132,
-            width: { xs: '100%', sm: 'auto' },
+            bgcolor: '#eef1f4',
+            borderTop: '1px solid #c5cdd6',
+            justifyContent: 'flex-end',
+            px: { xs: 1.25, md: 1.5 },
+            py: 1,
           }}
         >
-          {isUploadingFile
-            ? 'Uploading...'
-            : isCreateMode
-              ? 'Add SPMS'
-              : `Save ${formSteps[activeStep].title}`}
-        </AppButton>
-      </Stack>
+          {onCancel ? (
+            <Button
+              disabled={formik.isSubmitting}
+              onClick={onCancel}
+              type="button"
+              variant="outlined"
+              sx={{
+                minWidth: 96,
+                width: { xs: '100%', sm: 'auto' },
+              }}
+            >
+              Cancel
+            </Button>
+          ) : null}
+          <AppButton
+            disabled={formik.isSubmitting || isUploadingFile}
+            onClick={() => {
+              void handleSave()
+            }}
+            startIcon={<SaveRoundedIcon fontSize="small" />}
+            type="button"
+            sx={{
+              minWidth: 132,
+              width: { xs: '100%', sm: 'auto' },
+            }}
+          >
+            {isUploadingFile
+              ? 'Uploading...'
+              : isCreateMode
+                ? 'Add SPMS'
+                : `Save ${formSteps[activeStep].title}`}
+          </AppButton>
+        </Stack>
+      </LiquidPanel>
     </Box>
   )
 }
