@@ -1,80 +1,46 @@
+/* Hallmark · shape: app screen · genre: editorial · theme: Almanac (deal 2/3, seed telecom-spare-part-management-f081·00ace349·2026-11-23·r0) · redesign: full
+ * nav: docked ink rail + flat top bar · signature: printed-sheet SPMS operations ledger · states: loading, empty, error, full
+ * axes: mid/grotesk-sans/chromatic-magenta · posture: restrained · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P9 H9 E9 S9 R9 V9 · weakest: dense multi-column SPMS tables on small viewports, solved with sticky order/action columns, horizontal scroll controls, and density toggle */
+@import url("./tokens.css");
+@import url("./base.css");
+
 :root {
-  font-family: Roboto, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    sans-serif;
-  color: #091b34;
-  background: #edf7ff;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --font-ui: var(--font-display);
 }
 
-:root[data-theme='dark'] {
-  color: #edf7ff;
-  background: #071323;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html {
-  min-height: 100%;
+html,
+body {
+  overflow-x: clip;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100svh;
-  background:
-    linear-gradient(145deg, rgba(20, 58, 120, 0.96) 0%, rgba(29, 112, 183, 0.84) 38%, rgba(82, 197, 242, 0.34) 100%),
-    linear-gradient(35deg, rgba(242, 140, 40, 0.22), rgba(255, 255, 255, 0) 42%),
-    #edf7ff;
-}
-
-:root[data-theme='dark'] body {
-  background:
-    linear-gradient(145deg, rgba(3, 11, 26, 0.98) 0%, rgba(8, 25, 52, 0.96) 42%, rgba(20, 58, 120, 0.78) 100%),
-    linear-gradient(35deg, rgba(242, 140, 40, 0.16), rgba(255, 255, 255, 0) 42%),
-    #071323;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    linear-gradient(172deg, rgba(255, 255, 255, 0.36) 0 12%, rgba(255, 255, 255, 0) 12% 100%),
-    linear-gradient(18deg, rgba(7, 27, 63, 0.18) 0 28%, rgba(255, 255, 255, 0) 28% 100%),
-    linear-gradient(150deg, rgba(255, 255, 255, 0) 0 58%, rgba(82, 197, 242, 0.26) 58% 100%);
-  opacity: 0.82;
-}
-
-:root[data-theme='dark'] body::before {
-  background:
-    linear-gradient(172deg, rgba(82, 197, 242, 0.14) 0 12%, rgba(255, 255, 255, 0) 12% 100%),
-    linear-gradient(18deg, rgba(0, 0, 0, 0.3) 0 28%, rgba(255, 255, 255, 0) 28% 100%),
-    linear-gradient(150deg, rgba(255, 255, 255, 0) 0 58%, rgba(29, 112, 183, 0.2) 58% 100%);
-  opacity: 0.72;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 #root {
   min-height: 100svh;
 }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
+.mono,
+.num {
+  font-family: var(--font-outlier);
+  font-variant-numeric: tabular-nums;
+}
+
+button:active:not(:disabled),
+a:active {
+  transform: translateY(1px);
 }
 
 * {
-  scrollbar-color: rgba(29, 112, 183, 0.62) rgba(255, 255, 255, 0.26);
-}
-
-:root[data-theme='dark'] * {
-  scrollbar-color: rgba(82, 197, 242, 0.54) rgba(7, 19, 35, 0.64);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-muted) var(--color-paper-2);
 }

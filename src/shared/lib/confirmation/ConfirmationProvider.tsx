@@ -76,20 +76,11 @@ export function ConfirmationProvider({ children }: PropsWithChildren) {
         slotProps={{
           paper: {
             sx: {
-              background: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? 'linear-gradient(145deg, rgba(7, 19, 35, 0.96), rgba(10, 42, 94, 0.9))'
-                  : 'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(237,247,255,0.92))',
-              border: '1px solid',
-              borderColor: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? 'rgba(128, 205, 255, 0.2)'
-                  : 'rgba(255,255,255,0.74)',
-              borderRadius: 1,
-              boxShadow: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? '0 24px 70px rgba(0, 8, 20, 0.62)'
-                  : '0 24px 70px rgba(12, 67, 122, 0.22)',
+              bgcolor: '#f5f7f9',
+              border: '1px solid #3c4654',
+              borderTop: '3px solid #9e1c4d',
+              borderRadius: '2px',
+              boxShadow: '0 8px 24px rgba(24, 32, 44, 0.14)',
             },
           },
         }}

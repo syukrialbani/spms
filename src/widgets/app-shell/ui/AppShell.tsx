@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import Box from '@mui/material/Box'
-import Container from '@mui/material/Container'
 import Drawer from '@mui/material/Drawer'
 import { Outlet } from 'react-router-dom'
 import { MainAppBar } from '@widgets/app-bar'
 import { MainNavigation } from '@widgets/navigation'
 
-const drawerWidth = 284
+const drawerWidth = 236
 
 export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -16,13 +15,10 @@ export function AppShell() {
   return (
     <Box
       sx={{
-        background: (theme) =>
-          theme.palette.mode === 'dark'
-            ? 'linear-gradient(135deg, rgba(7, 19, 35, 0.92), rgba(10, 42, 94, 0.74)), linear-gradient(25deg, rgba(242, 140, 40, 0.1), transparent 48%)'
-            : 'linear-gradient(135deg, rgba(236, 248, 255, 0.82), rgba(207, 235, 255, 0.62)), linear-gradient(25deg, rgba(242, 140, 40, 0.16), transparent 48%)',
+        bgcolor: 'background.default',
         display: 'flex',
         minHeight: '100svh',
-        overflowX: 'hidden',
+        overflowX: 'clip',
       }}
     >
       <MainAppBar
@@ -41,10 +37,11 @@ export function AppShell() {
           sx={{
             display: { xs: 'block', md: 'none' },
             '& .MuiDrawer-paper': {
-              bgcolor: 'transparent',
+              bgcolor: '#18202c',
+              border: 0,
               boxSizing: 'border-box',
-              maxWidth: '88vw',
-              width: { xs: 288, sm: drawerWidth },
+              maxWidth: '85vw',
+              width: 260,
             },
           }}
         >
@@ -56,8 +53,9 @@ export function AppShell() {
           sx={{
             display: { xs: 'none', md: 'block' },
             '& .MuiDrawer-paper': {
-              bgcolor: 'transparent',
+              bgcolor: '#18202c',
               border: 0,
+              borderRight: '1px solid #0f151e',
               boxSizing: 'border-box',
               width: drawerWidth,
             },
@@ -70,23 +68,23 @@ export function AppShell() {
         component="main"
         sx={{
           flexGrow: 1,
-          maxWidth: { xs: '100vw', md: `calc(100vw - ${drawerWidth}px)` },
           minHeight: '100svh',
-          overflowX: 'hidden',
-          pt: { xs: '80px', sm: '84px', md: '92px' },
-          width: { md: `calc(100% - ${drawerWidth}px)` },
+          minWidth: 0,
+          pt: '56px',
+          width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
         }}
       >
-        <Container
-          maxWidth={false}
+        <Box
           sx={{
-            maxWidth: '100%',
-            px: { xs: 1.5, sm: 2, md: 3 },
-            py: { xs: 1.5, sm: 2, md: 3 },
+            marginInline: 'auto',
+            maxWidth: 1600,
+            px: { xs: 1.5, sm: 2.25, md: 3 },
+            py: { xs: 1.75, sm: 2.25, md: 2.5 },
+            width: '100%',
           }}
         >
           <Outlet />
-        </Container>
+        </Box>
       </Box>
     </Box>
   )

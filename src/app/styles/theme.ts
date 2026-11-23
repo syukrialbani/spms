@@ -1,177 +1,236 @@
-import { createTheme, type PaletteMode } from '@mui/material/styles'
+import { createTheme } from '@mui/material/styles'
 
-export const getAppTheme = (mode: PaletteMode) => {
-  const isDark = mode === 'dark'
+// Single-mode Almanac operational theme — zero runtime dark/light branching,
+// zero liquid glass, zero gradients, zero heavy drop shadows.
+export const appTheme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#9e1c4d', // Almanac chart magenta (oklch 45% 0.18 350)
+      dark: '#7c143c',
+      light: '#f7e4ec',
+      contrastText: '#f7f8fa',
+    },
+    secondary: {
+      main: '#18202c', // Almanac blue-black ink (oklch 16% 0.02 245)
+      dark: '#0f151e',
+      light: '#dce2e8',
+      contrastText: '#f7f8fa',
+    },
+    success: {
+      main: '#1e6b3b',
+      light: '#e2f2e7',
+    },
+    warning: {
+      main: '#9a5b0c',
+      light: '#fdf0d9',
+    },
+    error: {
+      main: '#b42318',
+      light: '#fce4e2',
+    },
+    info: {
+      main: '#1d568c',
+      light: '#e2eef8',
+    },
+    background: {
+      default: '#cdd4dc', // Almanac slate stock (--color-paper)
+      paper: '#eef1f4', // Almanac printed sheet (--color-sheet)
+    },
+    text: {
+      primary: '#18202c', // --color-ink
+      secondary: '#475261', // --color-muted
+    },
+    divider: '#adb6c2', // --color-rule
+  },
+  shape: {
+    borderRadius: 2,
+  },
+  typography: {
+    fontFamily: '"Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif',
+    fontSize: 13,
+    body1: {
+      fontSize: '0.875rem',
+      lineHeight: 1.45,
+    },
+    body2: {
+      fontSize: '0.8125rem',
+      lineHeight: 1.4,
+    },
+    caption: {
+      fontSize: '0.75rem',
+      lineHeight: 1.35,
+    },
+    h4: {
+      fontWeight: 600,
+      letterSpacing: '-0.02em',
+      fontSize: '1.375rem',
+    },
+    h5: {
+      fontWeight: 600,
+      letterSpacing: '-0.015em',
+      fontSize: '1.125rem',
+    },
+    h6: {
+      fontWeight: 600,
+      letterSpacing: '-0.01em',
+      fontSize: '0.975rem',
+    },
+    button: {
+      fontSize: '0.8125rem',
+      fontWeight: 600,
+      letterSpacing: 0,
+      textTransform: 'none',
+    },
+  },
+  components: {
+    MuiButtonBase: {
+      defaultProps: {
+        disableRipple: true, // Lighter rendering & crisp operational feel
+      },
+    },
+    MuiButton: {
+      defaultProps: {
+        disableElevation: true,
+      },
+      styleOverrides: {
+        root: {
+          borderRadius: 2,
+          minHeight: 34,
+          paddingLeft: 14,
+          paddingRight: 14,
+          boxShadow: 'none',
+          transition: 'background-color 120ms ease, border-color 120ms ease, color 120ms ease',
+          '&:focus-visible': {
+            outline: '2px solid #9e1c4d',
+            outlineOffset: 2,
+          },
+        },
+        contained: {
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: 'none',
+          },
+        },
+        outlined: {
+          borderColor: '#475261',
+          color: '#18202c',
+          backgroundColor: 'transparent',
+          '&:hover': {
+            borderColor: '#18202c',
+            backgroundColor: '#dce2e8',
+          },
+        },
+      },
+    },
+    MuiPaper: {
+      defaultProps: {
+        elevation: 0,
+      },
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 0,
+          border: '1px solid #adb6c2',
+          borderTop: '2px solid #3c4654',
+          backgroundColor: '#eef1f4',
+          boxShadow: 'none',
+        },
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 2,
+          border: '1px solid #3c4654',
+          backgroundColor: '#f5f7f9',
+          boxShadow: '0 8px 24px rgba(24, 32, 44, 0.14)',
+        },
+      },
+    },
+    MuiPopover: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 2,
+          border: '1px solid #adb6c2',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 6px 18px rgba(24, 32, 44, 0.12)',
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#ffffff',
+          borderRadius: 2,
+          minHeight: 36,
+          '& fieldset': {
+            borderColor: '#8d99a8',
+          },
+          '&:hover fieldset': {
+            borderColor: '#18202c',
+          },
+          '&.Mui-focused fieldset': {
+            borderColor: '#9e1c4d',
+            borderWidth: 2,
+          },
+        },
+        input: {
+          fontSize: '0.8125rem',
+          fontWeight: 500,
+          paddingBottom: 7,
+          paddingTop: 7,
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 2,
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          height: 24,
+        },
+        sizeSmall: {
+          height: 22,
+        },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 600,
+          minHeight: 40,
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          borderBottom: '1px solid #c5cdd6',
+          fontSize: '0.8125rem',
+          paddingBottom: 9,
+          paddingTop: 9,
+        },
+        head: {
+          backgroundColor: '#dfe5ec',
+          borderBottom: '2px solid #3c4654',
+          color: '#18202c',
+          fontSize: '0.78rem',
+          fontWeight: 600,
+          textTransform: 'none',
+          letterSpacing: 0,
+        },
+      },
+    },
+  },
+})
 
-  return createTheme({
-    palette: {
-      mode,
-      primary: {
-        main: isDark ? '#52c5f2' : '#1d70b7',
-        dark: isDark ? '#1d70b7' : '#143a78',
-        light: isDark ? '#163e63' : '#dff5ff',
-        contrastText: '#ffffff',
-      },
-      secondary: {
-        main: '#f28c28',
-        dark: '#b85d10',
-        light: isDark ? '#4a2b13' : '#fff0dc',
-        contrastText: '#ffffff',
-      },
-      success: {
-        main: isDark ? '#4ade80' : '#15803d',
-        light: isDark ? '#113f2a' : '#dcfce7',
-      },
-      warning: {
-        main: isDark ? '#fbbf24' : '#b7791f',
-        light: isDark ? '#4a3510' : '#fff7d6',
-      },
-      error: {
-        main: isDark ? '#fb7185' : '#b91c1c',
-        light: isDark ? '#4c1720' : '#fee2e2',
-      },
-      background: {
-        default: isDark ? '#071323' : '#edf7ff',
-        paper: isDark
-          ? 'rgba(9, 27, 52, 0.66)'
-          : 'rgba(255, 255, 255, 0.64)',
-      },
-      text: {
-        primary: isDark ? '#edf7ff' : '#091b34',
-        secondary: isDark ? '#a9bed6' : '#60708a',
-      },
-      divider: isDark
-        ? 'rgba(128, 205, 255, 0.16)'
-        : 'rgba(255, 255, 255, 0.46)',
-    },
-    shape: {
-      borderRadius: 8,
-    },
-    typography: {
-      fontFamily: 'Roboto, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-      fontSize: 12,
-      body1: {
-        fontSize: '0.78rem',
-      },
-      body2: {
-        fontSize: '0.72rem',
-      },
-      caption: {
-        fontSize: '0.66rem',
-      },
-      h4: {
-        fontWeight: 700,
-        letterSpacing: 0,
-        fontSize: '1.35rem',
-      },
-      h5: {
-        fontWeight: 700,
-        letterSpacing: 0,
-        fontSize: '1.12rem',
-      },
-      h6: {
-        fontWeight: 700,
-        letterSpacing: 0,
-        fontSize: '0.95rem',
-      },
-      button: {
-        fontSize: '0.72rem',
-        fontWeight: 700,
-        letterSpacing: 0,
-        textTransform: 'none',
-      },
-    },
-    components: {
-      MuiButton: {
-        defaultProps: {
-          disableElevation: true,
-        },
-        styleOverrides: {
-          root: {
-            background:
-              'linear-gradient(135deg, #52c5f2 0%, #1d70b7 54%, #143a78 100%)',
-            borderRadius: 8,
-            boxShadow: isDark
-              ? '0 10px 22px rgba(82, 197, 242, 0.18)'
-              : '0 10px 22px rgba(29, 112, 183, 0.22)',
-            minHeight: 32,
-            paddingLeft: 12,
-            paddingRight: 12,
-            '&:hover': {
-              boxShadow: isDark
-                ? '0 12px 26px rgba(82, 197, 242, 0.24)'
-                : '0 12px 26px rgba(29, 112, 183, 0.28)',
-            },
-          },
-        },
-      },
-      MuiPaper: {
-        styleOverrides: {
-          root: {
-            backgroundImage: 'none',
-          },
-        },
-      },
-      MuiCard: {
-        styleOverrides: {
-          root: {
-            borderRadius: 8,
-            border: isDark
-              ? '1px solid rgba(128, 205, 255, 0.18)'
-              : '1px solid rgba(255, 255, 255, 0.5)',
-            boxShadow: isDark
-              ? '0 18px 46px rgba(0, 8, 20, 0.32)'
-              : '0 18px 46px rgba(15, 52, 96, 0.14)',
-          },
-        },
-      },
-      MuiOutlinedInput: {
-        styleOverrides: {
-          root: {
-            backgroundColor: isDark
-              ? 'rgba(7, 19, 35, 0.72)'
-              : 'rgba(255, 255, 255, 0.82)',
-            borderRadius: 8,
-            minHeight: 34,
-          },
-          input: {
-            fontSize: 12.5,
-            fontWeight: 700,
-            paddingBottom: 7,
-            paddingTop: 7,
-          },
-        },
-      },
-      MuiChip: {
-        styleOverrides: {
-          root: {
-            fontSize: 11,
-            fontWeight: 800,
-            height: 24,
-          },
-          sizeSmall: {
-            height: 22,
-          },
-        },
-      },
-      MuiTableCell: {
-        styleOverrides: {
-          root: {
-            borderBottom: isDark
-              ? '1px solid rgba(128, 205, 255, 0.12)'
-              : '1px solid rgba(18, 73, 126, 0.1)',
-            fontSize: 11.5,
-            paddingBottom: 8,
-            paddingTop: 8,
-          },
-          head: {
-            color: isDark ? '#a9dfff' : '#2e5d98',
-            fontSize: 11,
-            fontWeight: 700,
-            textTransform: 'uppercase',
-          },
-        },
-      },
-    },
-  })
-}
+export const getAppTheme = () => appTheme

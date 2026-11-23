@@ -68,11 +68,12 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   return (
     <Box component="form" onSubmit={handleSubmit} autoComplete="off">
-      <Stack spacing={2.25}>
+      <Stack spacing={2}>
         {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
 
         <FormTextField
-          placeholder="Username"
+          label="Username"
+          placeholder="Masukkan username"
           name="username"
           autoComplete="off"
           value={values.username}
@@ -82,7 +83,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             input: {
               startAdornment: (
                 <InputAdornment position="start">
-                  <PersonRoundedIcon sx={{ color: 'secondary.main' }} />
+                  <PersonRoundedIcon
+                    fontSize="small"
+                    sx={{ color: 'text.secondary' }}
+                  />
                 </InputAdornment>
               ),
             },
@@ -90,7 +94,8 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         />
 
         <FormTextField
-          placeholder="Password"
+          label="Password"
+          placeholder="Masukkan password"
           name="password"
           type={showPassword ? 'text' : 'password'}
           autoComplete="new-password"
@@ -101,7 +106,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             input: {
               startAdornment: (
                 <InputAdornment position="start">
-                  <LockRoundedIcon sx={{ color: 'secondary.main' }} />
+                  <LockRoundedIcon
+                    fontSize="small"
+                    sx={{ color: 'text.secondary' }}
+                  />
                 </InputAdornment>
               ),
               endAdornment: (
@@ -111,23 +119,13 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                     onMouseDown={(event) => event.preventDefault()}
                     edge="end"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    sx={{
-                      color: (theme) =>
-                        theme.palette.mode === 'dark'
-                          ? 'rgba(237, 247, 255, 0.78)'
-                          : 'rgba(9, 27, 52, 0.78)',
-                      '&:hover': {
-                        color: (theme) =>
-                          theme.palette.mode === 'dark'
-                            ? 'primary.main'
-                            : 'primary.dark',
-                      },
-                    }}
+                    size="small"
+                    sx={{ color: 'text.secondary' }}
                   >
                     {showPassword ? (
-                      <VisibilityOffRoundedIcon />
+                      <VisibilityOffRoundedIcon fontSize="small" />
                     ) : (
-                      <VisibilityRoundedIcon />
+                      <VisibilityRoundedIcon fontSize="small" />
                     )}
                   </IconButton>
                 </InputAdornment>
@@ -136,38 +134,33 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           }}
         />
 
-        <Stack
-          direction="row"
-          sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-        >
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={rememberMe}
-                onChange={(event) => setRememberMe(event.target.checked)}
-                size="small"
-              />
-            }
-            label="Remember me"
-            sx={{ color: 'rgba(255,255,255,0.78)' }}
-          />
-        </Stack>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={rememberMe}
+              onChange={(event) => setRememberMe(event.target.checked)}
+              size="small"
+            />
+          }
+          label="Remember me"
+          sx={{ color: 'text.secondary' }}
+        />
 
         <AppButton
           type="submit"
           size="large"
           startIcon={
             isSubmitting ? (
-              <CircularProgress size={18} color="inherit" />
+              <CircularProgress size={16} color="inherit" />
             ) : (
-              <LoginRoundedIcon />
+              <LoginRoundedIcon fontSize="small" />
             )
           }
           disabled={isSubmitting}
           fullWidth
-          sx={{ minHeight: 52 }}
+          sx={{ minHeight: 42 }}
         >
-          {isSubmitting ? 'Signing in' : 'Login'}
+          {isSubmitting ? 'Signing in...' : 'Sign in'}
         </AppButton>
       </Stack>
     </Box>

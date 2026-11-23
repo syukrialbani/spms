@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography'
 import { LiquidPanel } from '@shared/ui/LiquidPanel'
 
 type StatCardProps = {
-  icon: ReactNode
+  icon?: ReactNode
   label: string
   value: string
   helper?: string
@@ -13,49 +13,44 @@ type StatCardProps = {
 
 export function StatCard({ icon, label, value, helper }: StatCardProps) {
   return (
-    <LiquidPanel
-      sx={{
-        p: { xs: 2, md: 2.5 },
-      }}
-    >
-      <Stack
-        direction="row"
-        spacing={{ xs: 1.5, md: 2 }}
-        sx={{ alignItems: 'center', minWidth: 0 }}
-      >
-        <Box
-          sx={{
-            alignItems: 'center',
-            background:
-              'linear-gradient(135deg, rgba(82,197,242,0.85), rgba(29,112,183,0.82))',
-            borderRadius: 1,
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.38)',
-            color: 'common.white',
-            display: 'flex',
-            flexShrink: 0,
-            height: { xs: 40, md: 44 },
-            justifyContent: 'center',
-            width: { xs: 40, md: 44 },
-          }}
+    <LiquidPanel sx={{ px: 2, py: 1.75 }}>
+      <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ alignItems: 'center', justifyContent: 'space-between' }}
         >
-          {icon}
-        </Box>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography color="text.secondary" variant="body2">
+          <Typography
+            color="text.secondary"
+            variant="body2"
+            sx={{ fontWeight: 500 }}
+          >
             {label}
           </Typography>
-          <Typography
-            variant="h5"
-            sx={{ fontSize: { xs: 22, md: 24 }, mt: 0.25 }}
-          >
-            {value}
-          </Typography>
-          {helper ? (
-            <Typography color="text.secondary" variant="caption">
-              {helper}
-            </Typography>
+          {icon ? (
+            <Box sx={{ color: 'text.secondary', display: 'flex', opacity: 0.7 }}>
+              {icon}
+            </Box>
           ) : null}
-        </Box>
+        </Stack>
+        <Typography
+          sx={{
+            color: 'text.primary',
+            fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+            fontSize: { xs: 22, md: 26 },
+            fontVariantNumeric: 'tabular-nums',
+            fontWeight: 500,
+            letterSpacing: '-0.03em',
+            lineHeight: 1.15,
+          }}
+        >
+          {value}
+        </Typography>
+        {helper ? (
+          <Typography color="text.secondary" variant="caption">
+            {helper}
+          </Typography>
+        ) : null}
       </Stack>
     </LiquidPanel>
   )

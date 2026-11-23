@@ -1,12 +1,13 @@
-import { getSpmsStatusColor } from '@entities/spms'
+import ClearRoundedIcon from '@mui/icons-material/ClearRounded'
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded'
-import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
+import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Chip from '@mui/material/Chip'
+import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
 import { LiquidPanel } from '@shared/ui/LiquidPanel'
 import type { SpmsStatusFilter } from '../model/useSpmsList'
 
@@ -17,6 +18,7 @@ type SpmsTableToolbarProps = {
   statusOptions: SpmsStatusFilter[]
   onSearchChange: (value: string) => void
   onStatusChange: (value: SpmsStatusFilter) => void
+  onExport?: () => void
 }
 
 export function SpmsTableToolbar({
@@ -26,82 +28,109 @@ export function SpmsTableToolbar({
   statusOptions,
   onSearchChange,
   onStatusChange,
+  onExport,
 }: SpmsTableToolbarProps) {
+  const visibleStatuses = statusOptions.filter(
+    (option) =>
+      option === 'All' || option === status || (statusCounts[option] ?? 0) > 0,
+  )
+
   return (
-    <LiquidPanel
-      sx={{
-        mb: 2,
-        p: { xs: 1.5, sm: 2 },
-      }}
-    >
-      <Stack spacing={1.5}>
-        <Stack
-          direction="row"
-          spacing={1}
+    <LiquidPanel sx={{ mb: 1.5, p: { xs: 1.25, sm: 1.5 } }}>
+      <Stack spacing={1.25}>
+        <Box
           sx={{
-            flexWrap: 'wrap',
-            rowGap: 1,
+            borderBottom: '1px solid #c5cdd6',
+            display: 'flex',
+            gap: 0.75,
+            overflowX: 'auto',
+            pb: 1,
           }}
         >
-          {statusOptions.map((option) => {
+          {visibleStatuses.map((option) => {
             const selected = status === option
-            const color =
-              option === 'All' ? 'default' : getSpmsStatusColor(option)
+            const count = statusCounts[option] ?? 0
 
             return (
-              <Chip
+              <Button
                 key={option}
-                color={color}
-                label={`${option} (${statusCounts[option]})`}
                 onClick={() => onStatusChange(option)}
                 size="small"
-                variant={selected ? 'filled' : 'outlined'}
+                variant={selected ? 'contained' : 'outlined'}
+                color={selected ? 'primary' : 'secondary'}
                 sx={{
-                  fontWeight: selected ? 900 : 750,
-                  minWidth: 126,
+                  borderColor: selected ? 'primary.main' : '#adb6c2',
+                  flexShrink: 0,
+                  minHeight: 30,
+                  px: 1.25,
+                  whiteSpace: 'nowrap',
                 }}
-              />
+              >
+                <span>{option}</span>
+                <Typography
+                  component="span"
+                  sx={{
+                    fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+                    fontSize: '0.74rem',
+                    fontVariantNumeric: 'tabular-nums',
+                    ml: 0.75,
+                    opacity: selected ? 0.92 : 0.72,
+                  }}
+                >
+                  {count.toLocaleString('id-ID')}
+                </Typography>
+              </Button>
             )
           })}
-        </Stack>
+        </Box>
+
         <Stack
-          direction={{ xs: 'column', md: 'row' }}
-          spacing={1.5}
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1}
           sx={{ alignItems: 'stretch' }}
         >
-        <TextField
-          fullWidth
-          placeholder="Search order, customer, area, site..."
-          size="small"
-          value={search}
-          onChange={(event) => onSearchChange(event.target.value)}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchRoundedIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
-        <Button
-          variant="contained"
-          startIcon={<FilterListRoundedIcon />}
-          sx={{
-            minWidth: 118,
-            width: { xs: '100%', md: 'auto' },
-          }}
-        >
-          Filter
-        </Button>
-        <Button
-          variant="contained"
-          startIcon={<FileDownloadRoundedIcon />}
-          sx={{ minWidth: 118, width: { xs: '100%', md: 'auto' } }}
-        >
-          Export
-        </Button>
+          <TextField
+            fullWidth
+            placeholder="Cari Order Number, Customer, Ticket, Area, DOP, Site, Part Number..."
+            size="small"
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRoundedIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+                endAdornment: search ? (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="Clear search"
+                      edge="end"
+                      onClick={() => onSearchChange('')}
+                      size="small"
+                    >
+                      <ClearRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ) : null,
+              },
+            }}
+          />
+          {onExport ? (
+            <Button
+              variant="outlined"
+              startIcon={<FileDownloadRoundedIcon />}
+              onClick={onExport}
+              sx={{
+                flexShrink: 0,
+                minWidth: 120,
+                width: { xs: '100%', sm: 'auto' },
+              }}
+            >
+              Export CSV
+            </Button>
+          ) : null}
         </Stack>
       </Stack>
     </LiquidPanel>

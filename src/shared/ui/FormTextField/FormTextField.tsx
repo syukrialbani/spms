@@ -1,7 +1,6 @@
 import Stack from '@mui/material/Stack'
 import TextField, { type TextFieldProps } from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import { alpha } from '@mui/material/styles'
 import { getIn, type FormikProps } from 'formik'
 import type { ReactNode } from 'react'
 
@@ -61,46 +60,23 @@ export function FormTextField<FormValues extends object = Record<string, unknown
           readOnly,
         },
       }}
-      sx={
-        [
-          {
-            '& .MuiOutlinedInput-root': {
-              bgcolor: (theme) =>
-                isDisabled || readOnly
-                  ? theme.palette.mode === 'dark'
-                    ? alpha(theme.palette.common.white, 0.08)
-                    : alpha(theme.palette.text.primary, 0.06)
-                  : theme.palette.mode === 'dark'
-                    ? alpha(theme.palette.common.black, 0.24)
-                    : alpha(theme.palette.common.white, 0.82),
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.52)',
-              minHeight: props.multiline ? undefined : 34,
-              '& fieldset': {
-                borderColor: (theme) =>
-                  theme.palette.mode === 'dark'
-                    ? 'rgba(128, 205, 255, 0.22)'
-                    : 'rgba(18, 73, 126, 0.16)',
-              },
-              '&:hover fieldset': {
-                borderColor: isDisabled || readOnly ? undefined : 'primary.main',
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: isDisabled || readOnly ? undefined : 'primary.main',
-                borderWidth: 1,
-              },
-            },
-            '& .MuiInputBase-input': {
-              fontSize: 12.5,
-              fontWeight: 700,
-              py: 0.65,
-            },
-            '& .MuiFormHelperText-root': {
-              mx: 0,
-            },
+      sx={[
+        {
+          '& .MuiOutlinedInput-root': {
+            bgcolor: isDisabled || readOnly ? '#dfe5ec' : '#ffffff',
+            minHeight: props.multiline ? undefined : 36,
           },
-          ...(!label && sx ? (Array.isArray(sx) ? sx : [sx]) : []),
-        ]
-      }
+          '& .MuiInputBase-input': {
+            fontSize: '0.8125rem',
+            fontWeight: 500,
+            py: 0.7,
+          },
+          '& .MuiFormHelperText-root': {
+            mx: 0,
+          },
+        },
+        ...(!label && sx ? (Array.isArray(sx) ? sx : [sx]) : []),
+      ]}
     />
   )
 
@@ -116,10 +92,9 @@ export function FormTextField<FormValues extends object = Record<string, unknown
         variant="caption"
         sx={{
           color: resolvedError ? 'error.main' : 'text.secondary',
-          fontSize: 11,
-          fontWeight: 800,
-          lineHeight: 1.2,
-          px: 0.25,
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          lineHeight: 1.25,
         }}
       >
         {label}

@@ -1,10 +1,7 @@
 import { LoginForm, useAuth } from '@features/auth'
-import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded'
 import Box from '@mui/material/Box'
-import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { LiquidPanel } from '@shared/ui/LiquidPanel'
 import { AviatBrand } from '@shared/ui/AviatBrand'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
@@ -29,116 +26,103 @@ export function LoginPage() {
     <Box
       sx={{
         alignItems: 'center',
-        background:
-          'linear-gradient(145deg, rgba(8, 28, 70, 0.98) 0%, rgba(20, 58, 120, 0.94) 42%, rgba(29, 112, 183, 0.9) 100%)',
-        color: 'common.white',
+        bgcolor: '#cdd4dc',
         display: 'flex',
         justifyContent: 'center',
         minHeight: '100svh',
-        overflowX: 'hidden',
-        px: { xs: 1.5, sm: 4 },
+        overflowX: 'clip',
+        px: { xs: 1.5, sm: 3 },
         py: { xs: 2, sm: 4 },
-        position: 'relative',
-        '&::before': {
-          background:
-            'linear-gradient(160deg, rgba(255,255,255,0.2) 0 14%, transparent 14% 100%), linear-gradient(26deg, rgba(5,18,52,0.28) 0 32%, transparent 32% 100%)',
-          content: '""',
-          inset: 0,
-          pointerEvents: 'none',
-          position: 'absolute',
-        },
       }}
     >
       <Box
         sx={{
+          border: '1px solid #3c4654',
           display: 'grid',
-          gap: { xs: 3, lg: 5 },
-          gridTemplateColumns: { xs: '1fr', lg: '0.9fr 1.1fr' },
-          maxWidth: 1120,
-          position: 'relative',
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+          maxWidth: 880,
           width: '100%',
-          zIndex: 1,
         }}
       >
         <Box
           sx={{
-            alignSelf: 'center',
-            display: { xs: 'none', lg: 'block' },
+            bgcolor: '#18202c',
+            color: '#eef1f4',
+            display: { xs: 'none', md: 'flex' },
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            p: 4.5,
           }}
         >
-          <Stack spacing={3.5}>
-            <AviatBrand size="large" />
-            <Box>
-              <Typography
-                variant="h2"
-                component="h1"
-                sx={{
-                  fontSize: { lg: 56, xl: 64 },
-                  fontWeight: 900,
-                  letterSpacing: 0,
-                  lineHeight: 1.02,
-                }}
-              >
-                SPMS control for Aviat operations.
-              </Typography>
-              <Typography sx={{ color: 'rgba(255,255,255,0.74)', mt: 2, maxWidth: 520 }}>
-                Monitor requests, materials, severity, and returns in a focused
-                glass workspace.
-              </Typography>
-            </Box>
-            <Stack direction="row" spacing={1.25}>
-              {['SPMS', 'Material', 'Return'].map((label) => (
-                <Chip
-                  key={label}
-                  label={label}
-                  sx={{
-                    bgcolor: 'rgba(255,255,255,0.14)',
-                    border: '1px solid rgba(255,255,255,0.22)',
-                    color: 'common.white',
-                    fontWeight: 700,
-                  }}
-                />
-              ))}
-            </Stack>
+          <AviatBrand size="large" />
+          <Stack spacing={1.5}>
+            <Typography
+              component="h1"
+              sx={{
+                color: '#ffffff',
+                fontSize: 32,
+                fontWeight: 600,
+                letterSpacing: '-0.025em',
+                lineHeight: 1.1,
+              }}
+            >
+              SPMS control for Aviat operations.
+            </Typography>
+            <Typography sx={{ color: '#b7c2d0', fontSize: 14, lineHeight: 1.5 }}>
+              Kelola permintaan spare part, delivery order, stock MS, dan return
+              material dalam satu sistem operasional.
+            </Typography>
           </Stack>
+          <Box sx={{ borderTop: '1px solid #2b3646', pt: 2 }}>
+            <Typography
+              variant="caption"
+              sx={{
+                color: '#9aa7b8',
+                fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+              }}
+            >
+              SPMS · Delivery Order · Stock MS
+            </Typography>
+          </Box>
         </Box>
-        <LiquidPanel
-          tone="dark"
+
+        <Box
           sx={{
-            alignSelf: 'center',
-            justifySelf: { xs: 'center', lg: 'end' },
-            maxWidth: 470,
-            p: { xs: 2.5, sm: 4.5 },
-            width: '100%',
+            bgcolor: '#f5f7f9',
+            borderTop: { xs: '3px solid #9e1c4d', md: 0 },
+            p: { xs: 3, sm: 4.5 },
           }}
         >
-          <Stack spacing={{ xs: 2.25, sm: 3 }}>
-            <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
+          <Stack spacing={2.5}>
+            <Box
+              sx={{
+                bgcolor: '#18202c',
+                display: { xs: 'inline-flex', md: 'none' },
+                p: 1.25,
+                width: 'fit-content',
+              }}
+            >
               <AviatBrand />
             </Box>
-            <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
-              <VerifiedRoundedIcon sx={{ color: 'secondary.main' }} />
-              <Typography sx={{ color: 'common.white', fontWeight: 800 }}>SPMS Secure Login</Typography>
-            </Stack>
             <Box>
               <Typography
-                variant="h3"
-                component="h1"
+                component="h2"
                 sx={{
-                  color: 'common.white',
-                  fontSize: { xs: 34, sm: 48 },
-                  fontWeight: 900,
+                  color: '#18202c',
+                  fontSize: 24,
+                  fontWeight: 600,
+                  letterSpacing: '-0.02em',
                 }}
               >
-                Login
+                Sign in
               </Typography>
-              <Typography sx={{ color: 'rgba(255, 255, 255, 0.68)' }}>
-                Use your account to continue into SPMS.
+              <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>
+                Masuk menggunakan akun SPMS Anda.
               </Typography>
             </Box>
             <LoginForm onSuccess={() => navigate(targetPath, { replace: true })} />
           </Stack>
-        </LiquidPanel>
+        </Box>
       </Box>
     </Box>
   )

@@ -30,22 +30,29 @@ export function DashboardPage() {
   const navigate = useNavigate()
   const { data } = useSpmsListQuery()
   const records = useMemo(() => data?.data ?? [], [data])
+  const totalOrders = data?.meta.total ?? records.length
   const recentRecords = records.slice(0, 4)
   const totalQty = records.reduce((total, record) => total + record.qty, 0)
-  const closedCount = records.filter(
-    (record) => record.statusSpms === 'Closed',
-  ).length
-  const approvalQueueCount = records.filter(
-    (record) =>
-      record.statusSpms === 'Waiting Approval Delivery' ||
-      record.statusSpms === 'Waiting Review Delivery' ||
-      record.statusSpms === 'Waiting Approval Pickup' ||
-      record.statusSpms === 'Waiting Review Pickup',
-  ).length
+  const closedCount =
+    data?.statusCounts?.Closed ??
+    records.filter((record) => record.statusSpms === 'Closed').length
+  const approvalQueueCount = data?.statusCounts
+    ? (data.statusCounts['Waiting Approval Delivery'] ?? 0) +
+      (data.statusCounts['Waiting Review Delivery'] ?? 0) +
+      (data.statusCounts['Waiting Approval Pickup'] ?? 0) +
+      (data.statusCounts['Waiting Review Pickup'] ?? 0)
+    : records.filter(
+        (record) =>
+          record.statusSpms === 'Waiting Approval Delivery' ||
+          record.statusSpms === 'Waiting Review Delivery' ||
+          record.statusSpms === 'Waiting Approval Pickup' ||
+          record.statusSpms === 'Waiting Review Pickup',
+      ).length
   const highSeverityCount = records.filter(
     (record) => record.severity === 'High' || record.severity === 'Critical',
   ).length
   const statusCount = (status: SpmsStatus) =>
+    data?.statusCounts?.[status] ??
     records.filter((record) => record.statusSpms === status).length
   const deliveryStatusCount = (status: DeliveryWorkflowStatus) =>
     records.filter((record) => getDeliveryWorkflowStatus(record) === status)
@@ -71,28 +78,28 @@ export function DashboardPage() {
         }}
       >
         <StatCard
-          icon={<ChecklistRoundedIcon />}
+          icon={<ChecklistRoundedIcon fontSize="small" />}
           label="Total Orders"
-          value={String(records.length)}
-          helper="Across active request"
+          value={totalOrders.toLocaleString('id-ID')}
+          helper="Total SPMS records"
         />
         <StatCard
-          icon={<AssignmentTurnedInRoundedIcon />}
+          icon={<AssignmentTurnedInRoundedIcon fontSize="small" />}
           label="Closed"
-          value={String(closedCount)}
+          value={closedCount.toLocaleString('id-ID')}
           helper="Completed tickets"
         />
         <StatCard
-          icon={<PendingActionsRoundedIcon />}
+          icon={<PendingActionsRoundedIcon fontSize="small" />}
           label="Approval Queue"
-          value={String(approvalQueueCount)}
+          value={approvalQueueCount.toLocaleString('id-ID')}
           helper="Need decision"
         />
         <StatCard
-          icon={<Inventory2RoundedIcon />}
-          label="Total Qty"
-          value={String(totalQty)}
-          helper={`${highSeverityCount} high severity`}
+          icon={<Inventory2RoundedIcon fontSize="small" />}
+          label="Recent Sample Qty"
+          value={totalQty.toLocaleString('id-ID')}
+          helper={`${highSeverityCount} critical/high in recent 200`}
         />
       </Box>
       {/* <AnalyticsChart data={analyticsData} /> */}

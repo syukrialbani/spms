@@ -4,31 +4,25 @@ type LiquidPanelProps = PaperProps & {
   tone?: 'light' | 'dark'
 }
 
+// Flat Almanac printed-sheet surface (keeps export name for compatibility,
+// zero liquid glass, zero gradients, zero heavy shadows).
 export function LiquidPanel({ tone = 'light', sx, ...props }: LiquidPanelProps) {
-  const isDark = tone === 'dark'
+  const isInk = tone === 'dark'
 
   return (
     <Paper
       elevation={0}
       sx={[
-        (theme) => {
-          const activeDark = isDark || theme.palette.mode === 'dark'
-
-          return {
-            background: activeDark
-              ? 'linear-gradient(145deg, rgba(7, 19, 35, 0.84), rgba(10, 42, 94, 0.66))'
-              : 'linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(247, 252, 255, 0.7))',
-            border: '1px solid',
-            borderColor: activeDark
-              ? 'rgba(128, 205, 255, 0.18)'
-              : 'rgba(255, 255, 255, 0.58)',
-            borderRadius: 1,
-            boxShadow: activeDark
-              ? '0 16px 38px rgba(0, 8, 20, 0.28), inset 0 1px 0 rgba(128,205,255,0.12)'
-              : '0 14px 34px rgba(12, 67, 122, 0.12), inset 0 1px 0 rgba(255,255,255,0.62)',
-            overflow: 'hidden',
-            position: 'relative',
-          }
+        {
+          bgcolor: isInk ? '#18202c' : '#eef1f4',
+          border: '1px solid',
+          borderColor: isInk ? '#2b3646' : '#adb6c2',
+          borderTop: '2px solid',
+          borderTopColor: isInk ? '#9e1c4d' : '#3c4654',
+          borderRadius: 0,
+          boxShadow: 'none',
+          color: isInk ? '#eef1f4' : 'text.primary',
+          overflow: 'hidden',
         },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}

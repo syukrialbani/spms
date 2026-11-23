@@ -1,16 +1,11 @@
 import { LogoutButton, useAuth } from '@features/auth'
-import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded'
-import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded'
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
-import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded'
 import AppBar from '@mui/material/AppBar'
 import Avatar from '@mui/material/Avatar'
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import Toolbar from '@mui/material/Toolbar'
-import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import { useColorMode } from '@shared/lib/color-mode'
 import { useLocation } from 'react-router-dom'
 
 type MainAppBarProps = {
@@ -66,10 +61,9 @@ const getPageTitle = (pathname: string) => {
 export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
   const location = useLocation()
   const { session } = useAuth()
-  const { mode, toggleMode } = useColorMode()
   const title = getPageTitle(location.pathname)
   const displayName = session
-    ? `${session.firstName} ${session.lastName}`
+    ? `${session.firstName} ${session.lastName}`.trim()
     : 'SPMS User'
   const activeRoleLabel = session?.role
     ? (roleLabels[session.role] ?? session.role)
@@ -81,32 +75,18 @@ export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
       color="inherit"
       elevation={0}
       sx={{
-        background: (theme) =>
-          theme.palette.mode === 'dark'
-            ? 'rgba(7, 19, 35, 0.9)'
-            : 'rgba(255,255,255,0.88)',
-        border: '1px solid',
-        borderColor: (theme) =>
-          theme.palette.mode === 'dark'
-            ? 'rgba(128, 205, 255, 0.18)'
-            : 'rgba(255,255,255,0.54)',
-        borderRadius: 1,
-        boxShadow: (theme) =>
-          theme.palette.mode === 'dark'
-            ? '0 12px 30px rgba(0, 8, 20, 0.24)'
-            : '0 10px 26px rgba(12, 67, 122, 0.1)',
-        left: { xs: 12, md: 'auto' },
-        ml: { md: `${drawerWidth}px` },
-        right: { xs: 12, md: 24 },
-        top: { xs: 8, md: 16 },
-        width: { xs: 'auto', md: `calc(100% - ${drawerWidth + 48}px)` },
+        bgcolor: '#eef1f4',
+        borderBottom: '1px solid #adb6c2',
+        left: { xs: 0, md: `${drawerWidth}px` },
+        top: 0,
+        width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
       }}
     >
       <Toolbar
         sx={{
-          gap: { xs: 0.75, sm: 1.25, md: 2 },
-          minHeight: { xs: 60, md: 64 },
-          px: { xs: 1, sm: 2, md: 3 },
+          gap: { xs: 1, sm: 1.5 },
+          minHeight: '56px !important',
+          px: { xs: 1.5, sm: 2.25, md: 3 },
         }}
       >
         <IconButton
@@ -118,72 +98,55 @@ export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
         >
           <MenuRoundedIcon />
         </IconButton>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography
-            variant="h6"
-            noWrap
-            sx={{
-              fontSize: { xs: 17, sm: 19, md: 20 },
-              lineHeight: 1.2,
-              maxWidth: { xs: '44vw', sm: 'none' },
-            }}
-          >
-            {title}
-          </Typography>
-          <Typography
-            color="text.secondary"
-            variant="caption"
-            noWrap
-            sx={{ display: { xs: 'none', sm: 'block' } }}
-          >
-            Centralized performance management
-          </Typography>
-        </Box>
-        <Box sx={{ flexGrow: 1 }} />
-        <Tooltip title="Notifications">
-          <IconButton
-            color="inherit"
-            aria-label="Notifications"
-            sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
-          >
-            <NotificationsNoneRoundedIcon />
-          </IconButton>
-        </Tooltip>
-        <Tooltip
-          title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+        <Typography
+          variant="h6"
+          noWrap
+          sx={{
+            color: 'text.primary',
+            fontSize: { xs: 16, sm: 17 },
+            fontWeight: 600,
+          }}
         >
-          <IconButton
-            color="inherit"
-            aria-label="Toggle color mode"
-            onClick={toggleMode}
-            sx={{ flexShrink: 0 }}
-          >
-            {mode === 'light' ? <DarkModeRoundedIcon /> : <LightModeRoundedIcon />}
-          </IconButton>
-        </Tooltip>
+          {title}
+        </Typography>
+        <Box sx={{ flexGrow: 1 }} />
         <Box
           sx={{
             alignItems: 'center',
             display: 'flex',
             gap: 1,
-            maxWidth: { xs: 46, sm: 220 },
             minWidth: 0,
-            p: { xs: 0.25, sm: 0.75 },
-            textAlign: 'left',
           }}
         >
           <Avatar
             src={session?.image ?? undefined}
             alt={displayName}
-            sx={{ height: 36, width: 36 }}
+            sx={{
+              bgcolor: '#18202c',
+              borderRadius: '2px',
+              color: '#eef1f4',
+              fontSize: 12,
+              fontWeight: 600,
+              height: 30,
+              width: 30,
+            }}
           >
             {getInitials(session?.firstName, session?.lastName)}
           </Avatar>
           <Box sx={{ display: { xs: 'none', sm: 'block' }, minWidth: 0 }}>
-            <Typography variant="body2" noWrap sx={{ fontWeight: 700 }}>
+            <Typography
+              variant="body2"
+              noWrap
+              sx={{ color: 'text.primary', fontWeight: 600, lineHeight: 1.2 }}
+            >
               {displayName}
             </Typography>
-            <Typography color="text.secondary" variant="caption" noWrap>
+            <Typography
+              color="text.secondary"
+              variant="caption"
+              noWrap
+              sx={{ display: 'block', lineHeight: 1.2 }}
+            >
               {activeRoleLabel}
             </Typography>
           </Box>

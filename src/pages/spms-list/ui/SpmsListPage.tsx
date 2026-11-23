@@ -104,6 +104,7 @@ export function SpmsListPage() {
   const navigate = useNavigate()
   const {
     rows,
+    totalMatched,
     search,
     setSearch,
     status,
@@ -111,6 +112,55 @@ export function SpmsListPage() {
     statusCounts,
     statusOptions,
   } = useSpmsList()
+
+  const handleExportCsv = useCallback(() => {
+    const header = [
+      'Order Number',
+      'Customer',
+      'Ticket Customer',
+      'Request Date',
+      'Area',
+      'DOP',
+      'Site Name',
+      'Description',
+      'Part Number',
+      'Severity',
+      'Status SPMS',
+      'Status Return',
+    ]
+    const escapeCsv = (val: unknown) =>
+      `"${String(val ?? '').replace(/"/g, '""')}"`
+    const csvLines = [
+      header.join(','),
+      ...rows.map((r) =>
+        [
+          r.orderNumber,
+          r.customer,
+          r.customerOrderNumber,
+          r.requestDate,
+          r.area,
+          r.dop,
+          r.siteName,
+          r.description,
+          r.partNumber,
+          r.severity,
+          getTicketStatus(r),
+          getPickupUploadStatus(r),
+        ]
+          .map(escapeCsv)
+          .join(','),
+      ),
+    ]
+    const blob = new Blob([csvLines.join('\n')], {
+      type: 'text/csv;charset=utf-8;',
+    })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `spms-export-${new Date().toISOString().slice(0, 10)}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+  }, [rows])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
   const [materialAnchorEl, setMaterialAnchorEl] =
     useState<HTMLButtonElement | null>(null)
@@ -397,6 +447,7 @@ export function SpmsListPage() {
         statusOptions={statusOptions}
         onSearchChange={setSearch}
         onStatusChange={setStatus}
+        onExport={handleExportCsv}
       />
       <DataTable
         rows={rows}
@@ -404,8 +455,13 @@ export function SpmsListPage() {
         getRowId={(record) => record.id}
         emptyLabel="SPMS tidak ditemukan"
         pagination
-        initialRowsPerPage={10}
-        minWidth={2550}
+        initialRowsPerPage={25}
+        minWidth={2280}
+        totalCountLabel={
+          totalMatched > rows.length
+            ? `Menampilkan ${rows.length.toLocaleString('id-ID')} dari ${totalMatched.toLocaleString('id-ID')} SPMS (gunakan search untuk menyaring)`
+            : `${totalMatched.toLocaleString('id-ID')} SPMS records`
+        }
       />
       <Popover
         anchorEl={materialAnchorEl}

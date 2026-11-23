@@ -3,7 +3,7 @@ import Autocomplete from '@mui/material/Autocomplete'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import { alpha, type SxProps, type Theme } from '@mui/material/styles'
+import type { SxProps, Theme } from '@mui/material/styles'
 import { getIn, type FormikProps } from 'formik'
 import type { ReactNode } from 'react'
 
@@ -64,10 +64,9 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
         variant="caption"
         sx={{
           color: resolvedError ? 'error.main' : 'text.secondary',
-          fontSize: 11,
-          fontWeight: 800,
-          lineHeight: 1.2,
-          px: 0.25,
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          lineHeight: 1.25,
         }}
       >
         {label}
@@ -114,24 +113,13 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
         value={resolvedValue || null}
         slotProps={{
           paper: {
-            sx: (theme) => ({
-              backdropFilter: 'none',
-              backgroundImage: 'none',
-              bgcolor:
-                theme.palette.mode === 'dark'
-                  ? theme.palette.background.default
-                  : theme.palette.common.white,
-              border: '1px solid',
-              borderColor:
-                theme.palette.mode === 'dark'
-                  ? 'rgba(128, 205, 255, 0.24)'
-                  : 'rgba(18, 73, 126, 0.14)',
-              boxShadow:
-                theme.palette.mode === 'dark'
-                  ? '0 12px 28px rgba(0, 8, 20, 0.38)'
-                  : '0 12px 28px rgba(12, 67, 122, 0.14)',
-              mt: 0.75,
-            }),
+            sx: {
+              bgcolor: '#ffffff',
+              border: '1px solid #8d99a8',
+              borderRadius: '2px',
+              boxShadow: '0 6px 16px rgba(24, 32, 44, 0.12)',
+              mt: 0.5,
+            },
           },
         }}
         renderInput={(params) => (
@@ -154,48 +142,28 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
             }}
           />
         )}
-        sx={(theme) => ({
+        sx={{
           '& .MuiOutlinedInput-root': {
-            bgcolor:
-              theme.palette.mode === 'dark'
-                ? alpha(theme.palette.common.black, 0.24)
-                : alpha(theme.palette.common.white, 0.82),
-            minHeight: 34,
-            pr: accent ? '50px !important' : undefined,
-            '& fieldset': {
-              borderColor:
-                theme.palette.mode === 'dark'
-                  ? 'rgba(128, 205, 255, 0.22)'
-                  : 'rgba(18, 73, 126, 0.16)',
-            },
-            '&:hover fieldset': {
-              borderColor: 'primary.main',
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: 'primary.main',
-              borderWidth: 1,
-            },
+            bgcolor: disabled ? '#dfe5ec' : '#ffffff',
+            minHeight: 36,
+            pr: accent ? '46px !important' : undefined,
           },
           '& .MuiAutocomplete-input': {
-            fontSize: 12.5,
-            fontWeight: 700,
+            fontSize: '0.8125rem',
+            fontWeight: 500,
             py: '4.5px !important',
           },
           ...(accent
             ? {
                 '& .MuiAutocomplete-popupIndicator': {
-                  bgcolor: 'primary.main',
-                  borderRadius: 1,
-                  boxShadow: `0 10px 24px ${alpha(
-                    theme.palette.primary.main,
-                    0.28,
-                  )}`,
-                  color: 'primary.contrastText',
-                  height: 26,
-                  mr: 0.25,
-                  width: 26,
+                  bgcolor: '#eef1f4',
+                  border: '1px solid #adb6c2',
+                  borderRadius: '2px',
+                  color: '#18202c',
+                  height: 24,
+                  width: 24,
                   '&:hover': {
-                    bgcolor: 'primary.dark',
+                    bgcolor: '#dfe5ec',
                   },
                 },
               }
@@ -203,7 +171,7 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
           '& .MuiFormHelperText-root': {
             mx: 0,
           },
-        })}
+        }}
       />
     </Stack>
   )

@@ -1,5 +1,18 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import {
+  memo,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
+import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded'
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
+import Stack from '@mui/material/Stack'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell, { type TableCellProps } from '@mui/material/TableCell'
@@ -7,6 +20,8 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TablePagination from '@mui/material/TablePagination'
 import TableRow from '@mui/material/TableRow'
+import Tooltip from '@mui/material/Tooltip'
+import Typography from '@mui/material/Typography'
 import type { SxProps, Theme } from '@mui/material/styles'
 
 export type DataTableHeaderContext<Row> = {
@@ -35,8 +50,10 @@ type DataTableProps<Row> = {
   getRowId: (row: Row) => string | number
   initialRowsPerPage?: number
   minWidth?: number
+  onRowClick?: (row: Row) => void
   pagination?: boolean
   rowsPerPageOptions?: number[]
+  totalCountLabel?: string
 }
 
 const getStickySx = <Row,>(
@@ -49,40 +66,94 @@ const getStickySx = <Row,>(
 
   const offset = column.stickyOffset ?? 0
 
-  return (theme) => ({
-    [theme.breakpoints.up('md')]: {
-      background:
-        theme.palette.mode === 'dark'
-          ? isHead
-            ? 'rgba(10, 42, 94, 0.92)'
-            : 'rgba(7, 19, 35, 0.9)'
-          : isHead
-            ? 'rgba(231, 247, 255, 0.92)'
-            : 'rgba(247, 252, 255, 0.9)',
-      boxShadow:
-        column.sticky === 'left'
-          ? '8px 0 16px rgba(12, 67, 122, 0.06)'
-          : '-8px 0 16px rgba(12, 67, 122, 0.06)',
+  return {
+    '@media (min-width:900px)': {
+      backgroundColor: isHead ? '#dfe5ec' : 'inherit',
+      borderLeft: column.sticky === 'right' ? '1px solid #c5cdd6' : undefined,
+      borderRight: column.sticky === 'left' ? '1px solid #c5cdd6' : undefined,
       left: column.sticky === 'left' ? offset : undefined,
       position: 'sticky',
       right: column.sticky === 'right' ? offset : undefined,
-      zIndex: isHead ? 4 : 3,
+      zIndex: isHead ? 4 : 2,
     },
-  })
+  }
 }
+
+type MemoRowProps<Row> = {
+  columns: DataTableColumn<Row>[]
+  dense: boolean
+  isOdd: boolean
+  onRowClick?: (row: Row) => void
+  row: Row
+}
+
+function RawDataTableRow<Row>({
+  columns,
+  dense,
+  isOdd,
+  onRowClick,
+  row,
+}: MemoRowProps<Row>) {
+  return (
+    <TableRow
+      onClick={onRowClick ? () => onRowClick(row) : undefined}
+      sx={{
+        backgroundColor: isOdd ? '#f5f7f9' : '#ffffff',
+        cursor: onRowClick ? 'pointer' : 'default',
+        '&:hover': {
+          backgroundColor: '#e6ecf2',
+        },
+        '&:last-child td': {
+          borderBottom: 0,
+        },
+      }}
+    >
+      {columns.map((column) => (
+        <TableCell
+          key={column.key}
+          align={column.align}
+          sx={[
+            {
+              backgroundColor: 'inherit',
+              fontSize: dense ? '0.76rem' : '0.8125rem',
+              maxWidth: column.width,
+              minWidth: column.minWidth,
+              overflow: 'hidden',
+              px: dense ? 1 : 1.35,
+              py: dense ? 0.55 : 0.95,
+              textOverflow: 'ellipsis',
+              whiteSpace: column.nowrap === false ? 'normal' : 'nowrap',
+              width: column.width,
+            },
+            getStickySx(column),
+            ...(Array.isArray(column.cellSx) ? column.cellSx : [column.cellSx]),
+          ]}
+        >
+          {column.render(row)}
+        </TableCell>
+      ))}
+    </TableRow>
+  )
+}
+
+const MemoDataTableRow = memo(RawDataTableRow) as typeof RawDataTableRow
 
 export function DataTable<Row>({
   rows,
   columns,
   emptyLabel = 'Data tidak ditemukan',
   getRowId,
-  initialRowsPerPage = 10,
+  initialRowsPerPage = 25,
   minWidth = 920,
+  onRowClick,
   pagination = false,
-  rowsPerPageOptions = [10, 25, 50],
+  rowsPerPageOptions = [10, 25, 50, 100],
+  totalCountLabel,
 }: DataTableProps<Row>) {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(initialRowsPerPage)
+  const [dense, setDense] = useState(false)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
 
   const maxPage = pagination
     ? Math.max(0, Math.ceil(rows.length / rowsPerPage) - 1)
@@ -103,36 +174,102 @@ export function DataTable<Row>({
     [rows, visibleRows],
   )
 
+  const handlePan = useCallback((delta: number) => {
+    scrollRef.current?.scrollBy({ left: delta, behavior: 'smooth' })
+  }, [])
+
   return (
     <Paper
+      elevation={0}
       sx={{
-        background: (theme) =>
-          theme.palette.mode === 'dark'
-            ? 'linear-gradient(145deg, rgba(7,19,35,0.88), rgba(10,42,94,0.68))'
-            : 'linear-gradient(145deg, rgba(255,255,255,0.9), rgba(247,252,255,0.74))',
-        border: '1px solid',
-        borderColor: (theme) =>
-          theme.palette.mode === 'dark'
-            ? 'rgba(128, 205, 255, 0.18)'
-            : 'rgba(255, 255, 255, 0.58)',
-        borderRadius: 1,
-        boxShadow: (theme) =>
-          theme.palette.mode === 'dark'
-            ? '0 14px 34px rgba(0, 8, 20, 0.28)'
-            : '0 12px 30px rgba(12, 67, 122, 0.12)',
+        bgcolor: '#ffffff',
+        border: '1px solid #adb6c2',
+        borderTop: '2px solid #18202c',
+        borderRadius: 0,
         display: 'block',
         maxWidth: '100%',
         overflow: 'hidden',
-        overscrollBehavior: 'contain',
         width: '100%',
       }}
     >
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          alignItems: 'center',
+          bgcolor: '#eef1f4',
+          borderBottom: '1px solid #c5cdd6',
+          justifyContent: 'space-between',
+          px: 1.5,
+          py: 0.75,
+        }}
+      >
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+            fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+            fontVariantNumeric: 'tabular-nums',
+            fontWeight: 500,
+          }}
+        >
+          {totalCountLabel ?? `${rows.length.toLocaleString('id-ID')} rows`}
+        </Typography>
+
+        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+          <Button
+            onClick={() => setDense((current) => !current)}
+            size="small"
+            variant="outlined"
+            sx={{
+              borderColor: '#adb6c2',
+              fontSize: '0.72rem',
+              minHeight: 26,
+              px: 1,
+              py: 0,
+            }}
+          >
+            {dense ? 'Normal view' : 'Compact view'}
+          </Button>
+          <Tooltip title="Scroll table left">
+            <IconButton
+              aria-label="Scroll table left"
+              onClick={() => handlePan(-320)}
+              size="small"
+              sx={{
+                border: '1px solid #adb6c2',
+                borderRadius: '2px',
+                height: 26,
+                width: 26,
+              }}
+            >
+              <ChevronLeftRoundedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Scroll table right">
+            <IconButton
+              aria-label="Scroll table right"
+              onClick={() => handlePan(320)}
+              size="small"
+              sx={{
+                border: '1px solid #adb6c2',
+                borderRadius: '2px',
+                height: 26,
+                width: 26,
+              }}
+            >
+              <ChevronRightRoundedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      </Stack>
+
       <TableContainer
+        ref={scrollRef}
         sx={{
           maxHeight: {
-            xs: pagination ? 'calc(100svh - 342px)' : 'calc(100svh - 286px)',
-            sm: pagination ? 'calc(100svh - 326px)' : 'calc(100svh - 270px)',
-            md: pagination ? 'calc(100svh - 326px)' : 'calc(100svh - 270px)',
+            xs: pagination ? 'calc(100svh - 330px)' : 'calc(100svh - 275px)',
+            md: pagination ? 'calc(100svh - 310px)' : 'calc(100svh - 255px)',
           },
           overflow: 'auto',
           WebkitOverflowScrolling: 'touch',
@@ -140,26 +277,21 @@ export function DataTable<Row>({
       >
         <Table stickyHeader size="small" sx={{ minWidth, tableLayout: 'fixed' }}>
           <TableHead>
-            <TableRow
-              sx={{
-                '& th': {
-                  background: (theme) =>
-                    theme.palette.mode === 'dark'
-                      ? 'rgba(10, 42, 94, 0.92)'
-                      : 'rgba(231, 247, 255, 0.92)',
-                  fontSize: { xs: 11, sm: 11.5 },
-                  px: { xs: 0.75, sm: 1 },
-                  py: 0.8,
-                },
-              }}
-            >
+            <TableRow>
               {columns.map((column) => (
                 <TableCell
                   key={column.key}
                   align={column.align}
                   sx={[
                     {
+                      backgroundColor: '#dfe5ec',
+                      borderBottom: '2px solid #3c4654',
+                      color: '#18202c',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
                       minWidth: column.minWidth,
+                      px: dense ? 1 : 1.35,
+                      py: 1,
                       whiteSpace: 'nowrap',
                       width: column.width,
                     },
@@ -178,58 +310,31 @@ export function DataTable<Row>({
           </TableHead>
           <TableBody>
             {visibleRows.length ? (
-              visibleRows.map((row) => (
-                <TableRow
+              visibleRows.map((row, index) => (
+                <MemoDataTableRow
                   key={getRowId(row)}
-                  hover
-                  sx={{
-                    '&:hover td': {
-                      backgroundColor: (theme) =>
-                        theme.palette.mode === 'dark'
-                          ? 'rgba(82, 197, 242, 0.08)'
-                          : 'rgba(255, 255, 255, 0.64)',
-                    },
-                    '&:last-child td, &:last-child th': { border: 0 },
-                  }}
-                >
-                  {columns.map((column) => (
-                    <TableCell
-                      key={column.key}
-                      align={column.align}
-                      sx={[
-                        {
-                          maxWidth: column.width,
-                          minWidth: column.minWidth,
-                          overflow: 'hidden',
-                          fontSize: { xs: 11, sm: 11.5 },
-                          px: { xs: 0.75, sm: 1 },
-                          py: 0.75,
-                          textOverflow: 'ellipsis',
-                          whiteSpace:
-                            column.nowrap === false ? 'normal' : 'nowrap',
-                          width: column.width,
-                        },
-                        getStickySx(column),
-                        ...(Array.isArray(column.cellSx)
-                          ? column.cellSx
-                          : [column.cellSx]),
-                      ]}
-                    >
-                      {column.render(row)}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                  columns={columns}
+                  dense={dense}
+                  isOdd={index % 2 === 1}
+                  onRowClick={onRowClick}
+                  row={row}
+                />
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} align="center" sx={{ py: 6 }}>
-                  {emptyLabel}
+                <TableCell
+                  colSpan={columns.length}
+                  align="center"
+                  sx={{ color: 'text.secondary', py: 6 }}
+                >
+                  <Box>{emptyLabel}</Box>
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </TableContainer>
+
       {pagination ? (
         <TablePagination
           component="div"
@@ -243,21 +348,21 @@ export function DataTable<Row>({
             setPage(0)
           }}
           sx={{
-            borderTop: '1px solid',
-            borderColor: (theme) =>
-              theme.palette.mode === 'dark'
-                ? 'rgba(128, 205, 255, 0.14)'
-                : 'rgba(18, 73, 126, 0.1)',
+            bgcolor: '#eef1f4',
+            borderTop: '1px solid #c5cdd6',
             overflow: 'hidden',
-            px: { xs: 0.5, sm: 1 },
+            px: { xs: 0.5, sm: 1.25 },
             '& .MuiTablePagination-toolbar': {
               flexWrap: { xs: 'wrap', sm: 'nowrap' },
               gap: { xs: 0.5, sm: 1 },
               justifyContent: { xs: 'center', sm: 'flex-end' },
-              minHeight: { xs: 58, sm: 52 },
+              minHeight: 46,
             },
             '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows':
               {
+                fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+                fontSize: '0.75rem',
+                fontVariantNumeric: 'tabular-nums',
                 m: 0,
               },
           }}

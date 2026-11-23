@@ -4,10 +4,10 @@ export function AppButton(props: ButtonProps) {
   return (
     <Button
       variant="contained"
+      color="primary"
       {...props}
       sx={{
-        color: 'primary.contrastText',
-        fontWeight: 800,
+        fontWeight: 600,
         letterSpacing: 0,
         ...props.sx,
       }}
