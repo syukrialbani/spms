@@ -5,7 +5,15 @@ export const spmsQueryKeys = {
   all: ['spms'] as const,
   list: (params?: SpmsListParams) => ['spms', 'list', params ?? {}] as const,
   detail: (id: string) => ['spms', 'detail', id] as const,
+  requestorOptions: () => ['spms', 'requestor-options'] as const,
 }
+
+export const useSpmsRequestorOptionsQuery = () =>
+  useQuery({
+    queryKey: spmsQueryKeys.requestorOptions(),
+    queryFn: () => spmsApi.listRequestorOptions(),
+    staleTime: 60_000,
+  })
 
 export const useSpmsListQuery = (params: SpmsListParams = { limit: 200 }) =>
   useQuery({

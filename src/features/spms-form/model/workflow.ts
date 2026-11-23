@@ -35,6 +35,7 @@ export const detailRequestFields: DetailFieldName[] = [
   'siteName',
   'requestorEmail',
   'requestorPhone',
+  'requestorAddress',
   'picKancabEmail',
   'picKancabName',
   'picKancabPhone',

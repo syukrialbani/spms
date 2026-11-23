@@ -345,8 +345,9 @@ export function SpmsDetailPage() {
                   columns={1}
                   items={[
                     ['Requestor Name', record.customerRequestor ?? '-'],
-                    ['Email', record.requestorEmail ?? '-'],
-                    ['No hp', record.requestorPhone ?? '-'],
+                    ['Email', record.requestorEmail || '-'],
+                    ['No hp', record.requestorPhone || '-'],
+                    ['Alamat', record.requestorAddress || '-'],
                   ].map(([label, value]) => ({ label, value }))}
                 />
                 <DetailSection

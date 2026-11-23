@@ -1,5 +1,9 @@
 import { apiClient } from '@shared/api'
-import type { SpmsRecord, SpmsStatus } from '../model/types'
+import type {
+  SpmsRecord,
+  SpmsRequestorOption,
+  SpmsStatus,
+} from '../model/types'
 
 export type SpmsListResponse = {
   data: SpmsRecord[]
@@ -23,6 +27,13 @@ export type SpmsListParams = {
 export const spmsApi = {
   list(params: SpmsListParams = { limit: 200 }): Promise<SpmsListResponse> {
     return apiClient.get<SpmsListResponse>('/spms', { params })
+  },
+
+  async listRequestorOptions(): Promise<SpmsRequestorOption[]> {
+    const res = await apiClient.get<{ data: SpmsRequestorOption[] }>(
+      '/spms/requestor-options',
+    )
+    return res.data
   },
 
   getById(id: string): Promise<SpmsRecord> {

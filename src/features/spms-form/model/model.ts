@@ -102,6 +102,7 @@ export type SpmsRequestFormValues = {
   picKancabPhone: string
   requestorEmail: string
   requestorPhone: string
+  requestorAddress: string
   statusTransaction: string
 }
 
@@ -198,6 +199,7 @@ export const createDefaultSpmsRequestValues = (
   picKancabPhone: '',
   requestorEmail: '',
   requestorPhone: '',
+  requestorAddress: '',
   statusTransaction: '',
 })
 
@@ -371,9 +373,9 @@ export const spmsRequestValidationSchema = Yup.object({
   picKancabPhone: Yup.string().trim(),
   requestorEmail: Yup.string()
     .trim()
-    .email('Email requestor tidak valid')
-    .required('Email requestor wajib diisi'),
+    .email('Email requestor tidak valid'),
   requestorPhone: Yup.string().trim().required('No HP requestor wajib diisi'),
+  requestorAddress: Yup.string().trim(),
   statusTransaction: Yup.string()
     .trim()
     .required('Status transaction wajib diisi'),

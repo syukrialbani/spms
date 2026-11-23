@@ -174,6 +174,7 @@ const getInitialValues = (
   customerRequestor: record.customerRequestor ?? '',
   requestorEmail: record.requestorEmail ?? '',
   requestorPhone: record.requestorPhone ?? '',
+  requestorAddress: record.requestorAddress ?? '',
   requestDate: toDateTimeLocalValue(record.requestDate),
   areal: record.area.toUpperCase(),
   dop: record.dop,

@@ -10,6 +10,7 @@ import {
   defaultBaType,
   getAutoPickupStatus,
   getSlaHoursForSeverity,
+  useSpmsRequestorOptionsQuery,
 } from '@entities/spms'
 import { useUserPicOptionsQuery } from '@entities/user'
 import { filesApi } from '@shared/api'
@@ -75,7 +76,7 @@ export function SpmsRequestForm({
   const { data: severitySlas = [] } = useMasterSeveritySlasQuery()
   const { data: transactionStatuses = [] } = useMasterTransactionStatusesQuery()
   const { data: picKancabs = [] } = useUserPicOptionsQuery('DRIVER')
-  const { data: requestors = [] } = useUserPicOptionsQuery('REQUESTOR')
+  const { data: requestors = [] } = useSpmsRequestorOptionsQuery()
   const confirm = useConfirmation()
   const isCreateMode = mode === 'create'
   const isSuperAdmin = currentRole === 'SUPER_ADMIN'
@@ -400,13 +401,22 @@ export function SpmsRequestForm({
   }
 
   const handleRequestorChange = (value: string) => {
-    const contact = requestors.find((r) => r.name === value)
+    const contact = requestors.find(
+      (r) => r.name.toLowerCase() === value.trim().toLowerCase(),
+    )
 
     void formik.setFieldValue('customerRequestor', value)
 
     if (contact) {
-      void formik.setFieldValue('requestorEmail', contact.email)
-      void formik.setFieldValue('requestorPhone', contact.phone)
+      if (contact.email) {
+        void formik.setFieldValue('requestorEmail', contact.email)
+      }
+      if (contact.phone) {
+        void formik.setFieldValue('requestorPhone', contact.phone)
+      }
+      if (contact.address) {
+        void formik.setFieldValue('requestorAddress', contact.address)
+      }
     }
   }
 

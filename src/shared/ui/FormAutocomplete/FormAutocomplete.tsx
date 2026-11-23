@@ -15,6 +15,7 @@ type FormAutocompleteProps<FormValues extends object = Record<string, unknown>> 
   disabled?: boolean
   error?: boolean
   formik?: FormikProps<FormValues>
+  freeSolo?: boolean
   helperText?: ReactNode
   id?: string
   onBlur?: () => void
@@ -37,6 +38,7 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
   disabled = false,
   error = false,
   formik,
+  freeSolo = false,
   helperText,
   id = name,
   onBlur,
@@ -71,8 +73,9 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
         {label}
         {required ? ' *' : ''}
       </Typography>
-      <Autocomplete<string, false, false, false>
+      <Autocomplete<string, false, false, boolean>
         disabled={disabled || formik?.isSubmitting}
+        freeSolo={freeSolo}
         getOptionLabel={(option) => option}
         onBlur={() => {
           onBlur?.()
@@ -81,7 +84,7 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
           }
         }}
         onChange={(_, nextValue) => {
-          const nextText = nextValue ?? ''
+          const nextText = typeof nextValue === 'string' ? nextValue : ''
 
           if (onChange) {
             onChange(nextText)
@@ -90,6 +93,20 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
 
           if (formik) {
             void formik.setFieldValue(name, nextText)
+          }
+        }}
+        onInputChange={(_, nextInputValue, reason) => {
+          if (!freeSolo || reason !== 'input') {
+            return
+          }
+
+          if (onChange) {
+            onChange(nextInputValue)
+            return
+          }
+
+          if (formik) {
+            void formik.setFieldValue(name, nextInputValue)
           }
         }}
         options={[...options]}

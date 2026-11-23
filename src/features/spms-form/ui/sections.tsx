@@ -30,7 +30,11 @@ import type {
   MasterSeveritySla,
   MasterTransactionStatus,
 } from '@entities/master-data'
-import { defaultBaType, pickupStatusOptions } from '@entities/spms'
+import {
+  defaultBaType,
+  pickupStatusOptions,
+  type SpmsRequestorOption,
+} from '@entities/spms'
 import type { UserPicOption } from '@entities/user'
 import type {
   SpmsMaterialFormValues,
@@ -64,7 +68,7 @@ type DetailRequestFieldsProps = {
   materialRows: SpmsMaterialFormValues[]
   materials: MasterMaterial[]
   picKancabs: UserPicOption[]
-  requestors: UserPicOption[]
+  requestors: SpmsRequestorOption[]
   severitySlas: MasterSeveritySla[]
   transactionStatuses: MasterTransactionStatus[]
 }
@@ -316,15 +320,17 @@ export function DetailRequestFields({
 
       <FormSection
         icon={<FactCheckRoundedIcon fontSize="small" />}
-        subtitle="Requestor customer"
+        subtitle="Requestor customer (pilih atau ketik nama PIC Customer baru)"
         title="PIC Requestor"
       >
-        <FieldGrid columns={3}>
+        <FieldGrid columns={2}>
           <FormAutocomplete
             accent
+            freeSolo
             label="Requestor Name"
             name="customerRequestor"
             options={requestorOptions}
+            placeholder="Pilih atau ketik PIC Customer baru..."
             required
             formik={formik}
             onChange={handleRequestorChange}
@@ -332,13 +338,18 @@ export function DetailRequestFields({
           <FormTextField
             label="Email"
             name="requestorEmail"
-            required
             formik={formik}
           />
           <FormTextField
             label="No.Hp"
             name="requestorPhone"
             required
+            formik={formik}
+          />
+          <FormTextField
+            label="Alamat"
+            name="requestorAddress"
+            placeholder="Alamat / lokasi PIC Customer"
             formik={formik}
           />
         </FieldGrid>

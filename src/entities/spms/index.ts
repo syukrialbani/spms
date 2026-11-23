@@ -4,6 +4,7 @@ export {
   useCreateSpmsMutation,
   useSpmsDetailQuery,
   useSpmsListQuery,
+  useSpmsRequestorOptionsQuery,
   useUpdateSpmsMutation,
 } from './api/useSpmsQueries'
 export type { SpmsListParams, SpmsListResponse } from './api/spmsApi'
@@ -71,6 +72,7 @@ export type {
   Severity,
   SpmsMaterialItem,
   SpmsRecord,
+  SpmsRequestorOption,
   SpmsStatus,
   WorkflowApprovalStatus,
   WorkflowClosedStatus,

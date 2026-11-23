@@ -35,6 +35,13 @@ export type WorkflowApprovalStatus =
 
 export type WorkflowClosedStatus = 'PENDING CUSTOMER' | 'CLOSED'
 
+export type SpmsRequestorOption = {
+  name: string
+  email: string
+  phone: string
+  address: string
+}
+
 export type SpmsMaterialItem = {
   categoryMaterial: string
   typeMaterial: string
@@ -78,6 +85,7 @@ export type SpmsRecord = {
   picKancabPhone?: string
   requestorEmail?: string
   requestorPhone?: string
+  requestorAddress?: string
   statusTransaction?: string
   supportDestinationMaterial?: string
   originLsp?: string
