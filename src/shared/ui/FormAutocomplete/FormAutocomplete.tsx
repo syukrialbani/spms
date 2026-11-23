@@ -57,16 +57,16 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
     helperText ?? (hasFormikError ? getHelperText(fieldError) : undefined)
 
   return (
-    <Stack spacing={0.35} sx={sx}>
+    <Stack spacing={0.25} sx={sx}>
       <Typography
         component="label"
         htmlFor={id}
         variant="caption"
         sx={{
           color: resolvedError ? 'error.main' : 'text.secondary',
-          fontSize: '0.75rem',
+          fontSize: '0.69rem',
           fontWeight: 600,
-          lineHeight: 1.25,
+          lineHeight: 1.2,
         }}
       >
         {label}
@@ -145,13 +145,14 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
         sx={{
           '& .MuiOutlinedInput-root': {
             bgcolor: disabled ? '#dfe5ec' : '#ffffff',
-            minHeight: 36,
-            pr: accent ? '46px !important' : undefined,
+            minHeight: 30,
+            py: '1px !important',
+            pr: accent ? '38px !important' : undefined,
           },
           '& .MuiAutocomplete-input': {
-            fontSize: '0.8125rem',
+            fontSize: '0.75rem',
             fontWeight: 500,
-            py: '4.5px !important',
+            py: '2.5px !important',
           },
           ...(accent
             ? {
@@ -160,8 +161,8 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
                   border: '1px solid #adb6c2',
                   borderRadius: '2px',
                   color: '#18202c',
-                  height: 24,
-                  width: 24,
+                  height: 20,
+                  width: 20,
                   '&:hover': {
                     bgcolor: '#dfe5ec',
                   },
@@ -169,7 +170,9 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
               }
             : {}),
           '& .MuiFormHelperText-root': {
+            fontSize: '0.68rem',
             mx: 0,
+            mt: 0.2,
           },
         }}
       />

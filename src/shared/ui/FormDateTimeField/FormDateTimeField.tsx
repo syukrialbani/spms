@@ -3,7 +3,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { alpha, type SxProps, type Theme } from '@mui/material/styles'
+import type { SxProps, Theme } from '@mui/material/styles'
 import dayjs, { type Dayjs } from 'dayjs'
 import 'dayjs/locale/id'
 import { getIn, type FormikProps } from 'formik'
@@ -200,79 +200,55 @@ export function FormDateTimeField<
               onBlur: handleBlur,
               required,
               size: 'small',
-              sx: (theme) => ({
+              sx: {
                 '& .MuiPickersInputBase-root, & .MuiPickersOutlinedInput-root':
                   {
-                    backgroundColor:
-                      theme.palette.mode === 'dark'
-                        ? alpha(theme.palette.common.black, 0.24)
-                        : alpha(theme.palette.common.white, 0.82),
+                    backgroundColor: '#ffffff',
                     backgroundImage: 'none',
-                    borderRadius: 1,
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.52)',
-                    minHeight: 34,
+                    borderRadius: '2px',
+                    minHeight: 30,
                   },
                 '& .MuiPickersOutlinedInput-notchedOutline': {
-                  borderColor:
-                    theme.palette.mode === 'dark'
-                      ? 'rgba(128, 205, 255, 0.22)'
-                      : 'rgba(18, 73, 126, 0.16)',
+                  borderColor: '#8d99a8',
                 },
                 '& .MuiPickersOutlinedInput-root:hover .MuiPickersOutlinedInput-notchedOutline':
                   {
-                    borderColor: 'primary.main',
+                    borderColor: '#18202c',
                   },
                 '& .MuiPickersOutlinedInput-root.MuiPickersInputBase-focused .MuiPickersOutlinedInput-notchedOutline, & .MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-focused .MuiPickersOutlinedInput-notchedOutline':
                   {
                     borderColor: 'primary.main',
-                    borderWidth: 1,
+                    borderWidth: 1.5,
                   },
                 '& .MuiPickersInputBase-sectionContent, & .MuiPickersInputBase-sectionBefore, & .MuiPickersInputBase-sectionAfter':
                   {
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    lineHeight: 1.4375,
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    lineHeight: 1.35,
                   },
                 '& .MuiPickersOutlinedInput-input': {
-                  padding: '4.5px 0',
+                  padding: '3.5px 0',
                 },
                 '& .MuiOutlinedInput-root': {
-                  bgcolor:
-                    theme.palette.mode === 'dark'
-                      ? alpha(theme.palette.common.black, 0.24)
-                      : alpha(theme.palette.common.white, 0.82),
-                  backgroundImage: 'none',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.52)',
-                  minHeight: 34,
-                  '& fieldset': {
-                    borderColor:
-                      theme.palette.mode === 'dark'
-                        ? 'rgba(128, 205, 255, 0.22)'
-                        : 'rgba(18, 73, 126, 0.16)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'primary.main',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'primary.main',
-                    borderWidth: 1,
-                  },
+                  bgcolor: '#ffffff',
+                  minHeight: 30,
                 },
                 '& .MuiInputAdornment-root .MuiButtonBase-root': {
-                  borderRadius: 1,
-                  color: 'primary.main',
-                  height: 26,
-                  width: 26,
+                  borderRadius: '2px',
+                  color: 'text.secondary',
+                  height: 22,
+                  width: 22,
                 },
                 '& .MuiInputBase-input': {
-                  fontSize: 12.5,
-                  fontWeight: 700,
-                  py: 0.65,
+                  fontSize: '0.75rem',
+                  fontWeight: 500,
+                  py: '4px',
                 },
                 '& .MuiFormHelperText-root': {
+                  fontSize: '0.68rem',
                   mx: 0,
                 },
-              }),
+              },
             },
           }}
         />

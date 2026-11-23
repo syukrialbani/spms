@@ -47,7 +47,7 @@ export function FieldGrid({
     <Box
       sx={{
         display: 'grid',
-        gap: 1,
+        gap: 0.75,
         gridTemplateColumns: {
           xs: '1fr',
           md:
@@ -103,12 +103,12 @@ export function FormSection({
                 theme.palette.mode === 'dark'
                   ? alpha(theme.palette.primary.light, 0.14)
                   : alpha(theme.palette.primary.main, 0.08),
-              borderRadius: 1,
+              borderRadius: '2px',
               color: 'primary.main',
               display: 'flex',
-              height: 30,
+              height: 24,
               justifyContent: 'center',
-              width: 30,
+              width: 24,
             }}
           >
             {icon}

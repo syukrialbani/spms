@@ -19,7 +19,7 @@ export function useSpmsList() {
     return () => window.clearTimeout(timer)
   }, [search])
 
-  const { data, isLoading } = useSpmsListQuery({
+  const { data, isLoading, isFetching } = useSpmsListQuery({
     search: debouncedSearch || undefined,
     status: status === 'All' ? undefined : status,
     limit: 200,
@@ -41,6 +41,7 @@ export function useSpmsList() {
 
   return {
     isLoading,
+    isFetching,
     rows,
     totalMatched,
     search,

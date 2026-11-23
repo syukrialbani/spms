@@ -96,9 +96,10 @@ export const appTheme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 2,
-          minHeight: 34,
-          paddingLeft: 14,
-          paddingRight: 14,
+          minHeight: 30,
+          paddingLeft: 12,
+          paddingRight: 12,
+          fontSize: '0.76rem',
           boxShadow: 'none',
           transition: 'background-color 120ms ease, border-color 120ms ease, color 120ms ease',
           '&:focus-visible': {
@@ -169,7 +170,7 @@ export const appTheme = createTheme({
         root: {
           backgroundColor: '#ffffff',
           borderRadius: 2,
-          minHeight: 36,
+          minHeight: 30,
           '& fieldset': {
             borderColor: '#8d99a8',
           },
@@ -178,14 +179,14 @@ export const appTheme = createTheme({
           },
           '&.Mui-focused fieldset': {
             borderColor: '#9e1c4d',
-            borderWidth: 2,
+            borderWidth: 1.5,
           },
         },
         input: {
-          fontSize: '0.8125rem',
+          fontSize: '0.75rem',
           fontWeight: 500,
-          paddingBottom: 7,
-          paddingTop: 7,
+          paddingBottom: 4.5,
+          paddingTop: 4.5,
         },
       },
     },
@@ -193,12 +194,16 @@ export const appTheme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 2,
-          fontSize: '0.75rem',
+          fontSize: '0.68rem',
           fontWeight: 600,
-          height: 24,
+          height: 20,
         },
         sizeSmall: {
-          height: 22,
+          height: 18,
+          '& .MuiChip-label': {
+            paddingLeft: 6,
+            paddingRight: 6,
+          },
         },
       },
     },

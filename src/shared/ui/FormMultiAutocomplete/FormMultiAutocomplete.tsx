@@ -154,15 +154,15 @@ export function FormMultiAutocomplete<Option>({
             },
           },
           '& .MuiAutocomplete-input': {
-            fontSize: 12.5,
-            fontWeight: 700,
-            py: '4px !important',
+            fontSize: '0.75rem',
+            fontWeight: 500,
+            py: '2.5px !important',
           },
           '& .MuiChip-root': {
-            borderRadius: 1,
-            fontSize: 11,
-            fontWeight: 800,
-            height: 23,
+            borderRadius: '2px',
+            fontSize: '0.68rem',
+            fontWeight: 600,
+            height: 20,
           },
         })}
       />

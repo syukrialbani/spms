@@ -1,17 +1,14 @@
 import {
   memo,
-  useCallback,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from 'react'
-import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded'
-import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import IconButton from '@mui/material/IconButton'
+import LinearProgress from '@mui/material/LinearProgress'
 import Paper from '@mui/material/Paper'
+import Skeleton from '@mui/material/Skeleton'
 import Stack from '@mui/material/Stack'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -20,7 +17,6 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TablePagination from '@mui/material/TablePagination'
 import TableRow from '@mui/material/TableRow'
-import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import type { SxProps, Theme } from '@mui/material/styles'
 
@@ -49,6 +45,7 @@ type DataTableProps<Row> = {
   emptyLabel?: string
   getRowId: (row: Row) => string | number
   initialRowsPerPage?: number
+  loading?: boolean
   minWidth?: number
   onRowClick?: (row: Row) => void
   pagination?: boolean
@@ -56,32 +53,9 @@ type DataTableProps<Row> = {
   totalCountLabel?: string
 }
 
-const getStickySx = <Row,>(
-  column: DataTableColumn<Row>,
-  isHead = false,
-): SxProps<Theme> => {
-  if (!column.sticky) {
-    return {}
-  }
-
-  const offset = column.stickyOffset ?? 0
-
-  return {
-    '@media (min-width:900px)': {
-      backgroundColor: isHead ? '#dfe5ec' : 'inherit',
-      borderLeft: column.sticky === 'right' ? '1px solid #c5cdd6' : undefined,
-      borderRight: column.sticky === 'left' ? '1px solid #c5cdd6' : undefined,
-      left: column.sticky === 'left' ? offset : undefined,
-      position: 'sticky',
-      right: column.sticky === 'right' ? offset : undefined,
-      zIndex: isHead ? 4 : 2,
-    },
-  }
-}
-
 type MemoRowProps<Row> = {
   columns: DataTableColumn<Row>[]
-  dense: boolean
+  comfortable: boolean
   isOdd: boolean
   onRowClick?: (row: Row) => void
   row: Row
@@ -89,7 +63,7 @@ type MemoRowProps<Row> = {
 
 function RawDataTableRow<Row>({
   columns,
-  dense,
+  comfortable,
   isOdd,
   onRowClick,
   row,
@@ -98,10 +72,10 @@ function RawDataTableRow<Row>({
     <TableRow
       onClick={onRowClick ? () => onRowClick(row) : undefined}
       sx={{
-        backgroundColor: isOdd ? '#f5f7f9' : '#ffffff',
+        backgroundColor: isOdd ? '#f6f8fa' : '#ffffff',
         cursor: onRowClick ? 'pointer' : 'default',
         '&:hover': {
-          backgroundColor: '#e6ecf2',
+          backgroundColor: '#e7edf3',
         },
         '&:last-child td': {
           borderBottom: 0,
@@ -115,17 +89,17 @@ function RawDataTableRow<Row>({
           sx={[
             {
               backgroundColor: 'inherit',
-              fontSize: dense ? '0.76rem' : '0.8125rem',
+              fontSize: comfortable ? '0.78rem' : '0.71rem',
+              lineHeight: 1.25,
               maxWidth: column.width,
               minWidth: column.minWidth,
               overflow: 'hidden',
-              px: dense ? 1 : 1.35,
-              py: dense ? 0.55 : 0.95,
+              px: comfortable ? 1 : 0.75,
+              py: comfortable ? 0.75 : 0.42,
               textOverflow: 'ellipsis',
               whiteSpace: column.nowrap === false ? 'normal' : 'nowrap',
               width: column.width,
             },
-            getStickySx(column),
             ...(Array.isArray(column.cellSx) ? column.cellSx : [column.cellSx]),
           ]}
         >
@@ -138,13 +112,16 @@ function RawDataTableRow<Row>({
 
 const MemoDataTableRow = memo(RawDataTableRow) as typeof RawDataTableRow
 
+const SKELETON_ROWS = [0, 1, 2, 3, 4, 5, 6, 7]
+
 export function DataTable<Row>({
   rows,
   columns,
   emptyLabel = 'Data tidak ditemukan',
   getRowId,
   initialRowsPerPage = 25,
-  minWidth = 920,
+  loading = false,
+  minWidth,
   onRowClick,
   pagination = false,
   rowsPerPageOptions = [10, 25, 50, 100],
@@ -152,8 +129,7 @@ export function DataTable<Row>({
 }: DataTableProps<Row>) {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(initialRowsPerPage)
-  const [dense, setDense] = useState(false)
-  const scrollRef = useRef<HTMLDivElement | null>(null)
+  const [comfortable, setComfortable] = useState(false)
 
   const maxPage = pagination
     ? Math.max(0, Math.ceil(rows.length / rowsPerPage) - 1)
@@ -174,10 +150,6 @@ export function DataTable<Row>({
     [rows, visibleRows],
   )
 
-  const handlePan = useCallback((delta: number) => {
-    scrollRef.current?.scrollBy({ left: delta, behavior: 'smooth' })
-  }, [])
-
   return (
     <Paper
       elevation={0}
@@ -189,6 +161,7 @@ export function DataTable<Row>({
         display: 'block',
         maxWidth: '100%',
         overflow: 'hidden',
+        position: 'relative',
         width: '100%',
       }}
     >
@@ -200,82 +173,83 @@ export function DataTable<Row>({
           bgcolor: '#eef1f4',
           borderBottom: '1px solid #c5cdd6',
           justifyContent: 'space-between',
-          px: 1.5,
-          py: 0.75,
+          minHeight: 30,
+          px: 1.25,
+          py: 0.4,
         }}
       >
-        <Typography
-          variant="caption"
-          sx={{
-            color: 'text.secondary',
-            fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
-            fontVariantNumeric: 'tabular-nums',
-            fontWeight: 500,
-          }}
-        >
-          {totalCountLabel ?? `${rows.length.toLocaleString('id-ID')} rows`}
-        </Typography>
-
-        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-          <Button
-            onClick={() => setDense((current) => !current)}
-            size="small"
-            variant="outlined"
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          <Typography
+            variant="caption"
             sx={{
-              borderColor: '#adb6c2',
-              fontSize: '0.72rem',
-              minHeight: 26,
-              px: 1,
-              py: 0,
+              color: 'text.secondary',
+              fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+              fontSize: '0.7rem',
+              fontVariantNumeric: 'tabular-nums',
+              fontWeight: 500,
             }}
           >
-            {dense ? 'Normal view' : 'Compact view'}
-          </Button>
-          <Tooltip title="Scroll table left">
-            <IconButton
-              aria-label="Scroll table left"
-              onClick={() => handlePan(-320)}
-              size="small"
+            {totalCountLabel ?? `${rows.length.toLocaleString('id-ID')} rows`}
+          </Typography>
+          {loading ? (
+            <Typography
+              variant="caption"
               sx={{
-                border: '1px solid #adb6c2',
-                borderRadius: '2px',
-                height: 26,
-                width: 26,
+                color: 'primary.main',
+                fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+                fontSize: '0.68rem',
+                fontWeight: 600,
               }}
             >
-              <ChevronLeftRoundedIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Scroll table right">
-            <IconButton
-              aria-label="Scroll table right"
-              onClick={() => handlePan(320)}
-              size="small"
-              sx={{
-                border: '1px solid #adb6c2',
-                borderRadius: '2px',
-                height: 26,
-                width: 26,
-              }}
-            >
-              <ChevronRightRoundedIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
+              Loading...
+            </Typography>
+          ) : null}
         </Stack>
+
+        <Button
+          onClick={() => setComfortable((current) => !current)}
+          size="small"
+          variant="outlined"
+          sx={{
+            borderColor: '#adb6c2',
+            fontSize: '0.68rem',
+            minHeight: 22,
+            px: 0.9,
+            py: 0,
+          }}
+        >
+          {comfortable ? 'Compact' : 'Comfortable'}
+        </Button>
       </Stack>
 
+      <Box sx={{ height: 2, width: '100%', bgcolor: 'transparent' }}>
+        {loading ? (
+          <LinearProgress
+            color="primary"
+            sx={{ height: 2, bgcolor: '#dfe5ec' }}
+          />
+        ) : null}
+      </Box>
+
       <TableContainer
-        ref={scrollRef}
         sx={{
           maxHeight: {
-            xs: pagination ? 'calc(100svh - 330px)' : 'calc(100svh - 275px)',
-            md: pagination ? 'calc(100svh - 310px)' : 'calc(100svh - 255px)',
+            xs: pagination ? 'calc(100svh - 300px)' : 'calc(100svh - 250px)',
+            md: pagination ? 'calc(100svh - 275px)' : 'calc(100svh - 230px)',
           },
           overflow: 'auto',
           WebkitOverflowScrolling: 'touch',
         }}
       >
-        <Table stickyHeader size="small" sx={{ minWidth, tableLayout: 'fixed' }}>
+        <Table
+          stickyHeader
+          size="small"
+          sx={{
+            minWidth: minWidth ?? '100%',
+            tableLayout: 'auto',
+            width: '100%',
+          }}
+        >
           <TableHead>
             <TableRow>
               {columns.map((column) => (
@@ -287,15 +261,15 @@ export function DataTable<Row>({
                       backgroundColor: '#dfe5ec',
                       borderBottom: '2px solid #3c4654',
                       color: '#18202c',
-                      fontSize: '0.78rem',
+                      fontSize: '0.7rem',
                       fontWeight: 600,
+                      lineHeight: 1.2,
                       minWidth: column.minWidth,
-                      px: dense ? 1 : 1.35,
-                      py: 1,
+                      px: comfortable ? 1 : 0.75,
+                      py: 0.65,
                       whiteSpace: 'nowrap',
                       width: column.width,
                     },
-                    getStickySx(column, true),
                     ...(Array.isArray(column.headSx)
                       ? column.headSx
                       : [column.headSx]),
@@ -308,13 +282,41 @@ export function DataTable<Row>({
               ))}
             </TableRow>
           </TableHead>
-          <TableBody>
-            {visibleRows.length ? (
+          <TableBody
+            sx={{
+              opacity: loading && visibleRows.length > 0 ? 0.55 : 1,
+              transition: 'opacity 120ms ease',
+            }}
+          >
+            {loading && visibleRows.length === 0 ? (
+              SKELETON_ROWS.map((rowIdx) => (
+                <TableRow
+                  key={`skeleton-${rowIdx}`}
+                  sx={{
+                    backgroundColor: rowIdx % 2 === 1 ? '#f6f8fa' : '#ffffff',
+                  }}
+                >
+                  {columns.map((column) => (
+                    <TableCell
+                      key={column.key}
+                      sx={{ px: 0.75, py: 0.65 }}
+                    >
+                      <Skeleton
+                        variant="text"
+                        height={16}
+                        width="80%"
+                        animation="wave"
+                      />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : visibleRows.length ? (
               visibleRows.map((row, index) => (
                 <MemoDataTableRow
                   key={getRowId(row)}
                   columns={columns}
-                  dense={dense}
+                  comfortable={comfortable}
                   isOdd={index % 2 === 1}
                   onRowClick={onRowClick}
                   row={row}
@@ -325,7 +327,7 @@ export function DataTable<Row>({
                 <TableCell
                   colSpan={columns.length}
                   align="center"
-                  sx={{ color: 'text.secondary', py: 6 }}
+                  sx={{ color: 'text.secondary', fontSize: '0.78rem', py: 5 }}
                 >
                   <Box>{emptyLabel}</Box>
                 </TableCell>
@@ -351,17 +353,17 @@ export function DataTable<Row>({
             bgcolor: '#eef1f4',
             borderTop: '1px solid #c5cdd6',
             overflow: 'hidden',
-            px: { xs: 0.5, sm: 1.25 },
+            px: { xs: 0.5, sm: 1 },
             '& .MuiTablePagination-toolbar': {
               flexWrap: { xs: 'wrap', sm: 'nowrap' },
-              gap: { xs: 0.5, sm: 1 },
+              gap: { xs: 0.5, sm: 0.75 },
               justifyContent: { xs: 'center', sm: 'flex-end' },
-              minHeight: 46,
+              minHeight: 38,
             },
             '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows':
               {
                 fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
-                fontSize: '0.75rem',
+                fontSize: '0.7rem',
                 fontVariantNumeric: 'tabular-nums',
                 m: 0,
               },

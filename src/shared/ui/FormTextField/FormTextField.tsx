@@ -64,15 +64,17 @@ export function FormTextField<FormValues extends object = Record<string, unknown
         {
           '& .MuiOutlinedInput-root': {
             bgcolor: isDisabled || readOnly ? '#dfe5ec' : '#ffffff',
-            minHeight: props.multiline ? undefined : 36,
+            minHeight: props.multiline ? undefined : 30,
           },
           '& .MuiInputBase-input': {
-            fontSize: '0.8125rem',
+            fontSize: '0.75rem',
             fontWeight: 500,
-            py: 0.7,
+            py: '4.5px',
           },
           '& .MuiFormHelperText-root': {
+            fontSize: '0.68rem',
             mx: 0,
+            mt: 0.2,
           },
         },
         ...(!label && sx ? (Array.isArray(sx) ? sx : [sx]) : []),
@@ -85,16 +87,16 @@ export function FormTextField<FormValues extends object = Record<string, unknown
   }
 
   return (
-    <Stack spacing={0.35} sx={sx}>
+    <Stack spacing={0.25} sx={sx}>
       <Typography
         component="label"
         htmlFor={inputId}
         variant="caption"
         sx={{
           color: resolvedError ? 'error.main' : 'text.secondary',
-          fontSize: '0.75rem',
+          fontSize: '0.69rem',
           fontWeight: 600,
-          lineHeight: 1.25,
+          lineHeight: 1.2,
         }}
       >
         {label}

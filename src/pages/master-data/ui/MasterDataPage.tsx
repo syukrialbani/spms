@@ -436,6 +436,7 @@ export function MasterDataPage() {
           </LiquidPanel>
 
           <DataTable
+            loading={isLoading}
             rows={data.dops}
             columns={dopColumns}
             getRowId={(r) => r.id}
@@ -512,6 +513,7 @@ export function MasterDataPage() {
           </LiquidPanel>
 
           <DataTable
+            loading={isLoading}
             rows={data.materials}
             columns={materialColumns}
             getRowId={(r) => r.id}
@@ -578,6 +580,7 @@ export function MasterDataPage() {
           </LiquidPanel>
 
           <DataTable
+            loading={isLoading}
             rows={data.severitySlas}
             columns={severityColumns}
             getRowId={(r) => r.id}
@@ -645,6 +648,7 @@ export function MasterDataPage() {
           </LiquidPanel>
 
           <DataTable
+            loading={isLoading}
             rows={data.transactionStatuses}
             columns={txColumns}
             getRowId={(r) => r.id}
@@ -708,6 +712,7 @@ export function MasterDataPage() {
           </LiquidPanel>
 
           <DataTable
+            loading={isLoading}
             rows={data.locations}
             columns={locColumns}
             getRowId={(r) => r.id}

@@ -16,7 +16,6 @@ import EditRoundedIcon from '@mui/icons-material/EditRounded'
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Checkbox from '@mui/material/Checkbox'
 import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
@@ -35,10 +34,10 @@ const textCell = (value: string, color: 'primary' | 'secondary' = 'primary') => 
   <Typography
     color={color === 'primary' ? 'text.primary' : 'text.secondary'}
     title={value}
-    variant="body2"
     noWrap
+    sx={{ fontSize: 'inherit', lineHeight: 1.25 }}
   >
-    {value}
+    {value || '-'}
   </Typography>
 )
 
@@ -58,44 +57,40 @@ const renderMaterialCell = (
   const first = firstMaterial(record)
 
   return (
-    <Stack spacing={0.6} sx={{ minWidth: 0 }}>
-      <Stack
-        direction="row"
-        spacing={0.75}
-        sx={{ alignItems: 'center', flexWrap: 'wrap', rowGap: 0.5 }}
+    <Stack
+      direction="row"
+      spacing={0.5}
+      sx={{ alignItems: 'center', minWidth: 0 }}
+    >
+      <Typography
+        title={`${first.description} (${first.partNumber})`}
+        noWrap
+        sx={{
+          flex: 1,
+          fontSize: 'inherit',
+          fontWeight: 600,
+          minWidth: 0,
+        }}
       >
-        <Chip
-          color="primary"
-          label={materials.length}
-          size="small"
-          sx={{ fontWeight: 900, minWidth: 34 }}
-        />
-        <Button
-          onClick={(event) => onMore(event, record)}
-          size="small"
-          type="button"
-          variant="outlined"
-          sx={{
-            background: 'transparent',
-            boxShadow: 'none',
-            minHeight: 28,
-            px: 1.25,
-          }}
-        >
-          More
-        </Button>
-      </Stack>
-      <Typography title={first.description} variant="body2" noWrap sx={{ fontWeight: 800 }}>
         {first.description}
       </Typography>
-      <Typography
-        color="text.secondary"
-        title={`${first.typeMaterial} - ${first.partNumber}`}
-        variant="caption"
-        noWrap
+      <Button
+        onClick={(event) => onMore(event, record)}
+        size="small"
+        type="button"
+        variant="outlined"
+        sx={{
+          borderColor: '#adb6c2',
+          flexShrink: 0,
+          fontSize: '0.64rem',
+          minHeight: 18,
+          minWidth: 0,
+          px: 0.6,
+          py: 0,
+        }}
       >
-        {first.typeMaterial} - {first.partNumber}
-      </Typography>
+        {materials.length > 1 ? `+${materials.length}` : 'Info'}
+      </Button>
     </Stack>
   )
 }
@@ -103,6 +98,8 @@ const renderMaterialCell = (
 export function SpmsListPage() {
   const navigate = useNavigate()
   const {
+    isLoading,
+    isFetching,
     rows,
     totalMatched,
     search,
@@ -161,39 +158,10 @@ export function SpmsListPage() {
     link.click()
     URL.revokeObjectURL(url)
   }, [rows])
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
+
   const [materialAnchorEl, setMaterialAnchorEl] =
     useState<HTMLButtonElement | null>(null)
   const [materialRecord, setMaterialRecord] = useState<SpmsRecord | null>(null)
-
-  const toggleSelected = useCallback((id: string) => {
-    setSelectedIds((current) => {
-      const next = new Set(current)
-
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-
-      return next
-    })
-  }, [])
-
-  const toggleRows = useCallback((ids: string[]) => {
-    setSelectedIds((current) => {
-      const next = new Set(current)
-      const allSelected = ids.length > 0 && ids.every((id) => next.has(id))
-
-      if (allSelected) {
-        ids.forEach((id) => next.delete(id))
-      } else {
-        ids.forEach((id) => next.add(id))
-      }
-
-      return next
-    })
-  }, [])
 
   const handleOpenMaterials = useCallback(
     (event: MouseEvent<HTMLButtonElement>, record: SpmsRecord) => {
@@ -217,67 +185,85 @@ export function SpmsListPage() {
     () => [
       {
         key: 'orderNumber',
-        header: 'Order Number',
-        sticky: 'left',
-        stickyOffset: 0,
-        width: 178,
+        header: 'Order No',
+        width: 118,
         render: (record) => (
-          <Box>
-            <Typography title={record.orderNumber} noWrap sx={{ fontWeight: 800 }}>
-              {record.orderNumber}
-            </Typography>
-            {textCell(formatDate(record.requestDate), 'secondary')}
-          </Box>
+          <Typography
+            title={record.orderNumber}
+            noWrap
+            sx={{
+              fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+              fontSize: 'inherit',
+              fontWeight: 600,
+            }}
+          >
+            {record.orderNumber}
+          </Typography>
         ),
       },
       {
         key: 'customer',
         header: 'Customer',
-        width: 210,
+        width: 78,
         render: (record) => textCell(record.customer),
       },
       {
         key: 'customerOrderNumber',
-        header: 'Customer Order Number',
-        width: 200,
-        render: (record) => textCell(record.customerOrderNumber),
+        header: 'Ticket',
+        width: 118,
+        render: (record) => (
+          <Typography
+            title={record.customerOrderNumber}
+            noWrap
+            sx={{
+              fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+              fontSize: 'inherit',
+            }}
+          >
+            {record.customerOrderNumber}
+          </Typography>
+        ),
       },
       {
         key: 'requestDate',
-        header: 'Request Date',
-        width: 140,
-        render: (record) => textCell(formatDate(record.requestDate)),
-      },
-      {
-        key: 'area',
-        header: 'Area',
-        width: 130,
-        render: (record) => textCell(record.area),
+        header: 'Req Date',
+        width: 82,
+        render: (record) => (
+          <Typography
+            color="text.secondary"
+            noWrap
+            sx={{
+              fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+              fontSize: 'inherit',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {formatDate(record.requestDate)}
+          </Typography>
+        ),
       },
       {
         key: 'dop',
-        header: 'Dop',
-        width: 140,
-        render: (record) => textCell(record.dop),
+        header: 'DOP / Area',
+        width: 105,
+        render: (record) => textCell(record.dop || record.area),
       },
       {
         key: 'siteName',
         header: 'Site Name',
-        width: 180,
+        width: 145,
         render: (record) => textCell(record.siteName),
       },
       {
         key: 'materials',
         header: 'Material',
-        width: 380,
-        nowrap: false,
-        cellSx: { verticalAlign: 'top' },
+        width: 195,
         render: (record) => renderMaterialCell(record, handleOpenMaterials),
       },
       {
         key: 'severity',
         header: 'Severity',
-        width: 130,
+        width: 74,
         render: (record) => (
           <Chip
             color={getSeverityColor(record.severity)}
@@ -288,15 +274,9 @@ export function SpmsListPage() {
         ),
       },
       {
-        key: 'site',
-        header: 'Site',
-        width: 130,
-        render: (record) => textCell(record.site),
-      },
-      {
         key: 'statusSpms',
-        header: 'Status Delivery',
-        width: 230,
+        header: 'Delivery',
+        width: 105,
         render: (record) => {
           const deliveryStatus = getDeliveryUploadStatus(record)
 
@@ -311,8 +291,8 @@ export function SpmsListPage() {
       },
       {
         key: 'statusReturn',
-        header: 'Status Return',
-        width: 220,
+        header: 'Return',
+        width: 96,
         render: (record) => {
           const pickupStatus = getPickupUploadStatus(record)
 
@@ -328,8 +308,8 @@ export function SpmsListPage() {
       },
       {
         key: 'statusTicket',
-        header: 'Status Ticket',
-        width: 230,
+        header: 'Ticket Status',
+        width: 104,
         render: (record) => {
           const ticketStatus = getTicketStatus(record)
 
@@ -347,82 +327,44 @@ export function SpmsListPage() {
         key: 'action',
         header: 'Action',
         align: 'center',
-        sticky: 'right',
-        stickyOffset: 72,
-        width: 100,
+        width: 64,
         render: (record) => (
-          <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'center' }}>
+          <Stack
+            direction="row"
+            spacing={0.25}
+            sx={{ justifyContent: 'center' }}
+          >
             <Tooltip title="View">
               <IconButton
                 aria-label={`View ${record.orderNumber}`}
-                onClick={() => navigate(`/spms/${record.id}`)}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  navigate(`/spms/${record.id}`)
+                }}
                 size="small"
+                sx={{ p: 0.35 }}
               >
-                <VisibilityRoundedIcon fontSize="small" />
+                <VisibilityRoundedIcon sx={{ fontSize: 15 }} />
               </IconButton>
             </Tooltip>
             <Tooltip title="Edit">
               <IconButton
                 aria-label={`Edit ${record.orderNumber}`}
-                onClick={() => navigate(`/spms/${record.id}/edit`)}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  navigate(`/spms/${record.id}/edit`)
+                }}
                 size="small"
+                sx={{ p: 0.35 }}
               >
-                <EditRoundedIcon fontSize="small" />
+                <EditRoundedIcon sx={{ fontSize: 15 }} />
               </IconButton>
             </Tooltip>
-            {/* <Tooltip title="More">
-              <IconButton aria-label={`More ${record.orderNumber}`} size="small">
-                <MoreVertRoundedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip> */}
           </Stack>
         ),
       },
-      {
-        key: 'checkbox',
-        header: ({ visibleRows }) => {
-          const pageRowIds = visibleRows.map((record) => record.id)
-          const allPageSelected =
-            pageRowIds.length > 0 &&
-            pageRowIds.every((id) => selectedIds.has(id))
-          const somePageSelected = pageRowIds.some((id) => selectedIds.has(id))
-
-          return (
-            <Checkbox
-              checked={allPageSelected}
-              disabled={!pageRowIds.length}
-              indeterminate={!allPageSelected && somePageSelected}
-              onChange={() => toggleRows(pageRowIds)}
-              size="small"
-              slotProps={{
-                input: { 'aria-label': 'Select all visible SPMS rows' },
-              }}
-            />
-          )
-        },
-        align: 'center',
-        sticky: 'right',
-        stickyOffset: 0,
-        width: 72,
-        render: (record) => (
-          <Checkbox
-            checked={selectedIds.has(record.id)}
-            onChange={() => toggleSelected(record.id)}
-            size="small"
-            slotProps={{
-              input: { 'aria-label': `Select ${record.orderNumber}` },
-            }}
-          />
-        ),
-      },
     ],
-    [
-      handleOpenMaterials,
-      navigate,
-      selectedIds,
-      toggleSelected,
-      toggleRows,
-    ],
+    [handleOpenMaterials, navigate],
   )
 
   return (
@@ -433,8 +375,8 @@ export function SpmsListPage() {
         actions={
           <AppButton
             onClick={() => navigate('/spms/add')}
-            startIcon={<AddRoundedIcon />}
-            sx={{ minWidth: 128 }}
+            startIcon={<AddRoundedIcon fontSize="small" />}
+            sx={{ minWidth: 112 }}
           >
             Add SPMS
           </AppButton>
@@ -454,9 +396,11 @@ export function SpmsListPage() {
         columns={columns}
         getRowId={(record) => record.id}
         emptyLabel="SPMS tidak ditemukan"
+        loading={isLoading || isFetching}
         pagination
         initialRowsPerPage={25}
-        minWidth={2280}
+        minWidth={1120}
+        onRowClick={(record) => navigate(`/spms/${record.id}`)}
         totalCountLabel={
           totalMatched > rows.length
             ? `Menampilkan ${rows.length.toLocaleString('id-ID')} dari ${totalMatched.toLocaleString('id-ID')} SPMS (gunakan search untuk menyaring)`
@@ -472,83 +416,56 @@ export function SpmsListPage() {
         slotProps={{
           paper: {
             sx: {
-              backdropFilter: 'none',
-              backgroundImage: 'none',
-              bgcolor: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? theme.palette.background.paper
-                  : theme.palette.common.white,
-              border: '1px solid',
-              borderColor: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? 'rgba(128, 205, 255, 0.22)'
-                  : 'rgba(18, 73, 126, 0.14)',
-              borderRadius: 1,
-              boxShadow: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? '0 18px 44px rgba(0, 8, 20, 0.58)'
-                  : '0 18px 44px rgba(12, 67, 122, 0.18)',
-              maxHeight: 'min(620px, calc(100svh - 120px))',
-              maxWidth: 'min(920px, calc(100vw - 32px))',
+              bgcolor: '#ffffff',
+              border: '1px solid #3c4654',
+              borderRadius: '2px',
+              boxShadow: '0 8px 20px rgba(24, 32, 44, 0.14)',
+              maxHeight: 'min(520px, calc(100svh - 120px))',
+              maxWidth: 'min(820px, calc(100vw - 32px))',
               overflow: 'auto',
               p: 0,
-              width: 820,
+              width: 760,
             },
           },
         }}
       >
-        <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
-          <Stack spacing={1.5}>
+        <Box sx={{ p: 1.5 }}>
+          <Stack spacing={1.25}>
             <Stack
               direction="row"
               spacing={1}
               sx={{
                 alignItems: 'center',
-                flexWrap: 'wrap',
                 justifyContent: 'space-between',
-                rowGap: 1,
               }}
             >
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 900 }} variant="subtitle1">
+                <Typography sx={{ fontWeight: 700 }} variant="subtitle2">
                   Material Request
                 </Typography>
-                <Typography color="text.secondary" variant="body2">
-                  {materialRecord?.orderNumber ?? '-'}
+                <Typography color="text.secondary" variant="caption">
+                  {materialRecord?.orderNumber} — {materialRecord?.siteName}
                 </Typography>
               </Box>
               <Chip
                 color="primary"
-                label={`${materialRows.length} material`}
-                variant="outlined"
+                label={`${materialRows.length} item`}
+                size="small"
               />
             </Stack>
             <Divider />
-            <Box sx={{ maxWidth: '100%', overflowX: 'auto' }}>
-              <Box
-                sx={{
-                  border: '1px solid',
-                  borderColor: (theme) =>
-                    theme.palette.mode === 'dark'
-                      ? 'rgba(128, 205, 255, 0.16)'
-                      : 'rgba(18, 73, 126, 0.12)',
-                  borderRadius: 1,
-                  minWidth: 920,
-                  overflow: 'hidden',
-                }}
-              >
+            <Box sx={{ overflowX: 'auto' }}>
+              <Box sx={{ minWidth: 640 }}>
                 <Box
                   sx={{
-                    bgcolor: (theme) =>
-                      theme.palette.mode === 'dark'
-                        ? 'rgba(10, 42, 94, 0.96)'
-                        : 'rgba(231, 247, 255, 1)',
+                    bgcolor: '#dfe5ec',
+                    borderBottom: '2px solid #3c4654',
                     display: 'grid',
-                    gap: 1,
+                    gap: 0.75,
                     gridTemplateColumns:
-                      '52px 1.15fr 1fr 1.45fr 1fr 60px 1.2fr 1.2fr',
-                    px: 1.25,
-                    py: 1,
+                      '36px 0.9fr 0.7fr 1.6fr 1.1fr 42px 1fr 1fr',
+                    px: 1,
+                    py: 0.65,
                   }}
                 >
                   {[
@@ -563,9 +480,7 @@ export function SpmsListPage() {
                   ].map((label) => (
                     <Typography
                       key={label}
-                      color="text.secondary"
-                      sx={{ fontWeight: 900 }}
-                      variant="caption"
+                      sx={{ fontSize: '0.7rem', fontWeight: 700 }}
                     >
                       {label}
                     </Typography>
@@ -575,21 +490,14 @@ export function SpmsListPage() {
                   <Box
                     key={`${material.partNumber}-${index}`}
                     sx={{
-                      bgcolor: (theme) =>
-                        theme.palette.mode === 'dark'
-                          ? theme.palette.background.default
-                          : theme.palette.common.white,
-                      borderTop: '1px solid',
-                      borderTopColor: (theme) =>
-                        theme.palette.mode === 'dark'
-                          ? 'rgba(128, 205, 255, 0.12)'
-                          : 'rgba(18, 73, 126, 0.08)',
+                      bgcolor: index % 2 === 1 ? '#f6f8fa' : '#ffffff',
+                      borderBottom: '1px solid #c5cdd6',
                       display: 'grid',
-                      gap: 1,
+                      gap: 0.75,
                       gridTemplateColumns:
-                        '52px 1.15fr 1fr 1.45fr 1fr 60px 1.2fr 1.2fr',
-                      px: 1.25,
-                      py: 1,
+                        '36px 0.9fr 0.7fr 1.6fr 1.1fr 42px 1fr 1fr',
+                      px: 1,
+                      py: 0.6,
                     }}
                   >
                     {[
@@ -607,16 +515,16 @@ export function SpmsListPage() {
                       <Typography
                         key={`${value}-${valueIndex}`}
                         title={value}
-                        variant="body2"
                         sx={{
-                          fontWeight: valueIndex === 0 ? 900 : 700,
+                          fontSize: '0.72rem',
+                          fontWeight: valueIndex === 0 ? 700 : 500,
                           minWidth: 0,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {value}
+                        {value || '-'}
                       </Typography>
                     ))}
                   </Box>

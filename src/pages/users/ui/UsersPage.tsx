@@ -74,7 +74,7 @@ export function UsersPage() {
   const confirm = useConfirmation()
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('ALL')
-  const { data } = useUsersQuery({
+  const { data, isLoading, isFetching } = useUsersQuery({
     search: search || undefined,
     role: roleFilter === 'ALL' ? undefined : roleFilter,
   })
@@ -305,9 +305,10 @@ export function UsersPage() {
         columns={columns}
         getRowId={(u) => u.id}
         emptyLabel="Belum ada data user"
+        loading={isLoading || isFetching}
         pagination
-        initialRowsPerPage={10}
-        minWidth={1000}
+        initialRowsPerPage={25}
+        minWidth={760}
       />
 
       <Dialog

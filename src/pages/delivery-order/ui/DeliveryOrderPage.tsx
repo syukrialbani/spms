@@ -109,7 +109,11 @@ const multilineCell = (value: string) => (
 export function DeliveryOrderPage() {
   const navigate = useNavigate()
   const confirm = useConfirmation()
-  const { data: ordersResponse } = useDeliveryOrdersQuery()
+  const {
+    data: ordersResponse,
+    isLoading: isLoadingOrders,
+    isFetching: isFetchingOrders,
+  } = useDeliveryOrdersQuery()
   const { data: spmsResponse } = useSpmsListQuery()
   const { mutateAsync: processDo } = useProcessDoMutation()
   const { mutateAsync: rejectDo } = useRejectDoMutation()
@@ -576,9 +580,10 @@ export function DeliveryOrderPage() {
         columns={columns}
         getRowId={(record) => record.id}
         emptyLabel="Delivery order belum tersedia"
+        loading={isLoadingOrders || isFetchingOrders}
         pagination
-        initialRowsPerPage={10}
-        minWidth={2860}
+        initialRowsPerPage={25}
+        minWidth={1200}
       />
       <Dialog
         fullWidth

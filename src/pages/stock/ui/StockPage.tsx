@@ -70,7 +70,7 @@ export function StockPage() {
   const [detailId, setDetailId] = useState<string | null>(null)
 
   const { data: lsps = [] } = useStockLspsQuery()
-  const { data: stockResponse, isLoading } = useStockListQuery({
+  const { data: stockResponse, isLoading, isFetching } = useStockListQuery({
     search: search.trim() || undefined,
     lsp: lsp !== 'ALL' ? lsp : undefined,
     unitCategory: categoryTab !== 'ALL' ? categoryTab : undefined,
@@ -369,12 +369,10 @@ export function StockPage() {
         rows={rows}
         columns={columns}
         getRowId={(r) => r.id}
-        minWidth={1080}
-        emptyLabel={
-          isLoading
-            ? 'Memuat data Stock MS...'
-            : 'Tidak ada data Stock MS yang cocok dengan filter.'
-        }
+        loading={isLoading || isFetching}
+        minWidth={900}
+        totalCountLabel={`${total.toLocaleString('id-ID')} stock items`}
+        emptyLabel="Tidak ada data Stock MS yang cocok dengan filter."
       />
 
       <LiquidPanel sx={{ mt: 1 }}>
