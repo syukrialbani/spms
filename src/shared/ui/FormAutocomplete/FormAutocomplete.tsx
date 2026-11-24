@@ -115,9 +115,9 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
           paper: {
             sx: {
               bgcolor: '#ffffff',
-              border: '1px solid #8d99a8',
-              borderRadius: '2px',
-              boxShadow: '0 6px 16px rgba(24, 32, 44, 0.12)',
+              border: '1px solid #dce5e0',
+              borderRadius: '8px',
+              boxShadow: '0 10px 26px rgba(15, 25, 21, 0.1)',
               mt: 0.5,
             },
           },
@@ -144,7 +144,7 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
         )}
         sx={{
           '& .MuiOutlinedInput-root': {
-            bgcolor: disabled ? '#dfe5ec' : '#ffffff',
+            bgcolor: disabled ? '#f1f5f3' : '#ffffff',
             minHeight: 30,
             py: '1px !important',
             pr: accent ? '38px !important' : undefined,
@@ -157,14 +157,14 @@ export function FormAutocomplete<FormValues extends object = Record<string, unkn
           ...(accent
             ? {
                 '& .MuiAutocomplete-popupIndicator': {
-                  bgcolor: '#eef1f4',
-                  border: '1px solid #adb6c2',
-                  borderRadius: '2px',
-                  color: '#18202c',
+                  bgcolor: '#f1f5f3',
+                  border: '1px solid #d5dfd9',
+                  borderRadius: '5px',
+                  color: '#3f524a',
                   height: 20,
                   width: 20,
                   '&:hover': {
-                    bgcolor: '#dfe5ec',
+                    bgcolor: '#e4ede8',
                   },
                 },
               }

@@ -737,8 +737,9 @@ export function SpmsRequestForm({
                   spacing={0.75}
                   sx={{
                     alignItems: { sm: 'center' },
-                    bgcolor: '#ffffff',
-                    border: '1px solid #c5cdd6',
+                    bgcolor: '#f8faf9',
+                    border: '1px solid #e2e8e5',
+                    borderRadius: '8px',
                     justifyContent: 'space-between',
                     px: 1.25,
                     py: 0.7,
@@ -931,8 +932,8 @@ export function SpmsRequestForm({
           direction={{ xs: 'column-reverse', sm: 'row' }}
           spacing={1}
           sx={{
-            bgcolor: '#eef1f4',
-            borderTop: '1px solid #c5cdd6',
+            bgcolor: '#f8faf9',
+            borderTop: '1px solid #e2e8e5',
             justifyContent: 'flex-end',
             px: { xs: 1.25, md: 1.5 },
             py: 1,

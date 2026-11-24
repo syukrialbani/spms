@@ -205,15 +205,15 @@ export function FormDateTimeField<
                   {
                     backgroundColor: '#ffffff',
                     backgroundImage: 'none',
-                    borderRadius: '2px',
+                    borderRadius: '7px',
                     minHeight: 30,
                   },
                 '& .MuiPickersOutlinedInput-notchedOutline': {
-                  borderColor: '#8d99a8',
+                  borderColor: '#d0dbd5',
                 },
                 '& .MuiPickersOutlinedInput-root:hover .MuiPickersOutlinedInput-notchedOutline':
                   {
-                    borderColor: '#18202c',
+                    borderColor: '#9db2a7',
                   },
                 '& .MuiPickersOutlinedInput-root.MuiPickersInputBase-focused .MuiPickersOutlinedInput-notchedOutline, & .MuiPickersOutlinedInput-root.MuiPickersOutlinedInput-focused .MuiPickersOutlinedInput-notchedOutline':
                   {

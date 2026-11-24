@@ -1,83 +1,84 @@
 import { createTheme } from '@mui/material/styles'
 
-// Single-mode Almanac operational theme — zero runtime dark/light branching,
-// zero liquid glass, zero gradients, zero heavy drop shadows.
+// Modern Aviat Brand Theme — derived from Aviat Networks logo (Emerald #1F8A3B, Lime #8DC63F, Charcoal #0F1915).
+// Single-mode light operational UI, zero liquid glass, zero dark/light branching, minimal fast rendering.
 export const appTheme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#9e1c4d', // Almanac chart magenta (oklch 45% 0.18 350)
-      dark: '#7c143c',
-      light: '#f7e4ec',
-      contrastText: '#f7f8fa',
+      main: '#1b7d34', // Aviat Emerald (WCAG AA > 5.1:1 on white)
+      dark: '#146328',
+      light: '#eaf6ee',
+      contrastText: '#ffffff',
     },
     secondary: {
-      main: '#18202c', // Almanac blue-black ink (oklch 16% 0.02 245)
-      dark: '#0f151e',
-      light: '#dce2e8',
-      contrastText: '#f7f8fa',
+      main: '#0f1915', // Aviat Deep Charcoal
+      dark: '#080e0c',
+      light: '#edf2ef',
+      contrastText: '#ffffff',
     },
     success: {
-      main: '#1e6b3b',
-      light: '#e2f2e7',
+      main: '#16803c',
+      light: '#eaf6ee',
     },
     warning: {
-      main: '#9a5b0c',
-      light: '#fdf0d9',
+      main: '#b45309',
+      light: '#fef3c7',
     },
     error: {
-      main: '#b42318',
-      light: '#fce4e2',
+      main: '#dc2626',
+      light: '#fee2e2',
     },
     info: {
-      main: '#1d568c',
-      light: '#e2eef8',
+      main: '#0284c7',
+      light: '#e0f2fe',
     },
     background: {
-      default: '#cdd4dc', // Almanac slate stock (--color-paper)
-      paper: '#eef1f4', // Almanac printed sheet (--color-sheet)
+      default: '#f5f7f6', // Clean modern alabaster-sage
+      paper: '#ffffff', // Crisp white card surface
     },
     text: {
-      primary: '#18202c', // --color-ink
-      secondary: '#475261', // --color-muted
+      primary: '#0f1915',
+      secondary: '#5a6c64',
     },
-    divider: '#adb6c2', // --color-rule
+    divider: '#e2e8e5',
   },
   shape: {
-    borderRadius: 2,
+    borderRadius: 8,
   },
   typography: {
-    fontFamily: '"Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif',
+    fontFamily:
+      '"Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif',
     fontSize: 13,
     body1: {
-      fontSize: '0.875rem',
+      fontSize: '0.84rem',
       lineHeight: 1.45,
     },
     body2: {
-      fontSize: '0.8125rem',
+      fontSize: '0.78rem',
       lineHeight: 1.4,
     },
     caption: {
-      fontSize: '0.75rem',
+      fontSize: '0.72rem',
       lineHeight: 1.35,
     },
     h4: {
-      fontWeight: 600,
-      letterSpacing: '-0.02em',
-      fontSize: '1.375rem',
+      fontWeight: 700,
+      letterSpacing: '-0.025em',
+      fontSize: '1.35rem',
     },
     h5: {
-      fontWeight: 600,
-      letterSpacing: '-0.015em',
-      fontSize: '1.125rem',
+      fontWeight: 700,
+      letterSpacing: '-0.02em',
+      fontSize: '1.1rem',
     },
     h6: {
-      fontWeight: 600,
-      letterSpacing: '-0.01em',
-      fontSize: '0.975rem',
+      fontWeight: 700,
+      letterSpacing: '-0.015em',
+      fontSize: '0.95rem',
     },
     button: {
-      fontSize: '0.8125rem',
+      fontSize: '0.76rem',
       fontWeight: 600,
       letterSpacing: 0,
       textTransform: 'none',
@@ -86,7 +87,7 @@ export const appTheme = createTheme({
   components: {
     MuiButtonBase: {
       defaultProps: {
-        disableRipple: true, // Lighter rendering & crisp operational feel
+        disableRipple: true,
       },
     },
     MuiButton: {
@@ -95,31 +96,33 @@ export const appTheme = createTheme({
       },
       styleOverrides: {
         root: {
-          borderRadius: 2,
+          borderRadius: 7,
           minHeight: 30,
           paddingLeft: 12,
           paddingRight: 12,
           fontSize: '0.76rem',
+          fontWeight: 600,
           boxShadow: 'none',
-          transition: 'background-color 120ms ease, border-color 120ms ease, color 120ms ease',
+          transition:
+            'background-color 120ms ease, border-color 120ms ease, color 120ms ease',
           '&:focus-visible': {
-            outline: '2px solid #9e1c4d',
+            outline: '2px solid #1f8a3b',
             outlineOffset: 2,
           },
         },
         contained: {
-          boxShadow: 'none',
+          boxShadow: '0 1px 2px rgba(15, 25, 21, 0.08)',
           '&:hover': {
-            boxShadow: 'none',
+            boxShadow: '0 2px 6px rgba(31, 138, 59, 0.18)',
           },
         },
         outlined: {
-          borderColor: '#475261',
-          color: '#18202c',
-          backgroundColor: 'transparent',
+          borderColor: '#d0dbd5',
+          color: '#0f1915',
+          backgroundColor: '#ffffff',
           '&:hover': {
-            borderColor: '#18202c',
-            backgroundColor: '#dce2e8',
+            borderColor: '#1f8a3b',
+            backgroundColor: '#f5f9f6',
           },
         },
       },
@@ -137,31 +140,30 @@ export const appTheme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 0,
-          border: '1px solid #adb6c2',
-          borderTop: '2px solid #3c4654',
-          backgroundColor: '#eef1f4',
-          boxShadow: 'none',
+          borderRadius: 10,
+          border: '1px solid #e2e8e5',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 1px 2px rgba(15, 25, 21, 0.04)',
         },
       },
     },
     MuiDialog: {
       styleOverrides: {
         paper: {
-          borderRadius: 2,
-          border: '1px solid #3c4654',
-          backgroundColor: '#f5f7f9',
-          boxShadow: '0 8px 24px rgba(24, 32, 44, 0.14)',
+          borderRadius: 12,
+          border: '1px solid #e2e8e5',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 16px 40px rgba(15, 25, 21, 0.14)',
         },
       },
     },
     MuiPopover: {
       styleOverrides: {
         paper: {
-          borderRadius: 2,
-          border: '1px solid #adb6c2',
+          borderRadius: 10,
+          border: '1px solid #e2e8e5',
           backgroundColor: '#ffffff',
-          boxShadow: '0 6px 18px rgba(24, 32, 44, 0.12)',
+          boxShadow: '0 10px 28px rgba(15, 25, 21, 0.1)',
         },
       },
     },
@@ -169,16 +171,16 @@ export const appTheme = createTheme({
       styleOverrides: {
         root: {
           backgroundColor: '#ffffff',
-          borderRadius: 2,
+          borderRadius: 7,
           minHeight: 30,
           '& fieldset': {
-            borderColor: '#8d99a8',
+            borderColor: '#d0dbd5',
           },
           '&:hover fieldset': {
-            borderColor: '#18202c',
+            borderColor: '#9db2a7',
           },
           '&.Mui-focused fieldset': {
-            borderColor: '#9e1c4d',
+            borderColor: '#1f8a3b',
             borderWidth: 1.5,
           },
         },
@@ -193,16 +195,16 @@ export const appTheme = createTheme({
     MuiChip: {
       styleOverrides: {
         root: {
-          borderRadius: 2,
+          borderRadius: 6,
           fontSize: '0.68rem',
           fontWeight: 600,
           height: 20,
         },
         sizeSmall: {
-          height: 18,
+          height: 19,
           '& .MuiChip-label': {
-            paddingLeft: 6,
-            paddingRight: 6,
+            paddingLeft: 7,
+            paddingRight: 7,
           },
         },
       },
@@ -212,23 +214,23 @@ export const appTheme = createTheme({
         root: {
           textTransform: 'none',
           fontWeight: 600,
-          minHeight: 40,
+          minHeight: 36,
         },
       },
     },
     MuiTableCell: {
       styleOverrides: {
         root: {
-          borderBottom: '1px solid #c5cdd6',
-          fontSize: '0.8125rem',
-          paddingBottom: 9,
-          paddingTop: 9,
+          borderBottom: '1px solid #edf2ef',
+          fontSize: '0.72rem',
+          paddingBottom: 5,
+          paddingTop: 5,
         },
         head: {
-          backgroundColor: '#dfe5ec',
-          borderBottom: '2px solid #3c4654',
-          color: '#18202c',
-          fontSize: '0.78rem',
+          backgroundColor: '#f8faf9',
+          borderBottom: '1px solid #dce5e0',
+          color: '#3f524a',
+          fontSize: '0.7rem',
           fontWeight: 600,
           textTransform: 'none',
           letterSpacing: 0,

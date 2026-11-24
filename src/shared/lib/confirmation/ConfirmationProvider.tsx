@@ -76,11 +76,10 @@ export function ConfirmationProvider({ children }: PropsWithChildren) {
         slotProps={{
           paper: {
             sx: {
-              bgcolor: '#f5f7f9',
-              border: '1px solid #3c4654',
-              borderTop: '3px solid #9e1c4d',
-              borderRadius: '2px',
-              boxShadow: '0 8px 24px rgba(24, 32, 44, 0.14)',
+              bgcolor: '#ffffff',
+              border: '1px solid #dce5e0',
+              borderRadius: '12px',
+              boxShadow: '0 16px 40px rgba(15, 25, 21, 0.14)',
             },
           },
         }}

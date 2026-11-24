@@ -75,8 +75,8 @@ export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
       color="inherit"
       elevation={0}
       sx={{
-        bgcolor: '#eef1f4',
-        borderBottom: '1px solid #adb6c2',
+        bgcolor: '#ffffff',
+        borderBottom: '1px solid #e2e8e5',
         left: { xs: 0, md: `${drawerWidth}px` },
         top: 0,
         width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
@@ -103,8 +103,8 @@ export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
           noWrap
           sx={{
             color: 'text.primary',
-            fontSize: { xs: 16, sm: 17 },
-            fontWeight: 600,
+            fontSize: { xs: 15.5, sm: 16.5 },
+            fontWeight: 700,
           }}
         >
           {title}
@@ -122,13 +122,14 @@ export function MainAppBar({ drawerWidth, onMenuClick }: MainAppBarProps) {
             src={session?.image ?? undefined}
             alt={displayName}
             sx={{
-              bgcolor: '#18202c',
-              borderRadius: '2px',
-              color: '#eef1f4',
+              bgcolor: '#eaf6ee',
+              border: '1px solid #c3e6ce',
+              borderRadius: '8px',
+              color: '#1f8a3b',
               fontSize: 12,
-              fontWeight: 600,
-              height: 30,
-              width: 30,
+              fontWeight: 700,
+              height: 32,
+              width: 32,
             }}
           >
             {getInitials(session?.firstName, session?.lastName)}

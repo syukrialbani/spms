@@ -150,16 +150,16 @@ export function ProcessTimeline({ items }: { items: TimelineItem[] }) {
   const activeItem = items[safeIdx]
 
   const getColor = (state: TimelineState) => {
-    if (state === 'done') return '#1e6b3b'
-    if (state === 'active') return '#9a5b0c'
-    return '#7b8794'
+    if (state === 'done') return '#1f8a3b'
+    if (state === 'active') return '#b45309'
+    return '#7a8f85'
   }
 
   const getBg = (state: TimelineState, isSelected: boolean) => {
-    if (isSelected) return '#e7edf3'
-    if (state === 'done') return '#f0f7f2'
-    if (state === 'active') return '#fdf6e7'
-    return '#f6f8fa'
+    if (isSelected) return '#eaf6ee'
+    if (state === 'done') return '#f5fbf7'
+    if (state === 'active') return '#fffbeb'
+    return '#f8faf9'
   }
 
   return (
@@ -167,7 +167,7 @@ export function ProcessTimeline({ items }: { items: TimelineItem[] }) {
       <Box
         sx={{
           display: 'grid',
-          gap: 0.5,
+          gap: 0.6,
           gridTemplateColumns: {
             xs: 'repeat(2, minmax(0, 1fr))',
             sm: 'repeat(4, minmax(0, 1fr))',
@@ -189,21 +189,20 @@ export function ProcessTimeline({ items }: { items: TimelineItem[] }) {
                 alignItems: 'flex-start',
                 bgcolor: getBg(item.state, isSelected),
                 border: '1px solid',
-                borderColor: isSelected ? '#18202c' : '#c5cdd6',
-                borderTop: '2px solid',
-                borderTopColor: color,
-                borderRadius: '2px',
+                borderColor: isSelected ? '#1f8a3b' : '#e2e8e5',
+                borderRadius: '8px',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 0.25,
                 minWidth: 0,
-                p: 0.65,
+                p: 0.75,
                 textAlign: 'left',
                 transition:
                   'background-color 120ms ease, border-color 120ms ease',
                 '&:hover': {
-                  bgcolor: '#e7edf3',
+                  bgcolor: '#edf7f0',
+                  borderColor: '#a3d9b1',
                 },
               }}
             >
@@ -263,12 +262,13 @@ export function ProcessTimeline({ items }: { items: TimelineItem[] }) {
           spacing={{ xs: 0.5, md: 1.5 }}
           sx={{
             alignItems: { md: 'center' },
-            bgcolor: '#ffffff',
-            border: '1px solid #c5cdd6',
+            bgcolor: '#f8faf9',
+            border: '1px solid #e2e8e5',
             borderLeft: `3px solid ${getColor(activeItem.state)}`,
+            borderRadius: '7px',
             justifyContent: 'space-between',
             px: 1.25,
-            py: 0.6,
+            py: 0.65,
           }}
         >
           <Stack

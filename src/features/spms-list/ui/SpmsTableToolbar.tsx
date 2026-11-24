@@ -40,7 +40,7 @@ export function SpmsTableToolbar({
       <Stack spacing={1.25}>
         <Box
           sx={{
-            borderBottom: '1px solid #c5cdd6',
+            borderBottom: '1px solid #e8eeea',
             display: 'flex',
             gap: 0.75,
             overflowX: 'auto',
@@ -59,9 +59,10 @@ export function SpmsTableToolbar({
                 variant={selected ? 'contained' : 'outlined'}
                 color={selected ? 'primary' : 'secondary'}
                 sx={{
-                  borderColor: selected ? 'primary.main' : '#adb6c2',
+                  borderColor: selected ? 'primary.main' : '#d5dfd9',
+                  borderRadius: '7px',
                   flexShrink: 0,
-                  minHeight: 30,
+                  minHeight: 28,
                   px: 1.25,
                   whiteSpace: 'nowrap',
                 }}

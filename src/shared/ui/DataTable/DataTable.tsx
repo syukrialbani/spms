@@ -72,10 +72,10 @@ function RawDataTableRow<Row>({
     <TableRow
       onClick={onRowClick ? () => onRowClick(row) : undefined}
       sx={{
-        backgroundColor: isOdd ? '#f6f8fa' : '#ffffff',
+        backgroundColor: isOdd ? '#fafdfb' : '#ffffff',
         cursor: onRowClick ? 'pointer' : 'default',
         '&:hover': {
-          backgroundColor: '#e7edf3',
+          backgroundColor: '#f0f7f2',
         },
         '&:last-child td': {
           borderBottom: 0,
@@ -94,8 +94,8 @@ function RawDataTableRow<Row>({
               maxWidth: column.width,
               minWidth: column.minWidth,
               overflow: 'hidden',
-              px: comfortable ? 1 : 0.75,
-              py: comfortable ? 0.75 : 0.42,
+              px: comfortable ? 1.15 : 0.85,
+              py: comfortable ? 0.78 : 0.45,
               textOverflow: 'ellipsis',
               whiteSpace: column.nowrap === false ? 'normal' : 'nowrap',
               width: column.width,
@@ -155,9 +155,9 @@ export function DataTable<Row>({
       elevation={0}
       sx={{
         bgcolor: '#ffffff',
-        border: '1px solid #adb6c2',
-        borderTop: '2px solid #18202c',
-        borderRadius: 0,
+        border: '1px solid #e2e8e5',
+        borderRadius: '10px',
+        boxShadow: '0 1px 2px rgba(15, 25, 21, 0.04)',
         display: 'block',
         maxWidth: '100%',
         overflow: 'hidden',
@@ -170,12 +170,12 @@ export function DataTable<Row>({
         spacing={1}
         sx={{
           alignItems: 'center',
-          bgcolor: '#eef1f4',
-          borderBottom: '1px solid #c5cdd6',
+          bgcolor: '#f8faf9',
+          borderBottom: '1px solid #e8eeea',
           justifyContent: 'space-between',
-          minHeight: 30,
-          px: 1.25,
-          py: 0.4,
+          minHeight: 34,
+          px: 1.5,
+          py: 0.45,
         }}
       >
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -211,10 +211,11 @@ export function DataTable<Row>({
           size="small"
           variant="outlined"
           sx={{
-            borderColor: '#adb6c2',
+            borderColor: '#d0dbd5',
+            borderRadius: '6px',
             fontSize: '0.68rem',
             minHeight: 22,
-            px: 0.9,
+            px: 1,
             py: 0,
           }}
         >
@@ -226,7 +227,7 @@ export function DataTable<Row>({
         {loading ? (
           <LinearProgress
             color="primary"
-            sx={{ height: 2, bgcolor: '#dfe5ec' }}
+            sx={{ height: 2, bgcolor: '#e6f2ea' }}
           />
         ) : null}
       </Box>
@@ -258,15 +259,15 @@ export function DataTable<Row>({
                   align={column.align}
                   sx={[
                     {
-                      backgroundColor: '#dfe5ec',
-                      borderBottom: '2px solid #3c4654',
-                      color: '#18202c',
+                      backgroundColor: '#f8faf9',
+                      borderBottom: '1px solid #dce5e0',
+                      color: '#3f524a',
                       fontSize: '0.7rem',
                       fontWeight: 600,
                       lineHeight: 1.2,
                       minWidth: column.minWidth,
-                      px: comfortable ? 1 : 0.75,
-                      py: 0.65,
+                      px: comfortable ? 1.15 : 0.85,
+                      py: 0.75,
                       whiteSpace: 'nowrap',
                       width: column.width,
                     },
@@ -293,14 +294,11 @@ export function DataTable<Row>({
                 <TableRow
                   key={`skeleton-${rowIdx}`}
                   sx={{
-                    backgroundColor: rowIdx % 2 === 1 ? '#f6f8fa' : '#ffffff',
+                    backgroundColor: rowIdx % 2 === 1 ? '#fafdfb' : '#ffffff',
                   }}
                 >
                   {columns.map((column) => (
-                    <TableCell
-                      key={column.key}
-                      sx={{ px: 0.75, py: 0.65 }}
-                    >
+                    <TableCell key={column.key} sx={{ px: 0.85, py: 0.65 }}>
                       <Skeleton
                         variant="text"
                         height={16}
@@ -350,15 +348,15 @@ export function DataTable<Row>({
             setPage(0)
           }}
           sx={{
-            bgcolor: '#eef1f4',
-            borderTop: '1px solid #c5cdd6',
+            bgcolor: '#f8faf9',
+            borderTop: '1px solid #e8eeea',
             overflow: 'hidden',
-            px: { xs: 0.5, sm: 1 },
+            px: { xs: 0.5, sm: 1.25 },
             '& .MuiTablePagination-toolbar': {
               flexWrap: { xs: 'wrap', sm: 'nowrap' },
               gap: { xs: 0.5, sm: 0.75 },
               justifyContent: { xs: 'center', sm: 'flex-end' },
-              minHeight: 38,
+              minHeight: 40,
             },
             '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows':
               {

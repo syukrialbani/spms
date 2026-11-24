@@ -4,8 +4,8 @@ type LiquidPanelProps = PaperProps & {
   tone?: 'light' | 'dark'
 }
 
-// Flat Almanac printed-sheet surface (keeps export name for compatibility,
-// zero liquid glass, zero gradients, zero heavy shadows).
+// Modern crisp white card surface (keeps export name for compatibility,
+// zero liquid glass, zero heavy shadows).
 export function LiquidPanel({ tone = 'light', sx, ...props }: LiquidPanelProps) {
   const isInk = tone === 'dark'
 
@@ -14,14 +14,12 @@ export function LiquidPanel({ tone = 'light', sx, ...props }: LiquidPanelProps) 
       elevation={0}
       sx={[
         {
-          bgcolor: isInk ? '#18202c' : '#eef1f4',
+          bgcolor: isInk ? '#0e1614' : '#ffffff',
           border: '1px solid',
-          borderColor: isInk ? '#2b3646' : '#adb6c2',
-          borderTop: '2px solid',
-          borderTopColor: isInk ? '#9e1c4d' : '#3c4654',
-          borderRadius: 0,
-          boxShadow: 'none',
-          color: isInk ? '#eef1f4' : 'text.primary',
+          borderColor: isInk ? '#1b2824' : '#e2e8e5',
+          borderRadius: '10px',
+          boxShadow: isInk ? 'none' : '0 1px 2px rgba(15, 25, 21, 0.04)',
+          color: isInk ? '#eef4f0' : 'text.primary',
           overflow: 'hidden',
         },
         ...(Array.isArray(sx) ? sx : [sx]),

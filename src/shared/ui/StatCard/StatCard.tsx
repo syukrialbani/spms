@@ -14,7 +14,7 @@ type StatCardProps = {
 export function StatCard({ icon, label, value, helper }: StatCardProps) {
   return (
     <LiquidPanel sx={{ px: 2, py: 1.75 }}>
-      <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+      <Stack spacing={0.75} sx={{ minWidth: 0 }}>
         <Stack
           direction="row"
           spacing={1}
@@ -23,12 +23,23 @@ export function StatCard({ icon, label, value, helper }: StatCardProps) {
           <Typography
             color="text.secondary"
             variant="body2"
-            sx={{ fontWeight: 500 }}
+            sx={{ fontSize: '0.78rem', fontWeight: 600 }}
           >
             {label}
           </Typography>
           {icon ? (
-            <Box sx={{ color: 'text.secondary', display: 'flex', opacity: 0.7 }}>
+            <Box
+              sx={{
+                alignItems: 'center',
+                bgcolor: '#eaf6ee',
+                borderRadius: '8px',
+                color: '#1f8a3b',
+                display: 'flex',
+                height: 30,
+                justifyContent: 'center',
+                width: 30,
+              }}
+            >
               {icon}
             </Box>
           ) : null}
@@ -37,9 +48,9 @@ export function StatCard({ icon, label, value, helper }: StatCardProps) {
           sx={{
             color: 'text.primary',
             fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
-            fontSize: { xs: 22, md: 26 },
+            fontSize: { xs: 22, md: 25 },
             fontVariantNumeric: 'tabular-nums',
-            fontWeight: 500,
+            fontWeight: 600,
             letterSpacing: '-0.03em',
             lineHeight: 1.15,
           }}

@@ -71,8 +71,8 @@ export function MainNavigation({ onNavigate }: MainNavigationProps) {
   return (
     <Box
       sx={{
-        bgcolor: '#18202c',
-        color: '#eef1f4',
+        bgcolor: '#0e1614',
+        color: '#eef4f0',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
@@ -81,7 +81,7 @@ export function MainNavigation({ onNavigate }: MainNavigationProps) {
       <Box
         sx={{
           alignItems: 'center',
-          borderBottom: '1px solid #2b3646',
+          borderBottom: '1px solid #1b2824',
           display: 'flex',
           height: 56,
           px: 2,
@@ -102,32 +102,30 @@ export function MainNavigation({ onNavigate }: MainNavigationProps) {
                 onNavigate?.()
               }}
               sx={{
-                borderLeft: selected
-                  ? '3px solid #9e1c4d'
-                  : '3px solid transparent',
-                borderRadius: '2px',
-                color: selected ? '#ffffff' : '#b7c2d0',
+                borderRadius: '8px',
+                color: selected ? '#ffffff' : '#9eb0a7',
                 mb: 0.5,
-                minHeight: 40,
+                minHeight: 38,
                 px: 1.25,
-                py: 0.75,
+                py: 0.65,
+                position: 'relative',
                 '&:hover': {
-                  bgcolor: '#232e3e',
+                  bgcolor: 'rgba(255, 255, 255, 0.05)',
                   color: '#ffffff',
                 },
                 '&.Mui-selected': {
-                  bgcolor: '#232e3e',
+                  bgcolor: 'rgba(141, 198, 63, 0.14)',
                   color: '#ffffff',
                   '&:hover': {
-                    bgcolor: '#2b3749',
+                    bgcolor: 'rgba(141, 198, 63, 0.2)',
                   },
                 },
               }}
             >
               <ListItemIcon
                 sx={{
-                  color: selected ? '#f08db3' : 'inherit',
-                  minWidth: 34,
+                  color: selected ? '#9ad643' : 'inherit',
+                  minWidth: 32,
                 }}
               >
                 {item.icon}
@@ -136,7 +134,7 @@ export function MainNavigation({ onNavigate }: MainNavigationProps) {
                 primary={
                   <Typography
                     sx={{
-                      fontSize: '0.84rem',
+                      fontSize: '0.82rem',
                       fontWeight: selected ? 600 : 500,
                       lineHeight: 1.25,
                     }}
@@ -149,10 +147,10 @@ export function MainNavigation({ onNavigate }: MainNavigationProps) {
           )
         })}
       </List>
-      <Box sx={{ borderTop: '1px solid #2b3646', px: 2, py: 1.5 }}>
+      <Box sx={{ borderTop: '1px solid #1b2824', px: 2, py: 1.5 }}>
         <Typography
           variant="caption"
-          sx={{ color: '#9aa7b8', display: 'block', fontWeight: 500 }}
+          sx={{ color: '#7a8f85', display: 'block', fontWeight: 500 }}
         >
           Aviat SPMS Operations
         </Typography>

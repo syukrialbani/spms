@@ -1,27 +1,23 @@
-/* Hallmark · shape: app screen · genre: editorial · theme: Almanac (deal 2/3, seed telecom-spare-part-management-f081·00ace349·2026-11-23·r0) · redesign: full
- * nav: docked ink rail + flat top bar · signature: printed-sheet SPMS operations ledger · states: loading, empty, error, full
- * axes: mid/grotesk-sans/chromatic-magenta · posture: restrained · contrast: pass · v2.0.0 */
-/* Hallmark · pre-emit critique: P9 H9 E9 S9 R9 V9 · weakest: dense multi-column SPMS tables on small viewports, solved with sticky order/action columns, horizontal scroll controls, and density toggle */
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: Aviat Brand (custom brand palette from aviat-logo-round.png) · redesign: full
+ * nav: modern dark charcoal-emerald rail + clean white top bar · signature: airy white-card SPMS operations workspace with Aviat emerald/lime accents · states: loading, empty, error, full
+ * axes: light/geometric-sans/aviat-emerald-lime · posture: crisp-modern · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P9 H9 E9 S9 R9 V9 · weakest: balancing high-density operational tables with a modern airy aesthetic, solved via pure white rounded cards, soft #F5F7F6 canvas, and subtle hairline dividers */
 @import url("./tokens.css");
 @import url("./base.css");
-
-:root {
-  --font-ui: var(--font-display);
-}
 
 html,
 body {
   overflow-x: clip;
   background: var(--color-paper);
   color: var(--color-ink);
-  font-family: var(--font-ui);
+  font-family: var(--font-body);
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100svh;
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.45;
 }
 
@@ -42,5 +38,5 @@ a:active {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-muted) var(--color-paper-2);
+  scrollbar-color: var(--color-rule-2) transparent;
 }

@@ -63,7 +63,7 @@ export function FormTextField<FormValues extends object = Record<string, unknown
       sx={[
         {
           '& .MuiOutlinedInput-root': {
-            bgcolor: isDisabled || readOnly ? '#dfe5ec' : '#ffffff',
+            bgcolor: isDisabled || readOnly ? '#f1f5f3' : '#ffffff',
             minHeight: props.multiline ? undefined : 30,
           },
           '& .MuiInputBase-input': {

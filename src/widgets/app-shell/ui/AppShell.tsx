@@ -37,11 +37,11 @@ export function AppShell() {
           sx={{
             display: { xs: 'block', md: 'none' },
             '& .MuiDrawer-paper': {
-              bgcolor: '#18202c',
+              bgcolor: '#0e1614',
               border: 0,
               boxSizing: 'border-box',
               maxWidth: '85vw',
-              width: 260,
+              width: 256,
             },
           }}
         >
@@ -53,9 +53,9 @@ export function AppShell() {
           sx={{
             display: { xs: 'none', md: 'block' },
             '& .MuiDrawer-paper': {
-              bgcolor: '#18202c',
+              bgcolor: '#0e1614',
               border: 0,
-              borderRight: '1px solid #0f151e',
+              borderRight: '1px solid #1b2824',
               boxSizing: 'border-box',
               width: drawerWidth,
             },

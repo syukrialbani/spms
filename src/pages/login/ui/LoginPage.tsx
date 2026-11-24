@@ -26,7 +26,7 @@ export function LoginPage() {
     <Box
       sx={{
         alignItems: 'center',
-        bgcolor: '#cdd4dc',
+        bgcolor: '#f5f7f6',
         display: 'flex',
         justifyContent: 'center',
         minHeight: '100svh',
@@ -37,17 +37,21 @@ export function LoginPage() {
     >
       <Box
         sx={{
-          border: '1px solid #3c4654',
+          bgcolor: '#ffffff',
+          border: '1px solid #dce5e0',
+          borderRadius: '14px',
+          boxShadow: '0 12px 32px rgba(15, 25, 21, 0.08)',
           display: 'grid',
           gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
           maxWidth: 880,
+          overflow: 'hidden',
           width: '100%',
         }}
       >
         <Box
           sx={{
-            bgcolor: '#18202c',
-            color: '#eef1f4',
+            bgcolor: '#0e1614',
+            color: '#eef4f0',
             display: { xs: 'none', md: 'flex' },
             flexDirection: 'column',
             justifyContent: 'space-between',
@@ -56,28 +60,36 @@ export function LoginPage() {
         >
           <AviatBrand size="large" />
           <Stack spacing={1.5}>
+            <Box
+              sx={{
+                bgcolor: '#8dc63f',
+                borderRadius: '99px',
+                height: 4,
+                width: 44,
+              }}
+            />
             <Typography
               component="h1"
               sx={{
                 color: '#ffffff',
-                fontSize: 32,
-                fontWeight: 600,
+                fontSize: 30,
+                fontWeight: 700,
                 letterSpacing: '-0.025em',
-                lineHeight: 1.1,
+                lineHeight: 1.15,
               }}
             >
               SPMS control for Aviat operations.
             </Typography>
-            <Typography sx={{ color: '#b7c2d0', fontSize: 14, lineHeight: 1.5 }}>
+            <Typography sx={{ color: '#9eb0a7', fontSize: 13.5, lineHeight: 1.55 }}>
               Kelola permintaan spare part, delivery order, stock MS, dan return
-              material dalam satu sistem operasional.
+              material dalam satu platform operasional modern.
             </Typography>
           </Stack>
-          <Box sx={{ borderTop: '1px solid #2b3646', pt: 2 }}>
+          <Box sx={{ borderTop: '1px solid #1b2824', pt: 2 }}>
             <Typography
               variant="caption"
               sx={{
-                color: '#9aa7b8',
+                color: '#7a8f85',
                 fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
               }}
             >
@@ -88,15 +100,15 @@ export function LoginPage() {
 
         <Box
           sx={{
-            bgcolor: '#f5f7f9',
-            borderTop: { xs: '3px solid #9e1c4d', md: 0 },
+            bgcolor: '#ffffff',
             p: { xs: 3, sm: 4.5 },
           }}
         >
           <Stack spacing={2.5}>
             <Box
               sx={{
-                bgcolor: '#18202c',
+                bgcolor: '#0e1614',
+                borderRadius: '8px',
                 display: { xs: 'inline-flex', md: 'none' },
                 p: 1.25,
                 width: 'fit-content',
@@ -108,15 +120,15 @@ export function LoginPage() {
               <Typography
                 component="h2"
                 sx={{
-                  color: '#18202c',
-                  fontSize: 24,
-                  fontWeight: 600,
+                  color: '#0f1915',
+                  fontSize: 22,
+                  fontWeight: 700,
                   letterSpacing: '-0.02em',
                 }}
               >
                 Sign in
               </Typography>
-              <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>
+              <Typography color="text.secondary" variant="body2" sx={{ mt: 0.4 }}>
                 Masuk menggunakan akun SPMS Anda.
               </Typography>
             </Box>

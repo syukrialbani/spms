@@ -4,18 +4,36 @@
   --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.2rem; --text-xl: 1.44rem; --text-2xl: 1.728rem; --text-3xl: 2.074rem;
   --text-display-s: 1.44rem; --text-display: 1.728rem; --text-section: 1.2rem; --text-title: 1rem; --text-lead: 1rem;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-in: cubic-bezier(0.7, 0, 0.84, 0); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 420ms;
-  --color-error: oklch(52% 0.19 27); --color-success: oklch(50% 0.12 150);
-  --container: 1440px; --gutter: 64px; --gap-columns: 32px; --section-gap-s: 120px; --section-gap: 144px; --section-gap-l: 176px;
+  --dur-micro: 120ms; --dur-short: 200ms; --dur-long: 360ms;
+  --color-error: #dc2626; --color-success: #16a34a; --color-warning: #d97706;
+  --container: 1600px; --gutter: 24px; --gap-columns: 20px; --section-gap-s: 40px; --section-gap: 64px; --section-gap-l: 96px;
   --z-base: 1; --z-raised: 10; --z-dropdown: 100; --z-sticky: 200; --z-sticky-nav: 300; --z-modal: 400; --z-toast: 500; --z-tooltip: 600;
-  --color-paper: oklch(84% 0.012 245); --color-paper-2: oklch(81% 0.012 245); --color-paper-3: oklch(77% 0.012 245);
-  --color-ink: oklch(16% 0.020 245); --color-ink-2: oklch(24% 0.018 245); --color-muted: oklch(38% 0.016 245);
-  --color-rule: oklch(73% 0.013 240); --color-rule-2: oklch(32% 0.018 240);
-  --color-accent: oklch(45% 0.180 350); --color-accent-2: oklch(37% 0.160 350); --color-accent-ink: oklch(97% 0.006 245); --color-focus: oklch(46% 0.190 350);
-  --color-sheet: oklch(93.5% 0.008 245);
-  --font-display: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Newsreader", ui-serif, Georgia, serif;
+
+  /* Aviat Modern Brand Palette (derived from aviat-logo-round.png: Emerald #1F8A3B + Lime #8DC63F + Charcoal #0E1614) */
+  --color-paper: #f5f7f6;
+  --color-paper-2: #edf2ef;
+  --color-paper-3: #e2eae5;
+  --color-sheet: #ffffff;
+  --color-ink: #0f1915;
+  --color-ink-2: #24332d;
+  --color-muted: #5a6c64;
+  --color-rule: #e2e8e5;
+  --color-rule-2: #cbd6d0;
+  --color-accent: #1b7d34;
+  --color-accent-2: #146328;
+  --color-accent-soft: #eaf6ee;
+  --color-lime: #8dc63f;
+  --color-accent-ink: #ffffff;
+  --color-focus: #1b7d34;
+
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-outlier: "IBM Plex Mono", ui-monospace, monospace;
-  --radius-card: 0; --radius-pill: 2px; --rule-hair: 1px; --rule-bar: 2px; --shadow-card: none;
-  --tracking-display: -0.02em; --display-weight: 600;
+  --radius-card: 10px;
+  --radius-pill: 8px;
+  --rule-hair: 1px;
+  --rule-bar: 1px;
+  --shadow-card: 0 1px 2px rgba(15, 25, 21, 0.04);
+  --tracking-display: -0.02em;
+  --display-weight: 700;
 }
